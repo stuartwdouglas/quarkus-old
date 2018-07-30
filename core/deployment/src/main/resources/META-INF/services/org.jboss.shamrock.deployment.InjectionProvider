@@ -1,1 +1,2 @@
 org.jboss.shamrock.deployment.ConfigInjectionProvider
+org.jboss.shamrock.deployment.BeanDeploymentInjectionProvider

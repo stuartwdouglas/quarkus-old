@@ -1,12 +1,17 @@
 package org.jboss.shamrock.runner;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.AccessController;
@@ -14,6 +19,8 @@ import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -34,6 +41,8 @@ public class RuntimeClassLoader extends ClassLoader implements ClassOutput, Cons
     private final Map<String, byte[]> appClasses = new HashMap<>();
     private final Set<String> frameworkClasses = new HashSet<>();
 
+    private final Map<String, byte[]> resources = new HashMap<>();
+
     private volatile List<Function<String, Function<ClassVisitor, ClassVisitor>>> functions = null;
 
     private final Path applicationClasses;
@@ -41,6 +50,31 @@ public class RuntimeClassLoader extends ClassLoader implements ClassOutput, Cons
     public RuntimeClassLoader(ClassLoader parent, Path applicationClasses) {
         super(parent);
         this.applicationClasses = applicationClasses;
+    }
+
+    @Override
+    public Enumeration<URL> getResources(String name) throws IOException {
+        // TODO some superugly hack for bean provider
+        byte[] data = resources.get(name);
+        if (data != null) {
+            URL url = new URL(null, "shamrock:" + name + "/", new URLStreamHandler() {
+                @Override
+                protected URLConnection openConnection(final URL u) throws IOException {
+                    return new URLConnection(u) {
+                        @Override
+                        public void connect() throws IOException {
+                        }
+
+                        @Override
+                        public InputStream getInputStream() throws IOException {
+                            return new ByteArrayInputStream(resources.get(name));
+                        }
+                    };
+                }
+            });
+            return Collections.enumeration(Collections.singleton(url));
+        }
+        return super.getResources(name);
     }
 
     @Override
@@ -134,8 +168,11 @@ public class RuntimeClassLoader extends ClassLoader implements ClassOutput, Cons
         }
     }
 
-    @Override
     public void accept(List<Function<String, Function<ClassVisitor, ClassVisitor>>> functions) {
         this.functions = functions;
+    }
+
+    public void writeResource(String name, byte[] data) throws IOException {
+        resources.put(name, data);
     }
 }

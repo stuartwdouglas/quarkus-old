@@ -79,6 +79,7 @@ public class RuntimeClassLoader extends ClassLoader implements ClassOutput, Cons
 
     @Override
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+        if(0==0) return super.loadClass(name, resolve);
         Class<?> ex = findLoadedClass(name);
         if (ex != null) {
             return ex;
@@ -147,7 +148,7 @@ public class RuntimeClassLoader extends ClassLoader implements ClassOutput, Cons
 
     @Override
     public void writeClass(boolean applicationClass, String className, byte[] data) {
-        if (applicationClass) {
+        if (applicationClass && false) {
             appClasses.put(className.replace('/', '.'), data);
         } else {
             //this is pretty horrible

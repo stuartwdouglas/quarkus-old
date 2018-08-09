@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
@@ -11,9 +13,12 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 import javax.inject.Inject;
 import javax.tools.Diagnostic;
@@ -104,9 +109,33 @@ public class ArcAnnotationProcessor implements ResourceProcessor {
             // Compile the generated classes
             JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
             DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
+            List<File> classPath = new ArrayList<>();
+            for(URL url : ((URLClassLoader)getClass().getClassLoader()).getURLs()) {
+                File file = new File(url.getPath());
+                System.err.println(file);
+                classPath.add(file);
+            }
+            Enumeration<URL> res = getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
+            while (res.hasMoreElements()) {
+
+                URL url = res.nextElement();
+                try (InputStream is = url.openStream()) {
+                    Manifest mf = new Manifest(is);
+                    String cp = (String) mf.getMainAttributes().get(new Attributes.Name("Class-Path"));
+                    System.out.println(cp);
+                    if(cp != null) {
+                        String[] parts = cp.split(" ");
+                        for(String i : parts) {
+                            classPath.add(new File(i));
+                        }
+                    }
+                }
+            }
+
             try (StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, null);) {
 
                 fileManager.setLocation(StandardLocation.CLASS_OUTPUT, Collections.singleton(generatedSourcesDirectory));
+                fileManager.setLocation(StandardLocation.CLASS_PATH, classPath);
 
                 Iterable<? extends JavaFileObject> sources = fileManager.getJavaFileObjectsFromFiles(javaFiles);
                 CompilationTask task = compiler.getTask(null, fileManager, diagnostics, null, null, sources);

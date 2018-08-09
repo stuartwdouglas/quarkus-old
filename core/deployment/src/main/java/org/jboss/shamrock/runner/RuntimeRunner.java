@@ -41,7 +41,7 @@ public class RuntimeRunner implements Runnable, Closeable {
             BuildTimeGenerator buildTimeGenerator = new BuildTimeGenerator(loader, loader, false);
             buildTimeGenerator.run(target);
             loader.accept(buildTimeGenerator.getBytecodeTransformers());
-            Class<?> mainClass = loader.findClass(BuildTimeGenerator.MAIN_CLASS);
+            Class<?> mainClass = loader.loadClass(BuildTimeGenerator.MAIN_CLASS);
             ClassLoader old = Thread.currentThread().getContextClassLoader();
             try {
                 Thread.currentThread().setContextClassLoader(loader);

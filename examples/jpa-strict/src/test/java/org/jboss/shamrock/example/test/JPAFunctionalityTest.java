@@ -16,7 +16,9 @@ public class JPAFunctionalityTest {
 
     @Test
     public void testJPAFunctionalityFromServlet() throws Exception {
-        assertEquals("OK", URLTester.relative("jpa/testfunctionality").invokeURL().asString());
+        for(int i = 0; i < 1000; ++i ) {
+            assertEquals("OK", URLTester.relative("jpa/testfunctionality").invokeURL().asString());
+        }
     }
 
 }

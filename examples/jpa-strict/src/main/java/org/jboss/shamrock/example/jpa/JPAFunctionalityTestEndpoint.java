@@ -24,6 +24,8 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet(name = "JPATestBootstrapEndpoint", urlPatterns = "/jpa/testfunctionality")
 public class JPAFunctionalityTestEndpoint extends HttpServlet {
 
+    private volatile EntityManagerFactory entityManagerFactory;
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
@@ -35,15 +37,16 @@ public class JPAFunctionalityTestEndpoint extends HttpServlet {
     }
 
     public void bootAndDoStuff() throws Exception {
-        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("templatePU");
-        try {
+        if(entityManagerFactory == null) {
+            synchronized (JPAFunctionalityTestEndpoint.class) {
+                if(entityManagerFactory == null) {
+                    entityManagerFactory = Persistence.createEntityManagerFactory("templatePU");
+                }
+            }
+        }
+
             System.out.println("Hibernate EntityManagerFactory: booted");
             doStuffWithHibernate(entityManagerFactory);
-        }
-        finally {
-            entityManagerFactory.close();
-            System.out.println("Hibernate EntityManagerFactory: shut down");
-        }
     }
 
     /**

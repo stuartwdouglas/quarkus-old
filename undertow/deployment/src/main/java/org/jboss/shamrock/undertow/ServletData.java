@@ -3,7 +3,9 @@ package org.jboss.shamrock.undertow;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ServletData {
+import org.jboss.builder.item.MultiBuildItem;
+
+public class ServletData extends MultiBuildItem {
 
     private final String name;
     private final String servletClass;

@@ -8,7 +8,7 @@ import java.util.Optional;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 
-public class ShamrockConfig {
+public class ShamrockConfig extends BuildItem{
 
     public static final ShamrockConfig INSTANCE = new ShamrockConfig();
 

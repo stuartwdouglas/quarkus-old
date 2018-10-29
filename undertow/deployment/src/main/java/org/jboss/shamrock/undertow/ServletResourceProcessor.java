@@ -16,7 +16,6 @@ import java.util.function.Consumer;
 
 import javax.annotation.security.DeclareRoles;
 import javax.annotation.security.RunAs;
-import javax.inject.Inject;
 import javax.servlet.Filter;
 import javax.servlet.Servlet;
 import javax.servlet.annotation.MultipartConfig;
@@ -61,10 +60,16 @@ import org.jboss.metadata.web.spec.ServletSecurityMetaData;
 import org.jboss.metadata.web.spec.ServletsMetaData;
 import org.jboss.metadata.web.spec.TransportGuaranteeType;
 import org.jboss.metadata.web.spec.WebMetaData;
+import org.jboss.shamrock.annotations.BuildProducer;
+import org.jboss.shamrock.annotations.BuildResource;
+import org.jboss.shamrock.annotations.BuildRunner;
 import org.jboss.shamrock.deployment.ApplicationArchive;
 import org.jboss.shamrock.deployment.ArchiveContext;
+import org.jboss.shamrock.deployment.ArchiveRoot;
 import org.jboss.shamrock.deployment.ProcessorContext;
+import org.jboss.shamrock.deployment.ReflectiveClass;
 import org.jboss.shamrock.deployment.ResourceProcessor;
+import org.jboss.shamrock.deployment.RuntimeInitializedClass;
 import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.ShamrockConfig;
 import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
@@ -77,7 +82,7 @@ import io.undertow.servlet.api.InstanceFactory;
 import io.undertow.servlet.api.ServletInfo;
 import io.undertow.servlet.handlers.DefaultServlet;
 
-public class ServletResourceProcessor implements ResourceProcessor {
+public class ServletResourceProcessor implements BuildRunner {
 
 
     private static final DotName webFilter = DotName.createSimple(WebFilter.class.getName());
@@ -88,22 +93,34 @@ public class ServletResourceProcessor implements ResourceProcessor {
     private static final DotName multipartConfig = DotName.createSimple(MultipartConfig.class.getName());
     private static final DotName servletSecurity = DotName.createSimple(ServletSecurity.class.getName());
 
-    @Inject
+    @BuildResource
     private ShamrockConfig config;
 
-    @Inject
-    private ServletDeployment deployment;
+    @BuildResource
+    private List<ServletData> servlets;
+
+    @BuildResource
+    BuildProducer<ReflectiveClass> reflectiveClasses;
+
+    @BuildResource
+    BuildProducer<RuntimeInitializedClass> runtimeInitClasses;
+
+    @BuildResource
+    ArchiveRoot root;
+
+    @BuildResource
+    List<ApplicationArchive> applicationArchives;
 
     @Override
-    public void process(ArchiveContext archiveContext, ProcessorContext processorContext) throws Exception {
+    public void process() throws Exception {
 
-        processorContext.addReflectiveClass(false, false, DefaultServlet.class.getName());
-        processorContext.addReflectiveClass(false, false, "io.undertow.server.protocol.http.HttpRequestParser$$generated");
+        reflectiveClasses.produce(new ReflectiveClass(DefaultServlet.class.getName(), false, false));
+        reflectiveClasses.produce(new ReflectiveClass("io.undertow.server.protocol.http.HttpRequestParser$$generated", false, false));
 
-        processorContext.addRuntimeInitializedClasses("io.undertow.server.protocol.ajp.AjpServerResponseConduit");
-        processorContext.addRuntimeInitializedClasses("io.undertow.server.protocol.ajp.AjpServerRequestConduit");
+        runtimeInitClasses.produce(new RuntimeInitializedClass("io.undertow.server.protocol.ajp.AjpServerResponseConduit"));
+        runtimeInitClasses.produce(new RuntimeInitializedClass("io.undertow.server.protocol.ajp.AjpServerRequestConduit"));
 
-        handleResources(archiveContext, processorContext);
+        handleResources();
 
         try (BytecodeRecorder context = processorContext.addStaticInitTask(RuntimePriority.UNDERTOW_CREATE_DEPLOYMENT)) {
             UndertowDeploymentTemplate template = context.getRecordingProxy(UndertowDeploymentTemplate.class);
@@ -111,8 +128,8 @@ public class ServletResourceProcessor implements ResourceProcessor {
             //this kinda sucks
             Set<String> knownFiles = new HashSet<>();
             Set<String> knownDirectories = new HashSet<>();
-            for(ApplicationArchive i : archiveContext.getAllApplicationArchives()) {
-                Path resource = i.getArchiveRoot().resolve("META-INF/resources");
+            for(ApplicationArchive i : applicationArchives) {
+                Path resource = root.getPath().resolve("META-INF/resources");
                 if(Files.exists(resource)) {
                     Files.walk(resource).forEach(new Consumer<Path>() {
                         @Override
@@ -170,7 +187,7 @@ public class ServletResourceProcessor implements ResourceProcessor {
             //filters
             if (result.getFilters() != null) {
                 for (FilterMetaData filter : result.getFilters()) {
-                    processorContext.addReflectiveClass(false, false, filter.getFilterClass());
+                    reflectiveClasses.produce(new ReflectiveClass(filter.getFilterClass(), false, false);
                     InjectionInstance<? extends Filter> injection = (InjectionInstance<? extends Filter>) context.newInstanceFactory(filter.getFilterClass());
                     InstanceFactory<? extends Filter> factory = template.createInstanceFactory(injection);
                     AtomicReference<FilterInfo> sref = template.registerFilter(null,
@@ -203,14 +220,14 @@ public class ServletResourceProcessor implements ResourceProcessor {
             //listeners
             if (result.getListeners() != null) {
                 for (ListenerMetaData listener : result.getListeners()) {
-                    processorContext.addReflectiveClass(false, false, listener.getListenerClass());
+                    reflectiveClasses.produce(new ReflectiveClass(listener.getListenerClass(), false, false));
                     InjectionInstance<? extends EventListener> injection = (InjectionInstance<? extends EventListener>) context.newInstanceFactory(listener.getListenerClass());
                     InstanceFactory<? extends EventListener> factory = template.createInstanceFactory(injection);
                     template.registerListener(null, context.classProxy(listener.getListenerClass()), factory);
                 }
             }
 
-            for (ServletData servlet : deployment.getServlets()) {
+            for (ServletData servlet : servlets) {
 
                 String servletClass = servlet.getServletClass();
                 InjectionInstance<? extends Servlet> injection = (InjectionInstance<? extends Servlet>) context.newInstanceFactory(servletClass);
@@ -235,8 +252,8 @@ public class ServletResourceProcessor implements ResourceProcessor {
         }
     }
 
-    private void handleResources(ArchiveContext archiveContext, ProcessorContext processorContext) throws IOException {
-        Path resources = archiveContext.getRootArchive().getChildPath("META-INF/resources");
+    private void handleResources() throws IOException {
+        Path resources = root.getPath().resolve("META-INF/resources");
         if(resources != null) {
             Files.walk(resources).forEach(new Consumer<Path>() {
                 @Override

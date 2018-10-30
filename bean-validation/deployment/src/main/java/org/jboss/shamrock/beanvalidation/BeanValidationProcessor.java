@@ -1,8 +1,6 @@
 package org.jboss.shamrock.beanvalidation;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,6 +19,8 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.ParameterizedType;
 import org.jboss.jandex.Type;
+import org.jboss.shamrock.annotations.BuildProducer;
+import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.beanvalidation.runtime.ValidatorProvider;
 import org.jboss.shamrock.beanvalidation.runtime.ValidatorTemplate;
 import org.jboss.shamrock.beanvalidation.runtime.graal.ConstraintHelperSubstitution;
@@ -28,24 +28,26 @@ import org.jboss.shamrock.deployment.ArchiveContext;
 import org.jboss.shamrock.deployment.BeanDeployment;
 import org.jboss.shamrock.deployment.ProcessorContext;
 import org.jboss.shamrock.deployment.ResourceProcessor;
+import org.jboss.shamrock.deployment.builditem.RuntimeInitializedClassBuildItem;
 import org.jboss.shamrock.deployment.RuntimePriority;
-import org.jboss.shamrock.deployment.ShamrockConfig;
 import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
 import org.jboss.shamrock.runtime.InjectionInstance;
 
 class BeanValidationProcessor implements ResourceProcessor {
 
     private static final DotName CONSTRAINT_VALIDATOR = DotName.createSimple(ConstraintValidator.class.getName());
-    @Inject
-    private BeanDeployment beanDeployment;
+
+
+    @BuildResource
+    BuildProducer<RuntimeInitializedClassBuildItem> runtimeInitClasses;
 
     @Inject
-    private ShamrockConfig config;
+    BeanDeployment beanDeployment;
 
     @Override
     public void process(ArchiveContext archiveContext, ProcessorContext processorContext) throws Exception {
         beanDeployment.addAdditionalBean(ValidatorProvider.class);
-        processorContext.addRuntimeInitializedClasses("javax.el.ELUtil");
+        runtimeInitClasses.produce(new RuntimeInitializedClassBuildItem("javax.el.ELUtil"));
         processorContext.addResourceBundle("org.hibernate.validator.ValidationMessages");
         //TODO: this should not rely on the index and implementation being indexed, this stuff should just be hard coded
         processorContext.addReflectiveClass(true, false, Constraint.class.getName());

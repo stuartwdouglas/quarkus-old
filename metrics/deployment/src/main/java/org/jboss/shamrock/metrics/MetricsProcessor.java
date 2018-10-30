@@ -13,18 +13,21 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.MethodInfo;
+import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildProducer;
+import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.deployment.ArchiveContext;
-import org.jboss.shamrock.deployment.BeanArchiveIndex;
+import org.jboss.shamrock.deployment.builditem.BeanArchiveIndexBuildItem;
 import org.jboss.shamrock.deployment.BeanDeployment;
 import org.jboss.shamrock.deployment.ProcessorContext;
 import org.jboss.shamrock.deployment.ResourceProcessor;
 import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.ShamrockConfig;
+import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
 import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
 import org.jboss.shamrock.metrics.runtime.MetricsDeploymentTemplate;
 import org.jboss.shamrock.metrics.runtime.MetricsServlet;
 import org.jboss.shamrock.undertow.ServletData;
-import org.jboss.shamrock.undertow.ServletDeployment;
 
 import io.smallrye.metrics.MetricProducer;
 import io.smallrye.metrics.MetricRegistries;
@@ -36,26 +39,30 @@ import io.smallrye.metrics.interceptors.MetricsBinding;
 import io.smallrye.metrics.interceptors.MetricsInterceptor;
 import io.smallrye.metrics.interceptors.TimedInterceptor;
 
+@BuildProcessor
 public class MetricsProcessor implements ResourceProcessor {
 
 
     @Inject
-    private BeanDeployment beanDeployment;
+    BeanDeployment beanDeployment;
 
-    @Inject
-    private ShamrockConfig config;
+    @BuildResource
+    ShamrockConfig config;
 
-    @Inject
-    private ServletDeployment servletDeployment;
+    @BuildResource
+    BeanArchiveIndexBuildItem beanArchiveIndex;
 
-    @Inject
-    private BeanArchiveIndex beanArchiveIndex;
+    @BuildResource
+    BuildProducer<ReflectiveClassBuildItem> reflectiveClasses;
+
+    @BuildResource
+    BuildProducer<ServletData> servlets;
 
     @Override
     public void process(ArchiveContext archiveContext, ProcessorContext processorContext) throws Exception {
         ServletData servletData = new ServletData("metrics", MetricsServlet.class.getName());
         servletData.getMapings().add(config.getConfig("metrics.path", "/metrics"));
-        servletDeployment.addServlet(servletData);
+        servlets.produce(servletData);
 
         beanDeployment.addAdditionalBean(MetricProducer.class,
                 MetricNameFactory.class,
@@ -68,7 +75,8 @@ public class MetricsProcessor implements ResourceProcessor {
 
         beanDeployment.addAdditionalBean(MetricsRequestHandler.class, MetricsServlet.class);
 
-        processorContext.addReflectiveClass(false, false, Counted.class.getName(), MetricsBinding.class.getName());
+        reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, Counted.class.getName()));
+        reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, MetricsBinding.class.getName()));
 
 
         try (BytecodeRecorder recorder = processorContext.addStaticInitTask(RuntimePriority.WELD_DEPLOYMENT + 30)) {

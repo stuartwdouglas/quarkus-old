@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.jboss.builder.item.MultiBuildItem;
 
-public class ServletData extends MultiBuildItem {
+public final  class ServletData extends MultiBuildItem {
 
     private final String name;
     private final String servletClass;

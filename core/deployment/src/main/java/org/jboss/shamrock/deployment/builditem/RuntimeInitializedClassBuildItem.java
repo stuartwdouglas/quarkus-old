@@ -1,12 +1,12 @@
-package org.jboss.shamrock.deployment;
+package org.jboss.shamrock.deployment.builditem;
 
 import org.jboss.builder.item.MultiBuildItem;
 
-public class RuntimeInitializedClass extends MultiBuildItem {
+public final class RuntimeInitializedClassBuildItem extends MultiBuildItem {
 
     private final String className;
 
-    public RuntimeInitializedClass(String className) {
+    public RuntimeInitializedClassBuildItem(String className) {
         this.className = className;
     }
 

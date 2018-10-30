@@ -6,23 +6,30 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import javax.inject.Inject;
-
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget.Kind;
 import org.jboss.jandex.CompositeIndex;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
+import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildProducer;
+import org.jboss.shamrock.annotations.BuildResource;
+import org.jboss.shamrock.deployment.builditem.ApplicationArchivesBuildItem;
+import org.jboss.shamrock.deployment.builditem.BeanArchiveIndexBuildItem;
 
-public class BeanArchiveProcessor implements ResourceProcessor {
+@BuildProcessor
+public class BeanArchiveProcessor implements BuildProcessingStep {
 
-    @Inject
-    private BeanArchiveIndex beanArchiveIndex;
+    @BuildResource
+    BuildProducer<BeanArchiveIndexBuildItem> beanArchiveIndexBuildProducer;
+
+    @BuildResource
+    ApplicationArchivesBuildItem applicationArchivesBuildItem;
 
     @Override
-    public void process(ArchiveContext archiveContext, ProcessorContext processorContext) throws Exception {
+    public void build() throws Exception {
 
-        Set<ApplicationArchive> archives = archiveContext.getAllApplicationArchives();
+        Set<ApplicationArchive> archives = applicationArchivesBuildItem.getAllApplicationArchives();
 
         // The list is not exhaustive - it merely contains all annotations supported by Arc
         List<DotName> beanDefiningAnnotations = new ArrayList<>();
@@ -72,12 +79,7 @@ public class BeanArchiveProcessor implements ResourceProcessor {
                 }
             }
         }
-        beanArchiveIndex.setIndex(CompositeIndex.create(indexes));
+        beanArchiveIndexBuildProducer.produce(new BeanArchiveIndexBuildItem(CompositeIndex.create(indexes)));
     }
 
-    @Override
-    public int getPriority() {
-        // we want this to run early
-        return -1000;
-    }
 }

@@ -7,7 +7,7 @@ import javax.inject.Inject;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.IndexView;
 import org.jboss.shamrock.deployment.ArchiveContext;
-import org.jboss.shamrock.deployment.BeanArchiveIndex;
+import org.jboss.shamrock.deployment.builditem.BeanArchiveIndexBuildItem;
 import org.jboss.shamrock.deployment.BeanDeployment;
 import org.jboss.shamrock.deployment.ProcessorContext;
 import org.jboss.shamrock.deployment.ResourceProcessor;
@@ -23,7 +23,7 @@ public class WeldAnnotationProcessor implements ResourceProcessor {
     private BeanDeployment beanDeployment;
 
     @Inject
-    private BeanArchiveIndex beanArchiveIndex;
+    private BeanArchiveIndexBuildItem beanArchiveIndex;
 
     @Override
     public void process(ArchiveContext archiveContext, ProcessorContext processorContext) throws Exception {

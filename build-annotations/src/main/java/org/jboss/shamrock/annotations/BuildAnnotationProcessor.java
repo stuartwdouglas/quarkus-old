@@ -5,8 +5,10 @@ import static javax.lang.model.util.ElementFilter.typesIn;
 import static org.jboss.protean.gizmo.MethodDescriptor.ofConstructor;
 import static org.jboss.protean.gizmo.MethodDescriptor.ofMethod;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -83,7 +85,6 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
 
     public void doProcess(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
-        System.out.println(annotations);
         Set<String> serviceNames = new HashSet<>();
         Set<TypeElement> processorElements = new HashSet<>();
         //Call jboss logging tools
@@ -171,7 +172,7 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
                     }
 
                     try (ClassCreator creator = new ClassCreator(new ProcessorClassOutput(processor), buildStepName, null, Object.class.getName(), BuildStep.class.getName())) {
-                        MethodCreator  mc = creator.getMethodCreator("execute", void.class, BuildContext.class);
+                        MethodCreator mc = creator.getMethodCreator("execute", void.class, BuildContext.class);
 
                         ResultHandle p = mc.newInstance(ofConstructor(processorClassName));
 
@@ -198,9 +199,18 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
             }
         }
 
-        if (!serviceNames.isEmpty())
+        if (!serviceNames.isEmpty()) {
+            //we read them first, as if an IDE has processed this we may not have seen the full set of names
             try {
-                FileObject res = processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "","META-INF/services/" +  BuildProvider.class.getName(), processorElements.toArray(new Element[0]));
+
+                FileObject res = processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "", "META-INF/services/" + BuildProvider.class.getName(), processorElements.toArray(new Element[0]));
+
+                try (BufferedReader reader = new BufferedReader(res.openReader(true))) {
+                    serviceNames.add(reader.readLine().trim());
+                } catch (Exception ignored) {
+
+                }
+
                 try (Writer out = res.openWriter()) {
                     for (String service : serviceNames) {
                         out.write(service);
@@ -210,6 +220,7 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+        }
     }
 
     private void verifyType(TypeMirror type, Class expected) {

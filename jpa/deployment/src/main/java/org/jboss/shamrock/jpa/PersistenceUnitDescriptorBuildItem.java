@@ -3,7 +3,7 @@ package org.jboss.shamrock.jpa;
 import org.hibernate.jpa.boot.spi.PersistenceUnitDescriptor;
 import org.jboss.builder.item.MultiBuildItem;
 
-public class PersistenceUnitDescriptorBuildItem extends MultiBuildItem {
+public final class PersistenceUnitDescriptorBuildItem extends MultiBuildItem {
 
     private final PersistenceUnitDescriptor descriptor;
 

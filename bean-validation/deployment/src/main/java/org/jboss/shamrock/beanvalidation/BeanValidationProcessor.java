@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.inject.Inject;
 import javax.validation.Constraint;
 import javax.validation.ConstraintValidator;
 
@@ -25,18 +24,16 @@ import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.beanvalidation.runtime.ValidatorProvider;
 import org.jboss.shamrock.beanvalidation.runtime.ValidatorTemplate;
 import org.jboss.shamrock.beanvalidation.runtime.graal.ConstraintHelperSubstitution;
-import org.jboss.shamrock.deployment.ArchiveContext;
-import org.jboss.shamrock.deployment.BeanDeployment;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
-import org.jboss.shamrock.deployment.ProcessorContext;
-import org.jboss.shamrock.deployment.ResourceProcessor;
+import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
 import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
 import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
+import org.jboss.shamrock.deployment.builditem.ReflectiveFieldBuildItem;
+import org.jboss.shamrock.deployment.builditem.ReflectiveMethodBuildItem;
 import org.jboss.shamrock.deployment.builditem.ResourceBundleBuildItem;
 import org.jboss.shamrock.deployment.builditem.RuntimeInitializedClassBuildItem;
-import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
 import org.jboss.shamrock.runtime.InjectionInstance;
 
@@ -63,13 +60,19 @@ class BeanValidationProcessor implements BuildProcessingStep {
     @BuildResource
     CombinedIndexBuildItem combinedIndexBuildItem;
 
+    @BuildResource
+    BuildProducer<ReflectiveMethodBuildItem> reflectiveMethods;
+
+    @BuildResource
+    BuildProducer<ReflectiveFieldBuildItem> reflectiveFields;
+
     @Override
     public void build() throws Exception {
         additionalBean.produce(new AdditionalBeanBuildItem(ValidatorProvider.class));
 
 
         runtimeInitClasses.produce(new RuntimeInitializedClassBuildItem("javax.el.ELUtil"));
-        processorContext.addResourceBundle("org.hibernate.validator.ValidationMessages");
+        resourceBundle.produce(new ResourceBundleBuildItem("org.hibernate.validator.ValidationMessages"));
         //TODO: this should not rely on the index and implementation being indexed, this stuff should just be hard coded
         reflectiveClass.produce(new ReflectiveClassBuildItem(true, false, Constraint.class.getName()));
         Map<DotName, Set<DotName>> seenConstraints = new HashMap<>();
@@ -88,7 +91,7 @@ class BeanValidationProcessor implements BuildProcessingStep {
         for (DotName constraint : constraintAnnotations) {
             Collection<AnnotationInstance> annotationInstances = combinedIndexBuildItem.getIndex().getAnnotations(constraint);
             if (!annotationInstances.isEmpty()) {
-                reflectiveClass.produce(new ReflectiveClassBuildItem((true, false, constraint.toString());
+                reflectiveClass.produce(new ReflectiveClassBuildItem(true, false, constraint.toString()));
             }
             for (AnnotationInstance annotation : annotationInstances) {
 
@@ -98,20 +101,20 @@ class BeanValidationProcessor implements BuildProcessingStep {
                 }
                 if (annotation.target().kind() == AnnotationTarget.Kind.FIELD) {
                     classesToBeValidated.add(annotation.target().asField().declaringClass().name().toString());
-                    processorContext.addReflectiveField(annotation.target().asField());
+                    reflectiveFields.produce(new ReflectiveFieldBuildItem(annotation.target().asField()));
                     seenTypes.add(annotation.target().asField().type().name());
                 } else if (annotation.target().kind() == AnnotationTarget.Kind.METHOD) {
                     classesToBeValidated.add(annotation.target().asMethod().declaringClass().name().toString());
-                    processorContext.addReflectiveMethod(annotation.target().asMethod());
+                    reflectiveMethods.produce(new ReflectiveMethodBuildItem(annotation.target().asMethod()));
                     seenTypes.add(annotation.target().asMethod().returnType().name());
                 } else if (annotation.target().kind() == AnnotationTarget.Kind.METHOD_PARAMETER) {
                     classesToBeValidated.add(annotation.target().asMethodParameter().method().declaringClass().name().toString());
-                    processorContext.addReflectiveMethod(annotation.target().asMethodParameter().method());
+                    reflectiveMethods.produce(new ReflectiveMethodBuildItem(annotation.target().asMethodParameter().method()));
                     seenTypes.add(annotation.target().asMethodParameter().asType().asClass().name());
                 } else if (annotation.target().kind() == AnnotationTarget.Kind.CLASS) {
                     classesToBeValidated.add(annotation.target().asClass().name().toString());
                     seenTypes.add(annotation.target().asClass().name());
-                    reflectiveClass.produce(new ReflectiveClassBuildItem((true, true, annotation.target().asClass().name().toString());
+                    reflectiveClass.produce(new ReflectiveClassBuildItem(true, true, annotation.target().asClass().name().toString()));
                 }
             }
         }
@@ -154,7 +157,7 @@ class BeanValidationProcessor implements BuildProcessingStep {
         }
     }
 
-    private Map<DotName, Map<DotName, DotName>> lookForValidatorsByConstraint(ArchiveContext archiveContext, ProcessorContext processorContext) {
+    private Map<DotName, Map<DotName, DotName>> lookForValidatorsByConstraint() {
         Map<DotName, Map<DotName, DotName>> validatorsByConstraint = new HashMap<>();
 
         //handle built in ones
@@ -168,7 +171,7 @@ class BeanValidationProcessor implements BuildProcessingStep {
                 java.lang.reflect.Type validatedType = val.getValidatedType();
                 if (validatedType instanceof Class) {
                     vals.put(DotName.createSimple(val.getValidatorClass().getName()), DotName.createSimple(((Class) validatedType).getName()));
-                } else if(validatedType instanceof java.lang.reflect.ParameterizedType) {
+                } else if (validatedType instanceof java.lang.reflect.ParameterizedType) {
                     java.lang.reflect.Type rawType = ((java.lang.reflect.ParameterizedType) validatedType).getRawType();
                     vals.put(DotName.createSimple(val.getValidatorClass().getName()), DotName.createSimple(((Class) rawType).getName()));
                 } else {
@@ -177,7 +180,7 @@ class BeanValidationProcessor implements BuildProcessingStep {
             }
         }
 
-        for (ClassInfo classInfo : archiveContext.getCombinedIndex().getAllKnownImplementors(CONSTRAINT_VALIDATOR)) {
+        for (ClassInfo classInfo : combinedIndexBuildItem.getIndex().getAllKnownImplementors(CONSTRAINT_VALIDATOR)) {
 
             //TODO: this fails for inheritance heirachies
 

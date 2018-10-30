@@ -48,11 +48,13 @@ import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
 import org.jboss.shamrock.deployment.builditem.GeneratedClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.GeneratedResourceBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
+import org.jboss.shamrock.deployment.builditem.ReflectiveFieldBuildItem;
+import org.jboss.shamrock.deployment.builditem.ReflectiveMethodBuildItem;
 import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
 
 import io.smallrye.config.inject.ConfigProducer;
 
-@BuildProcessor(providesCapabilities = Capabilities.CDI_ARC)
+@BuildProcessor(providesCapabilities = Capabilities.CDI_ARC, applicationArchiveMarkers = {"META-INF/beans.xml", "META-INF/services/javax.enterprise.inject.spi.Extension"})
 public class ArcAnnotationProcessor implements BuildProcessingStep {
 
     private static final DotName JAVA_LANG_OBJECT = DotName.createSimple(Object.class.getName());
@@ -79,6 +81,12 @@ public class ArcAnnotationProcessor implements BuildProcessingStep {
 
     @BuildResource
     BytecodeOutputBuildItem bytecode;
+
+    @BuildResource
+    BuildProducer<ReflectiveMethodBuildItem> reflectiveMethods;
+
+    @BuildResource
+    BuildProducer<ReflectiveFieldBuildItem> reflectiveFields;
 
     @Override
     public void build() throws Exception {
@@ -137,12 +145,12 @@ public class ArcAnnotationProcessor implements BuildProcessingStep {
             builder.setReflectionRegistration(new ReflectionRegistration() {
                 @Override
                 public void registerMethod(MethodInfo methodInfo) {
-                    processorContext.addReflectiveMethod(methodInfo);
+                    reflectiveMethods.produce(new ReflectiveMethodBuildItem(methodInfo));
                 }
 
                 @Override
                 public void registerField(FieldInfo fieldInfo) {
-                    processorContext.addReflectiveField(fieldInfo);
+                    reflectiveFields.produce(new ReflectiveFieldBuildItem(fieldInfo));
                 }
             });
             for (BiFunction<AnnotationTarget, Collection<AnnotationInstance>, Collection<AnnotationInstance>> transformer : beanDeployment

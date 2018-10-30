@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.logging.Level;
@@ -172,6 +173,7 @@ public class BuildTimeGenerator {
                                 context.produce(new CombinedIndexBuildItem(archiveContext.getCombinedIndex()));
                                 context.produce(new BytecodeOutputBuildItem(processorContext));
                                 context.produce(new ArchiveRootBuildItem(archiveContext.getRootArchive().getArchiveRoot()));
+                                context.produce(archiveContext.getBuildConfig());
                             }
                         })
                         .produces(ShamrockConfig.class)
@@ -179,6 +181,7 @@ public class BuildTimeGenerator {
                         .produces(BytecodeOutputBuildItem.class)
                         .produces(CombinedIndexBuildItem.class)
                         .produces(ArchiveRootBuildItem.class)
+                        .produces(BuildConfig.class)
                         .build()
                         .addFinal(ReflectiveClassBuildItem.class)
                         .build();
@@ -207,8 +210,8 @@ public class BuildTimeGenerator {
     private final class ProcessorContextImpl implements ProcessorContext {
 
 
-        private final List<DeploymentTaskHolder> tasks = new ArrayList<>();
-        private final List<DeploymentTaskHolder> staticInitTasks = new ArrayList<>();
+        private final List<DeploymentTaskHolder> tasks = new CopyOnWriteArrayList<>();
+        private final List<DeploymentTaskHolder> staticInitTasks = new CopyOnWriteArrayList<>();
         private final Map<String, ReflectionInfo> reflectiveClasses = new LinkedHashMap<>();
         private final Set<DotName> processedReflectiveHierarchies = new HashSet<>();
         private final Set<String> resources = new HashSet<>();
@@ -308,6 +311,10 @@ public class BuildTimeGenerator {
 
         }
 
+        @Override
+        public void addReflectiveHierarchy(Type type) {
+
+        }
 
 
         @Override

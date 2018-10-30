@@ -5,7 +5,7 @@ import java.util.function.BiFunction;
 import org.jboss.builder.item.MultiBuildItem;
 import org.objectweb.asm.ClassVisitor;
 
-public class BytecodeTransformerBuildItem extends MultiBuildItem {
+public final class BytecodeTransformerBuildItem extends MultiBuildItem {
 
     final String classToTransform;
     final BiFunction<String, ClassVisitor, ClassVisitor> visitorFunction;

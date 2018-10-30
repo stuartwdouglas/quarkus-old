@@ -14,7 +14,7 @@ import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.DotName;
 
-public class BeanDeployment extends SimpleBuildItem {
+public final class BeanDeployment extends SimpleBuildItem {
 
     private final Map<String, byte[]> generatedBeans = new HashMap<>();
 

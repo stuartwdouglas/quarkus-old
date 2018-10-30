@@ -1,14 +1,14 @@
-package org.jboss.shamrock.deployment;
+package org.jboss.shamrock.deployment.builditem;
 
 import java.nio.file.Path;
 
 import org.jboss.builder.item.SimpleBuildItem;
 
-public class ArchiveRoot extends SimpleBuildItem {
+public final class ArchiveRootBuildItem extends SimpleBuildItem {
 
     private final Path path;
 
-    public ArchiveRoot(Path path) {
+    public ArchiveRootBuildItem(Path path) {
         this.path = path;
     }
 

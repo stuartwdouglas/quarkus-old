@@ -23,7 +23,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -35,10 +34,13 @@ import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.jboss.builder.BuildChain;
+import org.jboss.builder.BuildContext;
+import org.jboss.builder.BuildResult;
+import org.jboss.builder.BuildStep;
 import org.jboss.jandex.ArrayType;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.ClassType;
@@ -60,6 +62,11 @@ import org.jboss.protean.gizmo.MethodDescriptor;
 import org.jboss.protean.gizmo.ResultHandle;
 import org.jboss.protean.gizmo.TryBlock;
 import org.jboss.shamrock.deployment.buildconfig.BuildConfig;
+import org.jboss.shamrock.deployment.builditem.ApplicationArchivesBuildItem;
+import org.jboss.shamrock.deployment.builditem.ArchiveRootBuildItem;
+import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
+import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
+import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
 import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
 import org.jboss.shamrock.deployment.codegen.BytecodeRecorderImpl;
 import org.jboss.shamrock.deployment.index.ApplicationArchiveLoader;
@@ -82,7 +89,6 @@ public class BuildTimeGenerator {
     private static final String GRAAL_AUTOFEATURE = "org/jboss/shamrock/runner/AutoFeature";
     private static final String STARTUP_CONTEXT = "STARTUP_CONTEXT";
 
-    private final List<ResourceProcessor> processors;
     private final ClassOutput output;
     private final DeploymentProcessorInjection injection;
     private final ClassLoader classLoader;
@@ -101,8 +107,6 @@ public class BuildTimeGenerator {
             log.log(Level.FINE, "Loading Shamrock setup extension: " + setup.getClass());
             setup.setup(setupContext);
         }
-        setupContext.resourceProcessors.sort(Comparator.comparingInt(ResourceProcessor::getPriority));
-        this.processors = Collections.unmodifiableList(setupContext.resourceProcessors);
         this.output = classOutput;
         this.injection = new DeploymentProcessorInjection(setupContext.injectionProviders);
         this.classLoader = cl;
@@ -150,24 +154,42 @@ public class BuildTimeGenerator {
             Index appIndex = indexer.complete();
             List<ApplicationArchive> applicationArchives = ApplicationArchiveLoader.scanForOtherIndexes(classLoader, config, applicationArchiveMarkers, root, archiveContextBuilder.getAdditionalApplicationArchives());
 
-            ArchiveContextImpl context = new ArchiveContextImpl(new ApplicationArchiveImpl(appIndex, root, null), applicationArchives, config);
+            ArchiveContextImpl archiveContext = new ArchiveContextImpl(new ApplicationArchiveImpl(appIndex, root, null), applicationArchives, config);
 
-            ProcessorContextImpl processorContext = new ProcessorContextImpl(context);
+            ProcessorContextImpl processorContext = new ProcessorContextImpl(archiveContext);
             processorContext.addResource("META-INF/microprofile-config.properties");
+
+
             try {
-                for (ResourceProcessor processor : processors) {
-                    try {
-                        injection.injectClass(processor);
-                        processor.process(context, processorContext);
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                }
+
+                BuildChain chain = BuildChain.builder()
+                        .loadProviders(Thread.currentThread().getContextClassLoader())
+                        .addBuildStep(new BuildStep() {
+                            @Override
+                            public void execute(BuildContext context) {
+                                context.produce(ShamrockConfig.INSTANCE);
+                                context.produce(new ApplicationArchivesBuildItem(archiveContext));
+                                context.produce(new CombinedIndexBuildItem(archiveContext.getCombinedIndex()));
+                                context.produce(new BytecodeOutputBuildItem(processorContext));
+                                context.produce(new ArchiveRootBuildItem(archiveContext.getRootArchive().getArchiveRoot()));
+                            }
+                        })
+                        .produces(ShamrockConfig.class)
+                        .produces(ApplicationArchivesBuildItem.class)
+                        .produces(BytecodeOutputBuildItem.class)
+                        .produces(CombinedIndexBuildItem.class)
+                        .produces(ArchiveRootBuildItem.class)
+                        .build()
+                        .addFinal(ReflectiveClassBuildItem.class)
+                        .build();
+                BuildResult result = chain.createExecutionBuilder("main").execute();
                 processorContext.writeProperties(root.toFile());
                 processorContext.writeMainClass();
                 processorContext.writeReflectionAutoFeature();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             } finally {
-                for (ApplicationArchive archive : context.getAllApplicationArchives()) {
+                for (ApplicationArchive archive : archiveContext.getAllApplicationArchives()) {
                     try {
                         archive.close();
                     } catch (Exception e) {

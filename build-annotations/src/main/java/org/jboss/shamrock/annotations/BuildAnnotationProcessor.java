@@ -167,6 +167,7 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
                             }
                         }
                         mc.invokeVirtualMethod(ofMethod(BuildStepBuilder.class, "build", BuildChainBuilder.class), builder);
+                        mc.returnValue(null);
                     }
 
                     try (ClassCreator creator = new ClassCreator(new ProcessorClassOutput(processor), buildStepName, null, Object.class.getName(), BuildStep.class.getName())) {

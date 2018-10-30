@@ -64,19 +64,15 @@ import org.jboss.shamrock.annotations.BuildProcessor;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.deployment.ApplicationArchive;
-import org.jboss.shamrock.deployment.ArchiveContext;
-import org.jboss.shamrock.deployment.ArchiveRoot;
+import org.jboss.shamrock.deployment.builditem.ArchiveRootBuildItem;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
-import org.jboss.shamrock.deployment.ProcessorContext;
 import org.jboss.shamrock.deployment.builditem.ApplicationArchivesBuildItem;
 import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
 import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
-import org.jboss.shamrock.deployment.ResourceProcessor;
 import org.jboss.shamrock.deployment.builditem.ResourceBuildItem;
 import org.jboss.shamrock.deployment.builditem.RuntimeInitializedClassBuildItem;
 import org.jboss.shamrock.deployment.RuntimePriority;
-import org.jboss.shamrock.deployment.ShamrockConfig;
 import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
 import org.jboss.shamrock.runtime.ConfiguredValue;
 import org.jboss.shamrock.runtime.InjectionInstance;
@@ -112,7 +108,7 @@ public class ServletResourceProcessor implements BuildProcessingStep {
     BuildProducer<ResourceBuildItem> resourceProducer;
 
     @BuildResource
-    ArchiveRoot root;
+    ArchiveRootBuildItem root;
 
     @BuildResource
     BytecodeOutputBuildItem bytecodeOutput;
@@ -265,7 +261,7 @@ public class ServletResourceProcessor implements BuildProcessingStep {
     }
 
     private void handleResources() throws IOException {
-        Path resources = root.getPath().resolve("META-INF/resources");
+        Path resources = applicationArchivesBuildItem.getRootArchive().getChildPath("META-INF/resources");
         if(resources != null) {
             Files.walk(resources).forEach(new Consumer<Path>() {
                 @Override

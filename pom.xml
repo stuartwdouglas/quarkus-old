@@ -210,6 +210,17 @@
             </dependency>
             <dependency>
                 <groupId>org.jboss.shamrock</groupId>
+                <artifactId>shamrock-builder</artifactId>
+                <version>${project.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.jboss.logging</groupId>
+                        <artifactId>jboss-logging</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.shamrock</groupId>
                 <artifactId>shamrock-core-deployment</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -654,17 +665,6 @@
                 <version>${version.org.jandex}</version>
             </dependency>
 
-            <dependency>
-                <groupId>org.jboss.build-tool</groupId>
-                <artifactId>jboss-build-tool</artifactId>
-                <version>999-SNAPSHOT</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.jboss.logging</groupId>
-                        <artifactId>jboss-logging</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
             <dependency>
                 <groupId>org.jboss.classfilewriter</groupId>
                 <artifactId>jboss-classfilewriter</artifactId>

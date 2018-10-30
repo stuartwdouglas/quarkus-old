@@ -5,7 +5,7 @@ import org.jboss.shamrock.deployment.ProcessorContext;
 import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
 
 //temporary class
-public class BytecodeOutputBuildItem extends SimpleBuildItem {
+public final class BytecodeOutputBuildItem extends SimpleBuildItem {
 
     private final ProcessorContext processorContext;
 

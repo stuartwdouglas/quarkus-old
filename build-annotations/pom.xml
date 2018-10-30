@@ -13,8 +13,8 @@
     <dependencies>
 
         <dependency>
-            <groupId>org.jboss.build-tool</groupId>
-            <artifactId>jboss-build-tool</artifactId>
+            <groupId>org.jboss.shamrock</groupId>
+            <artifactId>shamrock-builder</artifactId>
         </dependency>
 
         <dependency>

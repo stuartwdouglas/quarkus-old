@@ -65,7 +65,10 @@
         <dependency>
             <groupId>org.jboss.shamrock</groupId>
             <artifactId>shamrock-build-annotations</artifactId>
-            <version>1.0.0.Alpha1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.build-tool</groupId>
+            <artifactId>jboss-build-tool</artifactId>
         </dependency>
 
     </dependencies>

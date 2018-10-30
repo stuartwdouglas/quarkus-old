@@ -5,7 +5,7 @@ import java.util.Properties;
 import javax.inject.Inject;
 
 import org.jboss.shamrock.deployment.ArchiveContext;
-import org.jboss.shamrock.deployment.BeanArchiveIndex;
+import org.jboss.shamrock.deployment.builditem.BeanArchiveIndexBuildItem;
 import org.jboss.shamrock.deployment.BeanDeployment;
 import org.jboss.shamrock.deployment.ProcessorContext;
 import org.jboss.shamrock.deployment.ResourceProcessor;
@@ -14,7 +14,6 @@ import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
 import org.jboss.shamrock.runtime.ConfiguredValue;
 import org.jboss.shamrock.transactions.runtime.TransactionProducers;
 import org.jboss.shamrock.transactions.runtime.TransactionTemplate;
-import org.jboss.shamrock.transactions.runtime.interceptor.TransactionalInterceptorBase;
 import org.jboss.shamrock.transactions.runtime.interceptor.TransactionalInterceptorMandatory;
 import org.jboss.shamrock.transactions.runtime.interceptor.TransactionalInterceptorNever;
 import org.jboss.shamrock.transactions.runtime.interceptor.TransactionalInterceptorNotSupported;
@@ -35,7 +34,7 @@ class TransactionsProcessor implements ResourceProcessor {
     private BeanDeployment beanDeployment;
 
     @Inject
-    private BeanArchiveIndex beanArchiveIndex;
+    private BeanArchiveIndexBuildItem beanArchiveIndex;
 
     @Override
     public void process(ArchiveContext archiveContext, ProcessorContext processorContext) throws Exception {

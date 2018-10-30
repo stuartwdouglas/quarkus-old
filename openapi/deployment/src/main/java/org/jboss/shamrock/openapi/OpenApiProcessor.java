@@ -11,6 +11,8 @@ import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.openapi.models.OpenAPI;
 import org.jboss.jandex.IndexView;
+import org.jboss.shamrock.annotations.BuildProducer;
+import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.deployment.ArchiveContext;
 import org.jboss.shamrock.deployment.BeanDeployment;
 import org.jboss.shamrock.deployment.ProcessorContext;
@@ -22,7 +24,6 @@ import org.jboss.shamrock.openapi.runtime.OpenApiDeploymentTemplate;
 import org.jboss.shamrock.openapi.runtime.OpenApiDocumentProducer;
 import org.jboss.shamrock.openapi.runtime.OpenApiServlet;
 import org.jboss.shamrock.undertow.ServletData;
-import org.jboss.shamrock.undertow.ServletDeployment;
 
 import io.smallrye.openapi.api.OpenApiConfig;
 import io.smallrye.openapi.api.OpenApiConfigImpl;
@@ -41,8 +42,8 @@ public class OpenApiProcessor implements ResourceProcessor {
     @Inject
     private ShamrockConfig config;
 
-    @Inject
-    private ServletDeployment servletDeployment;
+    @BuildResource
+    BuildProducer<ServletData> servlets;
 
     private OpenApiSerializer.Format format = OpenApiSerializer.Format.YAML;
 
@@ -50,7 +51,7 @@ public class OpenApiProcessor implements ResourceProcessor {
     public void process(ArchiveContext archiveContext, ProcessorContext processorContext) throws Exception {
         ServletData servletData = new ServletData("openapi", OpenApiServlet.class.getName());
         servletData.getMapings().add(config.getConfig("openapi.path", "/openapi"));
-        servletDeployment.addServlet(servletData);
+        servlets.produce(servletData);
         beanDeployment.addAdditionalBean(OpenApiServlet.class);
         beanDeployment.addAdditionalBean(OpenApiDocumentProducer.class);
 

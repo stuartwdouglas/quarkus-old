@@ -1,14 +1,19 @@
-package org.jboss.shamrock.deployment;
+package org.jboss.shamrock.deployment.builditem;
 
 import org.jboss.builder.item.MultiBuildItem;
 
-public class ReflectiveClass extends MultiBuildItem{
+public final class ReflectiveClassBuildItem extends MultiBuildItem{
 
     private final String className;
     private final boolean methods;
     private final boolean fields;
 
-    public ReflectiveClass(String className, boolean methods, boolean fields) {
+    public ReflectiveClassBuildItem(String className, boolean methods, boolean fields) {
+        this.className = className;
+        this.methods = methods;
+        this.fields = fields;
+    }
+    public ReflectiveClassBuildItem(boolean methods, boolean fields, String className) {
         this.className = className;
         this.methods = methods;
         this.fields = fields;

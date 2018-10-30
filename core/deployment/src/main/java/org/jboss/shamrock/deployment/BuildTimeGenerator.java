@@ -308,50 +308,6 @@ public class BuildTimeGenerator {
 
         }
 
-        @Override
-        public void addReflectiveHierarchy(Type type) {
-
-            if (type instanceof VoidType ||
-                    type instanceof PrimitiveType ||
-                    type instanceof UnresolvedTypeVariable) {
-                return;
-            } else if (type instanceof ClassType) {
-                addClassTypeHierarchy(type.name());
-            } else if (type instanceof ArrayType) {
-                addReflectiveHierarchy(type.asArrayType().component());
-            } else if (type instanceof ParameterizedType) {
-                ParameterizedType p = (ParameterizedType) type;
-                addReflectiveHierarchy(p.owner());
-                for (Type arg : p.arguments()) {
-                    addReflectiveHierarchy(arg);
-                }
-            }
-        }
-
-        private void addClassTypeHierarchy(DotName name) {
-            if (name.toString().startsWith("java.") ||
-                    processedReflectiveHierarchies.contains(name)) {
-                return;
-            }
-            processedReflectiveHierarchies.add(name);
-            addReflectiveClass(true, true, name.toString());
-            ClassInfo info = archiveContext.getCombinedIndex().getClassByName(name);
-            if (info == null) {
-                log.warning("Unable to find annotation info for " + name + ", it may not be correctly registered for reflection");
-            } else {
-                addClassTypeHierarchy(info.superName());
-                for (FieldInfo i : info.fields()) {
-                    addReflectiveHierarchy(i.type());
-                }
-                for (MethodInfo i : info.methods()) {
-                    addReflectiveHierarchy(i.returnType());
-                    for (Type p : i.parameters()) {
-                        addReflectiveHierarchy(p);
-                    }
-                }
-            }
-
-        }
 
 
         @Override
@@ -690,35 +646,4 @@ public class BuildTimeGenerator {
         }
     }
 
-    static final class HierachyInfo {
-        boolean methods;
-        boolean fields;
-        final Type type;
-
-        HierachyInfo(Type type, boolean methods, boolean fields) {
-            this.type = type;
-            this.methods = methods;
-            this.fields = fields;
-        }
-
-        public boolean isMethods() {
-            return methods;
-        }
-
-        public void setMethods(boolean methods) {
-            this.methods = methods;
-        }
-
-        public boolean isFields() {
-            return fields;
-        }
-
-        public void setFields(boolean fields) {
-            this.fields = fields;
-        }
-
-        public Type getType() {
-            return type;
-        }
-    }
 }

@@ -122,8 +122,7 @@ public class ServletResourceProcessor implements BuildProcessingStep {
     @Override
     public void build() throws Exception {
 
-        reflectiveClasses.produce(new ReflectiveClassBuildItem(DefaultServlet.class.getName(), false, false));
-        reflectiveClasses.produce(new ReflectiveClassBuildItem("io.undertow.server.protocol.http.HttpRequestParser$$generated", false, false));
+        reflectiveClasses.produce(new ReflectiveClassBuildItem( false, false, DefaultServlet.class.getName(), "io.undertow.server.protocol.http.HttpRequestParser$$generated"));
 
         runtimeInitClasses.produce(new RuntimeInitializedClassBuildItem("io.undertow.server.protocol.ajp.AjpServerResponseConduit"));
         runtimeInitClasses.produce(new RuntimeInitializedClassBuildItem("io.undertow.server.protocol.ajp.AjpServerRequestConduit"));
@@ -195,7 +194,7 @@ public class ServletResourceProcessor implements BuildProcessingStep {
             //filters
             if (result.getFilters() != null) {
                 for (FilterMetaData filter : result.getFilters()) {
-                    reflectiveClasses.produce(new ReflectiveClassBuildItem(filter.getFilterClass(), false, false));
+                    reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, filter.getFilterClass()));
                     InjectionInstance<? extends Filter> injection = (InjectionInstance<? extends Filter>) context.newInstanceFactory(filter.getFilterClass());
                     InstanceFactory<? extends Filter> factory = template.createInstanceFactory(injection);
                     AtomicReference<FilterInfo> sref = template.registerFilter(null,
@@ -228,7 +227,7 @@ public class ServletResourceProcessor implements BuildProcessingStep {
             //listeners
             if (result.getListeners() != null) {
                 for (ListenerMetaData listener : result.getListeners()) {
-                    reflectiveClasses.produce(new ReflectiveClassBuildItem(listener.getListenerClass(), false, false));
+                    reflectiveClasses.produce(new ReflectiveClassBuildItem( false, false, listener.getListenerClass()));
                     InjectionInstance<? extends EventListener> injection = (InjectionInstance<? extends EventListener>) context.newInstanceFactory(listener.getListenerClass());
                     InstanceFactory<? extends EventListener> factory = template.createInstanceFactory(injection);
                     template.registerListener(null, context.classProxy(listener.getListenerClass()), factory);

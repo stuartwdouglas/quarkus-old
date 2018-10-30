@@ -1,34 +1,44 @@
 package org.jboss.shamrock.agroal;
 
-import javax.inject.Inject;
-
 import org.jboss.shamrock.agroal.runtime.DataSourceProducer;
 import org.jboss.shamrock.agroal.runtime.DataSourceTemplate;
-import org.jboss.shamrock.deployment.ArchiveContext;
-import org.jboss.shamrock.deployment.BeanDeployment;
-import org.jboss.shamrock.deployment.ProcessorContext;
-import org.jboss.shamrock.deployment.ResourceProcessor;
+import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildProducer;
+import org.jboss.shamrock.annotations.BuildResource;
+import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.buildconfig.BuildConfig;
+import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
+import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
+import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
 import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
 import org.jboss.shamrock.runtime.ConfiguredValue;
 
-class AgroalProcessor implements ResourceProcessor {
+@BuildProcessor
+class AgroalProcessor implements BuildProcessingStep {
 
-    @Inject
-    private BeanDeployment beanDeployment;
+    @BuildResource
+    BuildProducer<AdditionalBeanBuildItem> additionalBean;
+
+    @BuildResource
+    BytecodeOutputBuildItem bytecode;
+
+    @BuildResource
+    BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
+
+    @BuildResource
+    BuildConfig config;
 
     @Override
-    public void process(ArchiveContext archiveContext, ProcessorContext processorContext) throws Exception {
-        processorContext.addReflectiveClass(false, false,
+    public void build() throws Exception {
+        reflectiveClass.produce(new ReflectiveClassBuildItem(false, false,
                 io.agroal.pool.ConnectionHandler[].class.getName(),
                 io.agroal.pool.ConnectionHandler.class.getName(),
                 java.sql.Statement[].class.getName(),
                 java.sql.Statement.class.getName(),
                 java.sql.ResultSet.class.getName(),
                 java.sql.ResultSet[].class.getName()
-                );
-        BuildConfig config = archiveContext.getBuildConfig();
+        ));
         BuildConfig.ConfigNode ds = config.getApplicationConfig().get("datasource");
         if (ds.isNull()) {
             return;
@@ -52,16 +62,11 @@ class AgroalProcessor implements ResourceProcessor {
         final Integer maxSize = ds.get("maxSize").asInteger();
 
 
-        processorContext.addReflectiveClass(false, false, driver);
-        beanDeployment.addAdditionalBean(DataSourceProducer.class);
-        try (BytecodeRecorder bc = processorContext.addDeploymentTask(RuntimePriority.DATASOURCE_DEPLOYMENT)) {
+        reflectiveClass.produce(new ReflectiveClassBuildItem(false, false, driver));
+        additionalBean.produce(new AdditionalBeanBuildItem(DataSourceProducer.class));
+        try (BytecodeRecorder bc = bytecode.addDeploymentTask(RuntimePriority.DATASOURCE_DEPLOYMENT)) {
             DataSourceTemplate template = bc.getRecordingProxy(DataSourceTemplate.class);
-            template.addDatasource(null, configuredURL.getValue(), bc.classProxy(configuredDriver.getValue()), configuredUsername.getValue(), configuredPassword.getValue(), minSize, maxSize );
+            template.addDatasource(null, configuredURL.getValue(), bc.classProxy(configuredDriver.getValue()), configuredUsername.getValue(), configuredPassword.getValue(), minSize, maxSize);
         }
-    }
-
-    @Override
-    public int getPriority() {
-        return 1;
     }
 }

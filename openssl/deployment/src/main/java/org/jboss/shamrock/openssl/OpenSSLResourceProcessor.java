@@ -1,20 +1,20 @@
 package org.jboss.shamrock.openssl;
 
-import org.jboss.shamrock.deployment.ArchiveContext;
-import org.jboss.shamrock.deployment.ProcessorContext;
-import org.jboss.shamrock.deployment.ResourceProcessor;
+import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildProducer;
+import org.jboss.shamrock.annotations.BuildResource;
+import org.jboss.shamrock.deployment.BuildProcessingStep;
+import org.jboss.shamrock.deployment.builditem.RuntimeInitializedClassBuildItem;
 
-public class OpenSSLResourceProcessor implements ResourceProcessor {
+@BuildProcessor
+public class OpenSSLResourceProcessor implements BuildProcessingStep {
 
+
+    @BuildResource
+    BuildProducer<RuntimeInitializedClassBuildItem> runtimeInit;
 
     @Override
-    public void process(ArchiveContext archiveContext, ProcessorContext processorContext) throws Exception {
-        processorContext.addRuntimeInitializedClasses("org.wildfly.openssl.OpenSSLEngine");
+    public void build() throws Exception {
+        runtimeInit.produce(new RuntimeInitializedClassBuildItem("org.wildfly.openssl.OpenSSLEngine"));
     }
-
-    @Override
-    public int getPriority() {
-        return 100;
-    }
-
 }

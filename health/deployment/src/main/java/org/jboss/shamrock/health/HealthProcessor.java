@@ -2,41 +2,36 @@ package org.jboss.shamrock.health;
 
 import javax.inject.Inject;
 
+import org.jboss.shamrock.annotations.BuildProcessor;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
-import org.jboss.shamrock.deployment.ArchiveContext;
-import org.jboss.shamrock.deployment.BeanDeployment;
-import org.jboss.shamrock.deployment.ProcessorContext;
-import org.jboss.shamrock.deployment.ResourceProcessor;
+import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.ShamrockConfig;
+import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
 import org.jboss.shamrock.health.runtime.HealthServlet;
 import org.jboss.shamrock.undertow.ServletData;
 
 import io.smallrye.health.SmallRyeHealthReporter;
 
-class HealthProcessor implements ResourceProcessor {
+@BuildProcessor
+class HealthProcessor implements BuildProcessingStep {
 
     @Inject
-    private BeanDeployment beanDeployment;
+    BuildProducer<AdditionalBeanBuildItem> additionalBeans;
 
-    @Inject
-    private ShamrockConfig config;
-
+    @BuildResource
+    ShamrockConfig config;
 
     @BuildResource
     BuildProducer<ServletData> servlets;
 
     @Override
-    public void process(ArchiveContext archiveContext, ProcessorContext processorContext) throws Exception {
+    public void build() throws Exception {
+
         ServletData servletData = new ServletData("health", HealthServlet.class.getName());
         servletData.getMapings().add(config.getConfig("health.path", "/health"));
         servlets.produce(servletData);
-        beanDeployment.addAdditionalBean(SmallRyeHealthReporter.class);
-        beanDeployment.addAdditionalBean(HealthServlet.class);
-    }
-
-    @Override
-    public int getPriority() {
-        return 1;
+        additionalBeans.produce(new AdditionalBeanBuildItem(SmallRyeHealthReporter.class));
+        additionalBeans.produce(new AdditionalBeanBuildItem(HealthServlet.class));
     }
 }

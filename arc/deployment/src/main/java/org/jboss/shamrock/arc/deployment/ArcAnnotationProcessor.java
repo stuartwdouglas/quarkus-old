@@ -33,20 +33,27 @@ import org.jboss.protean.arc.processor.BeanProcessor;
 import org.jboss.protean.arc.processor.BeanProcessor.Builder;
 import org.jboss.protean.arc.processor.ReflectionRegistration;
 import org.jboss.protean.arc.processor.ResourceOutput;
+import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.arc.runtime.ArcDeploymentTemplate;
 import org.jboss.shamrock.arc.runtime.StartupEventRunner;
-import org.jboss.shamrock.deployment.ArchiveContext;
-import org.jboss.shamrock.deployment.builditem.BeanArchiveIndexBuildItem;
 import org.jboss.shamrock.deployment.BeanDeployment;
-import org.jboss.shamrock.deployment.ProcessorContext;
-import org.jboss.shamrock.deployment.ResourceProcessor;
+import org.jboss.shamrock.deployment.BuildProcessingStep;
+import org.jboss.shamrock.deployment.Capabilities;
 import org.jboss.shamrock.deployment.RuntimePriority;
+import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
+import org.jboss.shamrock.deployment.builditem.BeanArchiveIndexBuildItem;
+import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
+import org.jboss.shamrock.deployment.builditem.GeneratedClassBuildItem;
+import org.jboss.shamrock.deployment.builditem.GeneratedResourceBuildItem;
+import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
 import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
 
 import io.smallrye.config.inject.ConfigProducer;
 
-public class ArcAnnotationProcessor implements ResourceProcessor {
+@BuildProcessor(providesCapabilities = Capabilities.CDI_ARC)
+public class ArcAnnotationProcessor implements BuildProcessingStep {
 
     private static final DotName JAVA_LANG_OBJECT = DotName.createSimple(Object.class.getName());
 
@@ -58,27 +65,46 @@ public class ArcAnnotationProcessor implements ResourceProcessor {
     @BuildResource
     BeanArchiveIndexBuildItem beanArchiveIndex;
 
+    @BuildResource
+    BuildProducer<GeneratedClassBuildItem> generatedClass;
+
+    @BuildResource
+    BuildProducer<GeneratedResourceBuildItem> generatedResource;
+
+    @BuildResource
+    BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
+
+    @BuildResource
+    List<AdditionalBeanBuildItem> additionalBeans;
+
+    @BuildResource
+    BytecodeOutputBuildItem bytecode;
+
     @Override
-    public void process(ArchiveContext archiveContext, ProcessorContext processorContext) throws Exception {
+    public void build() throws Exception {
 
-        beanDeployment.addAdditionalBean(StartupEventRunner.class);
+        List<String> additionalBeans = new ArrayList<>();
+        for(AdditionalBeanBuildItem i : this.additionalBeans) {
+            additionalBeans.addAll(i.getBeanNames());
+        }
+        additionalBeans.add(StartupEventRunner.class.getName());
 
-        try (BytecodeRecorder recorder = processorContext.addStaticInitTask(RuntimePriority.ARC_DEPLOYMENT)) {
+        try (BytecodeRecorder recorder = bytecode.addStaticInitTask(RuntimePriority.ARC_DEPLOYMENT)) {
 
             ArcDeploymentTemplate template = recorder.getRecordingProxy(ArcDeploymentTemplate.class);
-            processorContext.addReflectiveClass(true, false, Observes.class.getName()); // graal bug
+            reflectiveClass.produce(new ReflectiveClassBuildItem(true, false, Observes.class.getName())); // graal bug
 
             List<DotName> additionalBeanDefiningAnnotations = new ArrayList<>();
             additionalBeanDefiningAnnotations.add(DotName.createSimple("javax.servlet.annotation.WebServlet"));
             additionalBeanDefiningAnnotations.add(DotName.createSimple("javax.ws.rs.Path"));
 
             // TODO MP config
-            beanDeployment.addAdditionalBean(ConfigProducer.class);
+            additionalBeans.add(ConfigProducer.class.getName());
 
             // Index bean classes registered by shamrock
             Indexer indexer = new Indexer();
             Set<DotName> additionalIndex = new HashSet<>();
-            for (String beanClass : beanDeployment.getAdditionalBeans()) {
+            for (String beanClass : additionalBeans) {
                 indexBeanClass(beanClass, indexer, beanArchiveIndex.getIndex(), additionalIndex);
             }
             Set<String> frameworkPackages = additionalIndex.stream().map(dotName -> {
@@ -150,10 +176,10 @@ public class ArcAnnotationProcessor implements ResourceProcessor {
                                 }
                             }
                             log.debugf("Add %s class: %s", (isAppClass ? "APP" : "FWK"), resource.getFullyQualifiedName());
-                            processorContext.addGeneratedClass(isAppClass, resource.getName(), resource.getData());
+                            generatedClass.produce(new GeneratedClassBuildItem(isAppClass, resource.getName(), resource.getData()));
                             break;
                         case SERVICE_PROVIDER:
-                            processorContext.createResource("META-INF/services/" + resource.getName(), resource.getData());
+                            generatedResource.produce(new GeneratedResourceBuildItem("META-INF/services/" + resource.getName(), resource.getData()));
                         default:
                             break;
                     }
@@ -168,14 +194,9 @@ public class ArcAnnotationProcessor implements ResourceProcessor {
             template.setupRequestScope(null, null);
         }
 
-        try (BytecodeRecorder recorder = processorContext.addDeploymentTask(RuntimePriority.STARTUP_EVENT)) {
+        try (BytecodeRecorder recorder = bytecode.addDeploymentTask(RuntimePriority.STARTUP_EVENT)) {
             recorder.getRecordingProxy(ArcDeploymentTemplate.class).fireStartupEvent(null);
         }
-    }
-
-    @Override
-    public int getPriority() {
-        return RuntimePriority.ARC_DEPLOYMENT;
     }
 
     private void indexBeanClass(String beanClass, Indexer indexer, IndexView shamrockIndex, Set<DotName> additionalIndex) {

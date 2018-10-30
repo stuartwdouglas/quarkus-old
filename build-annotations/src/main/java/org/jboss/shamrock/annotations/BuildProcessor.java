@@ -15,4 +15,5 @@ public @interface BuildProcessor {
 
     Class<? extends BuildItem>[] afterProduce() default {};
 
+    String[] providesCapabilities() default {};
 }

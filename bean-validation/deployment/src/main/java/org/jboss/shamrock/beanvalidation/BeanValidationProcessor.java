@@ -19,6 +19,7 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.ParameterizedType;
 import org.jboss.jandex.Type;
+import org.jboss.shamrock.annotations.BuildProcessor;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.beanvalidation.runtime.ValidatorProvider;
@@ -26,48 +27,68 @@ import org.jboss.shamrock.beanvalidation.runtime.ValidatorTemplate;
 import org.jboss.shamrock.beanvalidation.runtime.graal.ConstraintHelperSubstitution;
 import org.jboss.shamrock.deployment.ArchiveContext;
 import org.jboss.shamrock.deployment.BeanDeployment;
+import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.ProcessorContext;
 import org.jboss.shamrock.deployment.ResourceProcessor;
+import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
+import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
+import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
+import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
+import org.jboss.shamrock.deployment.builditem.ResourceBundleBuildItem;
 import org.jboss.shamrock.deployment.builditem.RuntimeInitializedClassBuildItem;
 import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
 import org.jboss.shamrock.runtime.InjectionInstance;
 
-class BeanValidationProcessor implements ResourceProcessor {
+@BuildProcessor
+class BeanValidationProcessor implements BuildProcessingStep {
 
     private static final DotName CONSTRAINT_VALIDATOR = DotName.createSimple(ConstraintValidator.class.getName());
 
+    @BuildResource
+    BuildProducer<AdditionalBeanBuildItem> additionalBean;
 
     @BuildResource
     BuildProducer<RuntimeInitializedClassBuildItem> runtimeInitClasses;
 
-    @Inject
-    BeanDeployment beanDeployment;
+    @BuildResource
+    BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
+
+    @BuildResource
+    BuildProducer<ResourceBundleBuildItem> resourceBundle;
+
+    @BuildResource
+    BytecodeOutputBuildItem bytecode;
+
+    @BuildResource
+    CombinedIndexBuildItem combinedIndexBuildItem;
 
     @Override
-    public void process(ArchiveContext archiveContext, ProcessorContext processorContext) throws Exception {
-        beanDeployment.addAdditionalBean(ValidatorProvider.class);
+    public void build() throws Exception {
+        additionalBean.produce(new AdditionalBeanBuildItem(ValidatorProvider.class));
+
+
         runtimeInitClasses.produce(new RuntimeInitializedClassBuildItem("javax.el.ELUtil"));
         processorContext.addResourceBundle("org.hibernate.validator.ValidationMessages");
         //TODO: this should not rely on the index and implementation being indexed, this stuff should just be hard coded
-        processorContext.addReflectiveClass(true, false, Constraint.class.getName());
+        reflectiveClass.produce(new ReflectiveClassBuildItem(true, false, Constraint.class.getName()));
         Map<DotName, Set<DotName>> seenConstraints = new HashMap<>();
         Set<String> classesToBeValidated = new HashSet<>();
 
         //the map of validators, first key is constraint (annotation), second is the validator class name, value is the type that is validated
-        Map<DotName, Map<DotName, DotName>> validatorsByConstraint = lookForValidatorsByConstraint(archiveContext, processorContext);
+        Map<DotName, Map<DotName, DotName>> validatorsByConstraint = lookForValidatorsByConstraint();
 
         Set<DotName> constraintAnnotations = new HashSet<>();
         constraintAnnotations.addAll(validatorsByConstraint.keySet());
 
-        for (AnnotationInstance constraint : archiveContext.getCombinedIndex().getAnnotations(DotName.createSimple(Constraint.class.getName()))) {
+        for (AnnotationInstance constraint : combinedIndexBuildItem.getIndex().getAnnotations(DotName.createSimple(Constraint.class.getName()))) {
             constraintAnnotations.add(constraint.target().asClass().name());
         }
 
         for (DotName constraint : constraintAnnotations) {
-            Collection<AnnotationInstance> annotationInstances = archiveContext.getCombinedIndex().getAnnotations(constraint);
+            Collection<AnnotationInstance> annotationInstances = combinedIndexBuildItem.getIndex().getAnnotations(constraint);
             if (!annotationInstances.isEmpty()) {
-                processorContext.addReflectiveClass(true, false, constraint.toString());
+                reflectiveClass.produce(new ReflectiveClassBuildItem((true, false, constraint.toString());
             }
             for (AnnotationInstance annotation : annotationInstances) {
 
@@ -90,7 +111,7 @@ class BeanValidationProcessor implements ResourceProcessor {
                 } else if (annotation.target().kind() == AnnotationTarget.Kind.CLASS) {
                     classesToBeValidated.add(annotation.target().asClass().name().toString());
                     seenTypes.add(annotation.target().asClass().name());
-                    processorContext.addReflectiveClass(true, true, annotation.target().asClass().name().toString());
+                    reflectiveClass.produce(new ReflectiveClassBuildItem((true, true, annotation.target().asClass().name().toString());
                 }
             }
         }
@@ -117,12 +138,12 @@ class BeanValidationProcessor implements ResourceProcessor {
                     }
                 }
                 for (DotName i : toRegister) { //such hacks
-                    processorContext.addReflectiveClass(false, false, i.toString());
+                    reflectiveClass.produce(new ReflectiveClassBuildItem(false, false, i.toString()));
                 }
             }
         }
 
-        try (BytecodeRecorder recorder = processorContext.addStaticInitTask(RuntimePriority.BEAN_VALIDATION_DEPLOYMENT)) {
+        try (BytecodeRecorder recorder = bytecode.addStaticInitTask(RuntimePriority.BEAN_VALIDATION_DEPLOYMENT)) {
             ValidatorTemplate template = recorder.getRecordingProxy(ValidatorTemplate.class);
             Class[] classes = new Class[classesToBeValidated.size()];
             int j = 0;
@@ -184,10 +205,5 @@ class BeanValidationProcessor implements ResourceProcessor {
             }
         }
         return validatorsByConstraint;
-    }
-
-    @Override
-    public int getPriority() {
-        return 1;
     }
 }

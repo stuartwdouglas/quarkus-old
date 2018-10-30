@@ -6,7 +6,9 @@ import javax.inject.Inject;
 
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.IndexView;
+import org.jboss.shamrock.annotations.BuildProcessor;
 import org.jboss.shamrock.deployment.ArchiveContext;
+import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.builditem.BeanArchiveIndexBuildItem;
 import org.jboss.shamrock.deployment.BeanDeployment;
 import org.jboss.shamrock.deployment.ProcessorContext;
@@ -17,7 +19,8 @@ import org.jboss.shamrock.weld.runtime.WeldDeploymentTemplate;
 
 import io.smallrye.config.inject.ConfigProducer;
 
-public class WeldAnnotationProcessor implements ResourceProcessor {
+@BuildProcessor
+public class WeldAnnotationProcessor implements BuildProcessingStep {
 
     @Inject
     private BeanDeployment beanDeployment;
@@ -26,7 +29,7 @@ public class WeldAnnotationProcessor implements ResourceProcessor {
     private BeanArchiveIndexBuildItem beanArchiveIndex;
 
     @Override
-    public void process(ArchiveContext archiveContext, ProcessorContext processorContext) throws Exception {
+    public void build throws Exception {
         IndexView index = beanArchiveIndex.getIndex();
         //make config injectable
     	beanDeployment.addAdditionalBean(ConfigProducer.class);
@@ -36,7 +39,7 @@ public class WeldAnnotationProcessor implements ResourceProcessor {
             for (ClassInfo cl : index.getKnownClasses()) {
                 String name = cl.name().toString();
                 template.addClass(init, recorder.classProxy(name));
-                processorContext.addReflectiveClass(true, true, name);
+                reflectiveClass.produce(new ReflectiveClassBuildItem((true, true, name);
             }
             for (String clazz : beanDeployment.getAdditionalBeans()) {
                 template.addClass(init, recorder.classProxy(clazz));

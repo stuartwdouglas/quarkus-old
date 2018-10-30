@@ -40,8 +40,8 @@ final class HibernateReflectiveNeeds {
         simpleConstructor(org.hibernate.boot.model.naming.ImplicitNamingStrategyJpaCompliantImpl.class);
         simpleConstructor(org.hibernate.resource.transaction.backend.jta.internal.JtaTransactionCoordinatorBuilderImpl.class);
         simpleConstructor(EnumType.class);
-        processorContext.addReflectiveClass(true, false, com.arjuna.ats.jta.UserTransaction.class.getName());
-        processorContext.addReflectiveClass(true, false, com.arjuna.ats.jta.TransactionManager.class.getName());
+        reflectiveClass.produce(new ReflectiveClassBuildItem((true, false, com.arjuna.ats.jta.UserTransaction.class.getName());
+        reflectiveClass.produce(new ReflectiveClassBuildItem((true, false, com.arjuna.ats.jta.TransactionManager.class.getName());
 
         //FIXME following is not Hibernate specific?
         simpleConstructor("com.sun.xml.internal.stream.events.XMLEventFactoryImpl");
@@ -122,7 +122,7 @@ final class HibernateReflectiveNeeds {
     }
 
     private void simpleConstructor(final String clazzName) {
-        processorContext.addReflectiveClass(false, false, clazzName);
+        reflectiveClass.produce(new ReflectiveClassBuildItem((false, false, clazzName);
     }
 
 }

@@ -200,12 +200,12 @@ final class JpaJandexScavenger {
 
         void registerAllForReflection(final ProcessorContext processorContext) {
             for (String className : classNames) {
-                processorContext.addReflectiveClass(true, true, className);
+                reflectiveClass.produce(new ReflectiveClassBuildItem((true, true, className);
             }
             if(!enumTypes.isEmpty()) {
-                processorContext.addReflectiveClass(true, false, Enum.class.getName());
+                reflectiveClass.produce(new ReflectiveClassBuildItem((true, false, Enum.class.getName());
                 for (String className : enumTypes) {
-                    processorContext.addReflectiveClass(true, false, className);
+                    reflectiveClass.produce(new ReflectiveClassBuildItem((true, false, className);
                 }
             }
         }

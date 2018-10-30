@@ -1,4 +1,4 @@
-package org.jboss.shamrock.jpa.cdi;
+package org.jboss.shamrock.jpa;
 
 import java.util.List;
 
@@ -12,12 +12,16 @@ import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
+import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.deployment.ArchiveContext;
 import org.jboss.shamrock.deployment.BeanDeployment;
+import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.Capabilities;
 import org.jboss.shamrock.deployment.ProcessorContext;
 import org.jboss.shamrock.deployment.ResourceProcessor;
 import org.jboss.shamrock.deployment.RuntimePriority;
+import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
 import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
 import org.jboss.shamrock.jpa.HibernateResourceProcessor;
 import org.jboss.shamrock.jpa.runtime.DefaultEntityManagerFactoryProducer;
@@ -26,19 +30,23 @@ import org.jboss.shamrock.jpa.runtime.JPAConfig;
 import org.jboss.shamrock.jpa.runtime.JPADeploymentTemplate;
 import org.jboss.shamrock.jpa.runtime.TransactionEntityManagers;
 
-public class HibernateCdiResourceProcessor implements ResourceProcessor {
+@BuildProcessor
+class HibernateCdiResourceProcessor implements BuildProcessingStep {
 
     private static final DotName PERSISTENCE_CONTEXT = DotName.createSimple(PersistenceContext.class.getName());
     private static final DotName PERSISTENCE_UNIT = DotName.createSimple(PersistenceUnit.class.getName());
     private static final DotName PRODUCES = DotName.createSimple(Produces.class.getName());
 
-    @Inject
-    BeanDeployment beanDeployment;
+    @BuildResource
+    BytecodeOutputBuildItem bytecode;
+
+    @BuildResource
+    List<PersistenceUnitDescriptorBuildItem> descriptors;
 
     @Override
-    public void process(ArchiveContext archiveContext, ProcessorContext processorContext) throws Exception {
+    public void build() throws Exception {
 
-        try (BytecodeRecorder recorder = processorContext.addDeploymentTask(RuntimePriority.BOOTSTRAP_EMF)) {
+        try (BytecodeRecorder recorder = bytecode.addDeploymentTask(RuntimePriority.BOOTSTRAP_EMF)) {
             JPADeploymentTemplate template = recorder.getRecordingProxy(JPADeploymentTemplate.class);
 
             beanDeployment.addAdditionalBean(JPAConfig.class, TransactionEntityManagers.class);
@@ -53,14 +61,12 @@ public class HibernateCdiResourceProcessor implements ResourceProcessor {
             template.initializeJpa(null, processorContext.isCapabilityPresent(Capabilities.TRANSACTIONS));
 
             // Bootstrap all persistence units
-            List<PersistenceUnitDescriptor> pus = processorContext
-                    .getProperty(HibernateResourceProcessor.PARSED_DESCRIPTORS);
-            for (PersistenceUnitDescriptor persistenceUnitDescriptor : pus) {
-                template.bootstrapPersistenceUnit(null, persistenceUnitDescriptor.getName());
+            for (PersistenceUnitDescriptorBuildItem persistenceUnitDescriptor : descriptors) {
+                template.bootstrapPersistenceUnit(null, persistenceUnitDescriptor.getDescriptor().getName());
             }
             template.initDefaultPersistenceUnit(null);
 
-            if (pus.size() == 1) {
+            if (descriptors.size() == 1) {
                 // There is only one persistence unit - register CDI beans for EM and EMF if no
                 // producers are defined
                 if (isUserDefinedProducerMissing(archiveContext.getCombinedIndex(), PERSISTENCE_UNIT)) {
@@ -89,10 +95,4 @@ public class HibernateCdiResourceProcessor implements ResourceProcessor {
         }
         return true;
     }
-
-    @Override
-    public int getPriority() {
-        return 100;
-    }
-
 }

@@ -1,7 +1,5 @@
 package org.jboss.shamrock.health;
 
-import javax.inject.Inject;
-
 import org.jboss.shamrock.annotations.BuildProcessor;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
@@ -16,7 +14,7 @@ import io.smallrye.health.SmallRyeHealthReporter;
 @BuildProcessor
 class HealthProcessor implements BuildProcessingStep {
 
-    @Inject
+    @BuildResource
     BuildProducer<AdditionalBeanBuildItem> additionalBeans;
 
     @BuildResource

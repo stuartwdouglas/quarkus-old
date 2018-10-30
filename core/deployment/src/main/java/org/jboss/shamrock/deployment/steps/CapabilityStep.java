@@ -26,6 +26,7 @@ public class CapabilityStep implements BuildProcessingStep {
         for (CapabilityBuildItem i : capabilitites) {
             present.add(i.getName());
         }
+
         producer.produce(new Capabilities(present));
 
     }

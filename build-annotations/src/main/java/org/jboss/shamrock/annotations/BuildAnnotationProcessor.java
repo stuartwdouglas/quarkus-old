@@ -91,6 +91,7 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
         for (TypeElement annotation : annotations) {
             if (annotation.getQualifiedName().toString().equals(BuildProcessor.class.getName())) {
                 final Set<? extends TypeElement> processors = typesIn(roundEnv.getElementsAnnotatedWith(annotation));
+
                 for (TypeElement processor : processors) {
                     List<BuildResourceField> fieldList = new ArrayList<>();
                     for (VariableElement field : fieldsIn(processor.getEnclosedElements())) {
@@ -153,6 +154,8 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
                     final String buildStepName = processorClassName + "BuildStep";
                     serviceNames.add(buildProviderName);
                     processorElements.add(processor);
+
+                    String[] capabilities = processor.getAnnotation(BuildProcessor.class).providesCapabilities();
                     try (ClassCreator creator = new ClassCreator(new ProcessorClassOutput(processor), buildProviderName, null, Object.class.getName(), BuildProvider.class.getName())) {
                         MethodCreator mc = creator.getMethodCreator("installInto", void.class, BuildChainBuilder.class);
 
@@ -168,6 +171,18 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
                             }
                         }
                         mc.invokeVirtualMethod(ofMethod(BuildStepBuilder.class, "build", BuildChainBuilder.class), builder);
+
+
+
+                        if(capabilities.length > 0) {
+                            for(String i : capabilities) {
+                                step = mc.newInstance(ofConstructor("org.jboss.shamrock.deployment.steps.CapabilityBuildStep", String.class), mc.load(i));
+                                builder = mc.invokeVirtualMethod(MethodDescriptor.ofMethod(BuildChainBuilder.class, "addBuildStep", BuildStepBuilder.class, BuildStep.class), mc.getMethodParam(0), step);
+                                mc.invokeVirtualMethod(ofMethod(BuildStepBuilder.class, "produces", BuildStepBuilder.class, Class.class), builder, mc.loadClass("org.jboss.shamrock.deployment.builditem.CapabilityBuildItem"));
+                                mc.invokeVirtualMethod(ofMethod(BuildStepBuilder.class, "build", BuildChainBuilder.class), builder);
+                            }
+                        }
+
                         mc.returnValue(null);
                     }
 

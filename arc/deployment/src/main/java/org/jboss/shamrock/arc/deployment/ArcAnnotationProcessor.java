@@ -61,7 +61,7 @@ public class ArcAnnotationProcessor implements BuildProcessingStep {
 
     private static final Logger log = Logger.getLogger("org.jboss.shamrock.arc.deployment.processor");
 
-    @Inject
+    @BuildResource
     BeanDeployment beanDeployment;
 
     @BuildResource

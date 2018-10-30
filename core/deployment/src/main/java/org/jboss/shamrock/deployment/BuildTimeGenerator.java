@@ -66,7 +66,10 @@ import org.jboss.shamrock.deployment.buildconfig.BuildConfig;
 import org.jboss.shamrock.deployment.builditem.ApplicationArchivesBuildItem;
 import org.jboss.shamrock.deployment.builditem.ArchiveRootBuildItem;
 import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
+import org.jboss.shamrock.deployment.builditem.BytecodeTransformerBuildItem;
 import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
+import org.jboss.shamrock.deployment.builditem.GeneratedClassBuildItem;
+import org.jboss.shamrock.deployment.builditem.GeneratedResourceBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
 import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
 import org.jboss.shamrock.deployment.codegen.BytecodeRecorderImpl;
@@ -164,6 +167,7 @@ public class BuildTimeGenerator {
             try {
 
                 BuildChain chain = BuildChain.builder()
+
                         .loadProviders(Thread.currentThread().getContextClassLoader())
                         .addBuildStep(new BuildStep() {
                             @Override
@@ -184,8 +188,22 @@ public class BuildTimeGenerator {
                         .produces(BuildConfig.class)
                         .build()
                         .addFinal(ReflectiveClassBuildItem.class)
+                        .addFinal(GeneratedClassBuildItem.class)
+                        .addFinal(GeneratedResourceBuildItem.class)
+                        .addFinal(BytecodeTransformerBuildItem.class)
                         .build();
                 BuildResult result = chain.createExecutionBuilder("main").execute();
+
+                for(GeneratedClassBuildItem i : result.consumeMulti(GeneratedClassBuildItem.class)) {
+                    processorContext.addGeneratedClass(i.isApplicationClass(), i.getName(), i.getClassData());
+                }
+                for(GeneratedResourceBuildItem i : result.consumeMulti(GeneratedResourceBuildItem.class)) {
+                    processorContext.createResource(i.getName(), i.getClassData());
+                }
+                for(BytecodeTransformerBuildItem i : result.consumeMulti(BytecodeTransformerBuildItem.class)) {
+                    processorContext.addByteCodeTransformer(i.getClassToTransform(), i.getVisitorFunction());
+                }
+
                 processorContext.writeProperties(root.toFile());
                 processorContext.writeMainClass();
                 processorContext.writeReflectionAutoFeature();

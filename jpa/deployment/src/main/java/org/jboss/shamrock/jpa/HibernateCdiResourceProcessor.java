@@ -3,27 +3,25 @@ package org.jboss.shamrock.jpa;
 import java.util.List;
 
 import javax.enterprise.inject.Produces;
-import javax.inject.Inject;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceUnit;
 
-import org.hibernate.jpa.boot.spi.PersistenceUnitDescriptor;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
 import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
-import org.jboss.shamrock.deployment.ArchiveContext;
 import org.jboss.shamrock.deployment.BeanDeployment;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.Capabilities;
-import org.jboss.shamrock.deployment.ProcessorContext;
-import org.jboss.shamrock.deployment.ResourceProcessor;
 import org.jboss.shamrock.deployment.RuntimePriority;
+import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
 import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
+import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
+import org.jboss.shamrock.deployment.builditem.GeneratedResourceBuildItem;
 import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
-import org.jboss.shamrock.jpa.HibernateResourceProcessor;
 import org.jboss.shamrock.jpa.runtime.DefaultEntityManagerFactoryProducer;
 import org.jboss.shamrock.jpa.runtime.DefaultEntityManagerProducer;
 import org.jboss.shamrock.jpa.runtime.JPAConfig;
@@ -43,22 +41,37 @@ class HibernateCdiResourceProcessor implements BuildProcessingStep {
     @BuildResource
     List<PersistenceUnitDescriptorBuildItem> descriptors;
 
+    @BuildResource
+    Capabilities capabilities;
+
+    @BuildResource
+    BuildProducer<AdditionalBeanBuildItem> additionalBeans;
+
+    @BuildResource
+    BuildProducer<GeneratedResourceBuildItem> resources;
+
+    @BuildResource
+    BeanDeployment beanDeployment;
+
+    @BuildResource
+    CombinedIndexBuildItem combinedIndex;
+
     @Override
     public void build() throws Exception {
 
         try (BytecodeRecorder recorder = bytecode.addDeploymentTask(RuntimePriority.BOOTSTRAP_EMF)) {
             JPADeploymentTemplate template = recorder.getRecordingProxy(JPADeploymentTemplate.class);
 
-            beanDeployment.addAdditionalBean(JPAConfig.class, TransactionEntityManagers.class);
+            additionalBeans.produce(new AdditionalBeanBuildItem(JPAConfig.class, TransactionEntityManagers.class));
 
-            if (processorContext.isCapabilityPresent(Capabilities.CDI_ARC)) {
-                processorContext.createResource("META-INF/services/org.jboss.protean.arc.ResourceReferenceProvider",
-                        "org.jboss.shamrock.jpa.runtime.JPAResourceReferenceProvider".getBytes());
+            if (capabilities.isCapabilityPresent(Capabilities.CDI_ARC)) {
+                resources.produce(new GeneratedResourceBuildItem("META-INF/services/org.jboss.protean.arc.ResourceReferenceProvider",
+                        "org.jboss.shamrock.jpa.runtime.JPAResourceReferenceProvider".getBytes()));
                 beanDeployment.addResourceAnnotation(PERSISTENCE_CONTEXT);
                 beanDeployment.addResourceAnnotation(PERSISTENCE_UNIT);
             }
 
-            template.initializeJpa(null, processorContext.isCapabilityPresent(Capabilities.TRANSACTIONS));
+            template.initializeJpa(null, capabilities.isCapabilityPresent(Capabilities.TRANSACTIONS));
 
             // Bootstrap all persistence units
             for (PersistenceUnitDescriptorBuildItem persistenceUnitDescriptor : descriptors) {
@@ -69,11 +82,11 @@ class HibernateCdiResourceProcessor implements BuildProcessingStep {
             if (descriptors.size() == 1) {
                 // There is only one persistence unit - register CDI beans for EM and EMF if no
                 // producers are defined
-                if (isUserDefinedProducerMissing(archiveContext.getCombinedIndex(), PERSISTENCE_UNIT)) {
-                    beanDeployment.addAdditionalBean(DefaultEntityManagerFactoryProducer.class);
+                if (isUserDefinedProducerMissing(combinedIndex.getIndex(), PERSISTENCE_UNIT)) {
+                    additionalBeans.produce(new AdditionalBeanBuildItem(DefaultEntityManagerFactoryProducer.class));
                 }
-                if (isUserDefinedProducerMissing(archiveContext.getCombinedIndex(), PERSISTENCE_CONTEXT)) {
-                    beanDeployment.addAdditionalBean(DefaultEntityManagerProducer.class);
+                if (isUserDefinedProducerMissing(combinedIndex.getIndex(), PERSISTENCE_CONTEXT)) {
+                    additionalBeans.produce(new AdditionalBeanBuildItem(DefaultEntityManagerProducer.class));
                 }
             }
         }

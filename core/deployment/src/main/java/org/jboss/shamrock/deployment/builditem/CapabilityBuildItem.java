@@ -2,7 +2,7 @@ package org.jboss.shamrock.deployment.builditem;
 
 import org.jboss.builder.item.MultiBuildItem;
 
-public class CapabilityBuildItem extends MultiBuildItem {
+public final class CapabilityBuildItem extends MultiBuildItem {
 
     private final String name;
 

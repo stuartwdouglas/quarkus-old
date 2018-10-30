@@ -5,7 +5,7 @@ import org.jboss.builder.item.MultiBuildItem;
 /**
  * A generated wiring class
  */
-public class WiringClassBuildItem extends MultiBuildItem {
+public final class WiringClassBuildItem extends MultiBuildItem {
 
     private final String name;
     private final byte[] data;

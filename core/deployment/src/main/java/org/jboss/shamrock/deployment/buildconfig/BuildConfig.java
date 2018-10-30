@@ -21,7 +21,7 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 /**
  * The build time configuration
  */
-public class BuildConfig extends SimpleBuildItem {
+public final class BuildConfig extends SimpleBuildItem {
 
     private static final String META_INF_SHAMROCK_BUILD_YAML = "META-INF/shamrock-build.yaml";
 

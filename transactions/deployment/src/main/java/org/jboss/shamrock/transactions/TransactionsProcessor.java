@@ -4,7 +4,7 @@ import java.util.Properties;
 
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import org.jboss.shamrock.annotations.BuildResource;
+import javax.inject.Inject;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.Capabilities;
 import org.jboss.shamrock.deployment.RuntimePriority;
@@ -34,19 +34,19 @@ import com.arjuna.common.util.propertyservice.PropertiesFactory;
 @BuildStep(providesCapabilities = Capabilities.TRANSACTIONS)
 class TransactionsProcessor implements BuildProcessingStep {
 
-    @BuildResource
+    @Inject
     BuildProducer<AdditionalBeanBuildItem> additionalBeans;
 
-    @BuildResource
+    @Inject
     BeanArchiveIndexBuildItem beanArchiveIndex;
 
-    @BuildResource
+    @Inject
     BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
 
-    @BuildResource
+    @Inject
     BytecodeOutputBuildItem bytecode;
 
-    @BuildResource
+    @Inject
     BuildProducer<RuntimeInitializedClassBuildItem> runtimeInit;
 
     @Override

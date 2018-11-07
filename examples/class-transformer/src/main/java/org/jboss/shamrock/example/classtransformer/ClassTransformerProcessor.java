@@ -11,7 +11,7 @@ import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.DotName;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import org.jboss.shamrock.annotations.BuildResource;
+import javax.inject.Inject;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.builditem.BytecodeTransformerBuildItem;
 import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
@@ -32,10 +32,10 @@ public class ClassTransformerProcessor implements BuildProcessingStep {
 
     private static final DotName PATH = DotName.createSimple("javax.ws.rs.Path");
 
-    @BuildResource
+    @Inject
     CombinedIndexBuildItem combinedIndex;
 
-    @BuildResource
+    @Inject
     BuildProducer<BytecodeTransformerBuildItem> transformers;
 
     @Override

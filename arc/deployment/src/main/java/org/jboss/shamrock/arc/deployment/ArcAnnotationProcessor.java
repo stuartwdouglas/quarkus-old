@@ -34,7 +34,7 @@ import org.jboss.protean.arc.processor.ReflectionRegistration;
 import org.jboss.protean.arc.processor.ResourceOutput;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import org.jboss.shamrock.annotations.BuildResource;
+import javax.inject.Inject;
 import org.jboss.shamrock.arc.runtime.ArcDeploymentTemplate;
 import org.jboss.shamrock.arc.runtime.StartupEventRunner;
 import org.jboss.shamrock.deployment.BeanDeployment;
@@ -60,31 +60,31 @@ public class ArcAnnotationProcessor implements BuildProcessingStep {
 
     private static final Logger log = Logger.getLogger("org.jboss.shamrock.arc.deployment.processor");
 
-    @BuildResource
+    @Inject
     BeanDeployment beanDeployment;
 
-    @BuildResource
+    @Inject
     BeanArchiveIndexBuildItem beanArchiveIndex;
 
-    @BuildResource
+    @Inject
     BuildProducer<GeneratedClassBuildItem> generatedClass;
 
-    @BuildResource
+    @Inject
     BuildProducer<GeneratedResourceBuildItem> generatedResource;
 
-    @BuildResource
+    @Inject
     BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
 
-    @BuildResource
+    @Inject
     List<AdditionalBeanBuildItem> additionalBeans;
 
-    @BuildResource
+    @Inject
     BytecodeOutputBuildItem bytecode;
 
-    @BuildResource
+    @Inject
     BuildProducer<ReflectiveMethodBuildItem> reflectiveMethods;
 
-    @BuildResource
+    @Inject
     BuildProducer<ReflectiveFieldBuildItem> reflectiveFields;
 
     @Override

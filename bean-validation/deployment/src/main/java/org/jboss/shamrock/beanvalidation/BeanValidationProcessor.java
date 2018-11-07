@@ -20,7 +20,7 @@ import org.jboss.jandex.ParameterizedType;
 import org.jboss.jandex.Type;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import org.jboss.shamrock.annotations.BuildResource;
+import javax.inject.Inject;
 import org.jboss.shamrock.beanvalidation.runtime.ValidatorProvider;
 import org.jboss.shamrock.beanvalidation.runtime.ValidatorTemplate;
 import org.jboss.shamrock.beanvalidation.runtime.graal.ConstraintHelperSubstitution;
@@ -42,28 +42,28 @@ class BeanValidationProcessor implements BuildProcessingStep {
 
     private static final DotName CONSTRAINT_VALIDATOR = DotName.createSimple(ConstraintValidator.class.getName());
 
-    @BuildResource
+    @Inject
     BuildProducer<AdditionalBeanBuildItem> additionalBean;
 
-    @BuildResource
+    @Inject
     BuildProducer<RuntimeInitializedClassBuildItem> runtimeInitClasses;
 
-    @BuildResource
+    @Inject
     BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
 
-    @BuildResource
+    @Inject
     BuildProducer<ResourceBundleBuildItem> resourceBundle;
 
-    @BuildResource
+    @Inject
     BytecodeOutputBuildItem bytecode;
 
-    @BuildResource
+    @Inject
     CombinedIndexBuildItem combinedIndexBuildItem;
 
-    @BuildResource
+    @Inject
     BuildProducer<ReflectiveMethodBuildItem> reflectiveMethods;
 
-    @BuildResource
+    @Inject
     BuildProducer<ReflectiveFieldBuildItem> reflectiveFields;
 
     @Override

@@ -13,17 +13,17 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import org.jboss.shamrock.annotations.BuildResource;
+import javax.inject.Inject;
 import org.jboss.shamrock.deployment.builditem.ApplicationArchivesBuildItem;
 import org.jboss.shamrock.deployment.builditem.BeanArchiveIndexBuildItem;
 
 @BuildStep
 public class BeanArchiveProcessor implements BuildProcessingStep {
 
-    @BuildResource
+    @Inject
     BuildProducer<BeanArchiveIndexBuildItem> beanArchiveIndexBuildProducer;
 
-    @BuildResource
+    @Inject
     ApplicationArchivesBuildItem applicationArchivesBuildItem;
 
     @Override

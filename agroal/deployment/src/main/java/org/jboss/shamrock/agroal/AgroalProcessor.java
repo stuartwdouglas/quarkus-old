@@ -4,7 +4,7 @@ import org.jboss.shamrock.agroal.runtime.DataSourceProducer;
 import org.jboss.shamrock.agroal.runtime.DataSourceTemplate;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import org.jboss.shamrock.annotations.BuildResource;
+import javax.inject.Inject;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.buildconfig.BuildConfig;
@@ -17,16 +17,16 @@ import org.jboss.shamrock.runtime.ConfiguredValue;
 @BuildStep
 class AgroalProcessor implements BuildProcessingStep {
 
-    @BuildResource
+    @Inject
     BuildProducer<AdditionalBeanBuildItem> additionalBean;
 
-    @BuildResource
+    @Inject
     BytecodeOutputBuildItem bytecode;
 
-    @BuildResource
+    @Inject
     BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
 
-    @BuildResource
+    @Inject
     BuildConfig config;
 
     @Override

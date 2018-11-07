@@ -10,7 +10,7 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.IndexView;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import org.jboss.shamrock.annotations.BuildResource;
+import javax.inject.Inject;
 import org.jboss.shamrock.deployment.BeanDeployment;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.Capabilities;
@@ -27,19 +27,19 @@ import io.smallrye.config.inject.ConfigProducer;
 @BuildStep(providesCapabilities = Capabilities.CDI_WELD, applicationArchiveMarkers = {"META-INF/beans.xml", "META-INF/services/javax.enterprise.inject.spi.Extension"})
 public class WeldAnnotationProcessor implements BuildProcessingStep {
 
-    @BuildResource
+    @Inject
     BeanDeployment beanDeployment;
 
-    @BuildResource
+    @Inject
     BeanArchiveIndexBuildItem beanArchiveIndex;
 
-    @BuildResource
+    @Inject
     BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
 
-    @BuildResource
+    @Inject
     List<AdditionalBeanBuildItem> additionalBeans;
 
-    @BuildResource
+    @Inject
     BytecodeOutputBuildItem bytecode;
 
     @Override

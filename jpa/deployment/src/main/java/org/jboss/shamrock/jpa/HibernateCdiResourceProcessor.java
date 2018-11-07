@@ -12,7 +12,7 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import org.jboss.shamrock.annotations.BuildResource;
+import javax.inject.Inject;
 import org.jboss.shamrock.deployment.BeanDeployment;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.Capabilities;
@@ -35,25 +35,25 @@ class HibernateCdiResourceProcessor implements BuildProcessingStep {
     private static final DotName PERSISTENCE_UNIT = DotName.createSimple(PersistenceUnit.class.getName());
     private static final DotName PRODUCES = DotName.createSimple(Produces.class.getName());
 
-    @BuildResource
+    @Inject
     BytecodeOutputBuildItem bytecode;
 
-    @BuildResource
+    @Inject
     List<PersistenceUnitDescriptorBuildItem> descriptors;
 
-    @BuildResource
+    @Inject
     Capabilities capabilities;
 
-    @BuildResource
+    @Inject
     BuildProducer<AdditionalBeanBuildItem> additionalBeans;
 
-    @BuildResource
+    @Inject
     BuildProducer<GeneratedResourceBuildItem> resources;
 
-    @BuildResource
+    @Inject
     BeanDeployment beanDeployment;
 
-    @BuildResource
+    @Inject
     CombinedIndexBuildItem combinedIndex;
 
     @Override

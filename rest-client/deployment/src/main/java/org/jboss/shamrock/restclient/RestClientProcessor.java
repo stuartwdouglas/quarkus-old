@@ -29,7 +29,7 @@ import org.jboss.resteasy.client.jaxrs.internal.proxy.ResteasyClientProxy;
 import org.jboss.resteasy.spi.ResteasyConfiguration;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import org.jboss.shamrock.annotations.BuildResource;
+import javax.inject.Inject;
 import org.jboss.shamrock.deployment.BeanDeployment;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.ShamrockConfig;
@@ -59,28 +59,28 @@ class RestClientProcessor implements BuildProcessingStep {
             DotName.createSimple(Path.class.getName())
     };
 
-    @BuildResource
+    @Inject
     BuildProducer<GeneratedClassBuildItem> generatedClass;
 
-    @BuildResource
+    @Inject
     BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
 
-    @BuildResource
+    @Inject
     BuildProducer<AdditionalBeanBuildItem> additionalBeans;
 
-    @BuildResource
+    @Inject
     BeanDeployment beanDeployment;
 
-    @BuildResource
+    @Inject
     ShamrockConfig config;
 
-    @BuildResource
+    @Inject
     BuildProducer<ProxyDefinitionBuildItem> proxyDefinition;
 
-    @BuildResource
+    @Inject
     BuildProducer<ResourceBuildItem> resources;
 
-    @BuildResource
+    @Inject
     CombinedIndexBuildItem combinedIndexBuildItem;
 
     @Override

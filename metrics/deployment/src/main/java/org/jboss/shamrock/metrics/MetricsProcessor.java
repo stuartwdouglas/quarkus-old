@@ -14,7 +14,7 @@ import org.jboss.jandex.IndexView;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import org.jboss.shamrock.annotations.BuildResource;
+import javax.inject.Inject;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.ShamrockConfig;
@@ -40,22 +40,22 @@ import io.smallrye.metrics.interceptors.TimedInterceptor;
 @BuildStep
 public class MetricsProcessor implements BuildProcessingStep {
 
-    @BuildResource
+    @Inject
     ShamrockConfig config;
 
-    @BuildResource
+    @Inject
     BeanArchiveIndexBuildItem beanArchiveIndex;
 
-    @BuildResource
+    @Inject
     BuildProducer<ReflectiveClassBuildItem> reflectiveClasses;
 
-    @BuildResource
+    @Inject
     BuildProducer<ServletData> servlets;
 
-    @BuildResource
+    @Inject
     BytecodeOutputBuildItem bytecode;
 
-    @BuildResource
+    @Inject
     BuildProducer<AdditionalBeanBuildItem> additionalBeans;
 
     @Override

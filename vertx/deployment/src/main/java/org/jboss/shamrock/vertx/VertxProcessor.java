@@ -2,7 +2,7 @@ package org.jboss.shamrock.vertx;
 
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import org.jboss.shamrock.annotations.BuildResource;
+import javax.inject.Inject;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.builditem.NativeImageSystemPropertyBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
@@ -11,13 +11,13 @@ import org.jboss.shamrock.deployment.builditem.RuntimeInitializedClassBuildItem;
 @BuildStep
 class VertxProcessor implements BuildProcessingStep {
 
-    @BuildResource
+    @Inject
     BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
 
-    @BuildResource
+    @Inject
     BuildProducer<RuntimeInitializedClassBuildItem> runtimeClasses;
 
-    @BuildResource
+    @Inject
     BuildProducer<NativeImageSystemPropertyBuildItem> nativeImage;
 
     @Override

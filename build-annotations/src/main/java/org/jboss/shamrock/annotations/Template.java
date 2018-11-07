@@ -5,14 +5,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.jboss.builder.item.BuildItem;
-
-@Target(ElementType.FIELD)
+/**
+ * Indicates that the annotated type is a template type, intended for use by BytecodeRecorders
+ *
+ */
 @Retention(RetentionPolicy.SOURCE)
-public @interface BuildResource {
-
-    Class<? extends BuildItem> type() default BuildItem.class;
-
-    boolean optional() default false;
-
+@Target(ElementType.TYPE)
+public @interface Template {
 }

@@ -2,7 +2,7 @@ package org.jboss.shamrock.openssl;
 
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import org.jboss.shamrock.annotations.BuildResource;
+import javax.inject.Inject;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.builditem.RuntimeInitializedClassBuildItem;
 
@@ -10,7 +10,7 @@ import org.jboss.shamrock.deployment.builditem.RuntimeInitializedClassBuildItem;
 public class OpenSSLResourceProcessor implements BuildProcessingStep {
 
 
-    @BuildResource
+    @Inject
     BuildProducer<RuntimeInitializedClassBuildItem> runtimeInit;
 
     @Override

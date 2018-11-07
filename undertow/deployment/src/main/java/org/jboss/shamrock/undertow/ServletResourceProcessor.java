@@ -62,7 +62,7 @@ import org.jboss.metadata.web.spec.TransportGuaranteeType;
 import org.jboss.metadata.web.spec.WebMetaData;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import org.jboss.shamrock.annotations.BuildResource;
+import javax.inject.Inject;
 import org.jboss.shamrock.deployment.ApplicationArchive;
 import org.jboss.shamrock.deployment.builditem.ArchiveRootBuildItem;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
@@ -95,25 +95,25 @@ public class ServletResourceProcessor implements BuildProcessingStep {
     private static final DotName multipartConfig = DotName.createSimple(MultipartConfig.class.getName());
     private static final DotName servletSecurity = DotName.createSimple(ServletSecurity.class.getName());
 
-    @BuildResource
+    @Inject
     List<ServletData> servlets;
 
-    @BuildResource
+    @Inject
     BuildProducer<ReflectiveClassBuildItem> reflectiveClasses;
 
-    @BuildResource
+    @Inject
     ArchiveRootBuildItem root;
 
-    @BuildResource
+    @Inject
     BytecodeOutputBuildItem bytecodeOutput;
 
-    @BuildResource
+    @Inject
     ApplicationArchivesBuildItem applicationArchivesBuildItem;
 
-    @BuildResource
+    @Inject
     CombinedIndexBuildItem combinedIndexBuildItem;
 
-    @BuildResource
+    @Inject
     BuildProducer<DeploymentInfoBuildItem> deploymentInfoBuildItemBuildProducer;
 
     @Override

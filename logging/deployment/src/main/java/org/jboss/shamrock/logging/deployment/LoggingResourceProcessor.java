@@ -43,7 +43,7 @@ import org.jboss.protean.gizmo.MethodDescriptor;
 import org.jboss.protean.gizmo.ResultHandle;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import org.jboss.shamrock.annotations.BuildResource;
+import javax.inject.Inject;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.buildconfig.BuildConfig;
 import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
@@ -62,23 +62,23 @@ public final class LoggingResourceProcessor implements BuildProcessingStep {
 
     private static final String GENERATED_CONFIGURATOR = "org/jboss/logmanager/GeneratedConfigurator";
 
-    @BuildResource
+    @Inject
     BuildConfig config;
 
-    @BuildResource
+    @Inject
     BuildProducer<GeneratedClassBuildItem> generatedClass;
 
 
-    @BuildResource
+    @Inject
     BuildProducer<NativeImageSystemPropertyBuildItem> systemProp;
 
-    @BuildResource
+    @Inject
     BuildProducer<RuntimeInitializedClassBuildItem> runtimeInit;
 
-    @BuildResource
+    @Inject
     BuildProducer<GeneratedResourceBuildItem> generatedResource;
 
-    @BuildResource
+    @Inject
     BytecodeOutputBuildItem bytecode;
 
     public void build() throws Exception {

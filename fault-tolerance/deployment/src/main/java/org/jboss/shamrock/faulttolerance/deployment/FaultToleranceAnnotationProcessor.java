@@ -23,7 +23,7 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import org.jboss.shamrock.annotations.BuildResource;
+import javax.inject.Inject;
 import org.jboss.shamrock.deployment.BeanDeployment;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.Capabilities;
@@ -50,22 +50,22 @@ public class FaultToleranceAnnotationProcessor implements BuildProcessingStep {
             DotName.createSimple(CircuitBreaker.class.getName()), DotName.createSimple(Fallback.class.getName()), DotName.createSimple(Retry.class.getName()),
             DotName.createSimple(Timeout.class.getName())};
 
-    @BuildResource
+    @Inject
     BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
 
-    @BuildResource
+    @Inject
     BuildProducer<NativeImageSystemPropertyBuildItem> nativeImageSystemProperty;
 
-    @BuildResource
+    @Inject
     BuildProducer<AdditionalBeanBuildItem> additionalBean;
 
-    @BuildResource
+    @Inject
     BeanDeployment beanDeployment;
 
-    @BuildResource
+    @Inject
     CombinedIndexBuildItem combinedIndexBuildItem;
 
-    @BuildResource
+    @Inject
     Capabilities capabilities;
 
     @Override

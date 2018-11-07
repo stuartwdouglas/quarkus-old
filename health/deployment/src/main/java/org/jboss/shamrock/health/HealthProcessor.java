@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildStep;
+import org.jboss.shamrock.annotations.Record;
 import org.jboss.shamrock.deployment.ShamrockConfig;
 import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
 import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
@@ -48,7 +49,7 @@ class HealthProcessor {
         }
     }
 
-    @Record(STATIC)
+    @Record(Record.Type.STATIC_INIT)
     public void record(UndertowDeploymentTemplate template,
                        @Template JaxrsTemplate template2,
                        BuildProducer<DeploymentInfoBuildItem> producer) {

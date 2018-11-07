@@ -48,7 +48,7 @@ import org.jboss.resteasy.plugins.server.servlet.HttpServlet30Dispatcher;
 import org.jboss.resteasy.plugins.server.servlet.ResteasyContextParameters;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import org.jboss.shamrock.annotations.BuildResource;
+import javax.inject.Inject;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
@@ -95,28 +95,28 @@ public class JaxrsScanningProcessor implements BuildProcessingStep {
             DotName.createSimple("javax.ws.rs.PUT"),
     };
 
-    @BuildResource
+    @Inject
     BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
 
-    @BuildResource
+    @Inject
     BytecodeOutputBuildItem bytecode;
 
-    @BuildResource
+    @Inject
     CombinedIndexBuildItem combinedIndexBuildItem;
 
-    @BuildResource
+    @Inject
     BuildProducer<ResourceBundleBuildItem> resourceBundle;
 
-    @BuildResource
+    @Inject
     BuildProducer<ResourceBuildItem> resource;
 
-    @BuildResource
+    @Inject
     BuildProducer<ReflectiveHierarchyBuildItem> reflectiveHierarchy;
 
-    @BuildResource
+    @Inject
     BuildProducer<ProxyDefinitionBuildItem> proxyDefinition;
 
-    @BuildResource
+    @Inject
     DeploymentInfoBuildItem deployment;
 
     @Override

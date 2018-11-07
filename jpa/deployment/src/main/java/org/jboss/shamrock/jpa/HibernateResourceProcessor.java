@@ -11,7 +11,7 @@ import org.hibernate.jpa.boot.internal.ParsedPersistenceXmlDescriptor;
 import org.hibernate.protean.impl.PersistenceUnitsHolder;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import org.jboss.shamrock.annotations.BuildResource;
+import javax.inject.Inject;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
@@ -35,21 +35,21 @@ import org.jboss.shamrock.jpa.runtime.ShamrockScanner;
 @BuildStep
 public final class HibernateResourceProcessor implements BuildProcessingStep {
 
-    @BuildResource
+    @Inject
     BuildProducer<PersistenceUnitDescriptorBuildItem> persistenceProducer;
 
-    @BuildResource
+    @Inject
     BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
 
-    @BuildResource
+    @Inject
     BytecodeOutputBuildItem bytecode;
 
-    @BuildResource
+    @Inject
     BuildProducer<ResourceBuildItem> resources;
-    @BuildResource
+    @Inject
     BuildProducer<BytecodeTransformerBuildItem> transformers;
 
-    @BuildResource
+    @Inject
     CombinedIndexBuildItem index;
 
     @Override

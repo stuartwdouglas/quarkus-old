@@ -22,6 +22,11 @@
             <artifactId>gizmo</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

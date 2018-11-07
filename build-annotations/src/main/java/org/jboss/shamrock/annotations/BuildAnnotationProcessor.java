@@ -18,6 +18,7 @@ import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Completion;
 import javax.annotation.processing.RoundEnvironment;
+import javax.inject.Inject;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
@@ -57,7 +58,7 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
     @Override
     public Set<String> getSupportedAnnotationTypes() {
         Set<String> ret = new HashSet<>();
-        ret.add(BuildResource.class.getName());
+        ret.add(Inject.class.getName());
         ret.add(BuildStep.class.getName());
         return ret;
     }
@@ -94,7 +95,7 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
                     List<BuildResourceField> fieldList = new ArrayList<>();
                     for (VariableElement field : fieldsIn(processor.getEnclosedElements())) {
                         try {
-                            if (field.getAnnotation(BuildResource.class) != null) {
+                            if (field.getAnnotation(Inject.class) != null) {
                                 if (field.getModifiers().contains(Modifier.STATIC)) {
                                     throw new RuntimeException("@BuildResource fields cannot be static");
                                 }

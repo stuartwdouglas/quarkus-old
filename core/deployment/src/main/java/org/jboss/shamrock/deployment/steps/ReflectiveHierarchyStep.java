@@ -18,7 +18,7 @@ import org.jboss.jandex.VoidType;
 import org.jboss.logging.Logger;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import org.jboss.shamrock.annotations.BuildResource;
+import javax.inject.Inject;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
@@ -29,13 +29,13 @@ public class ReflectiveHierarchyStep implements BuildProcessingStep {
 
     private static final Logger log = Logger.getLogger(ReflectiveHierarchyStep.class);
 
-    @BuildResource
+    @Inject
     List<ReflectiveHierarchyBuildItem> heiracy;
 
-    @BuildResource
+    @Inject
     CombinedIndexBuildItem combinedIndexBuildItem;
 
-    @BuildResource
+    @Inject
     BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
 
     @Override

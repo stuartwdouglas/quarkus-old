@@ -12,7 +12,7 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.MethodInfo;
-import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
@@ -37,7 +37,7 @@ import io.smallrye.metrics.interceptors.MetricsBinding;
 import io.smallrye.metrics.interceptors.MetricsInterceptor;
 import io.smallrye.metrics.interceptors.TimedInterceptor;
 
-@BuildProcessor
+@BuildStep
 public class MetricsProcessor implements BuildProcessingStep {
 
     @BuildResource

@@ -8,7 +8,6 @@ import static org.jboss.protean.gizmo.MethodDescriptor.ofMethod;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,7 +34,6 @@ import javax.tools.StandardLocation;
 import org.jboss.builder.BuildChainBuilder;
 import org.jboss.builder.BuildContext;
 import org.jboss.builder.BuildProvider;
-import org.jboss.builder.BuildStep;
 import org.jboss.builder.BuildStepBuilder;
 import org.jboss.builder.item.BuildItem;
 import org.jboss.builder.item.MultiBuildItem;
@@ -60,7 +58,7 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
     public Set<String> getSupportedAnnotationTypes() {
         Set<String> ret = new HashSet<>();
         ret.add(BuildResource.class.getName());
-        ret.add(BuildProcessor.class.getName());
+        ret.add(BuildStep.class.getName());
         return ret;
     }
 
@@ -89,7 +87,7 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
         Set<TypeElement> processorElements = new HashSet<>();
         //Call jboss logging tools
         for (TypeElement annotation : annotations) {
-            if (annotation.getQualifiedName().toString().equals(BuildProcessor.class.getName())) {
+            if (annotation.getQualifiedName().toString().equals(BuildStep.class.getName())) {
                 final Set<? extends TypeElement> processors = typesIn(roundEnv.getElementsAnnotatedWith(annotation));
 
                 for (TypeElement processor : processors) {
@@ -155,12 +153,12 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
                     serviceNames.add(buildProviderName);
                     processorElements.add(processor);
 
-                    String[] capabilities = processor.getAnnotation(BuildProcessor.class).providesCapabilities();
+                    String[] capabilities = processor.getAnnotation(BuildStep.class).providesCapabilities();
                     try (ClassCreator creator = new ClassCreator(new ProcessorClassOutput(processor), buildProviderName, null, Object.class.getName(), BuildProvider.class.getName())) {
                         MethodCreator mc = creator.getMethodCreator("installInto", void.class, BuildChainBuilder.class);
 
                         ResultHandle step = mc.newInstance(ofConstructor(buildStepName));
-                        ResultHandle builder = mc.invokeVirtualMethod(MethodDescriptor.ofMethod(BuildChainBuilder.class, "addBuildStep", BuildStepBuilder.class, BuildStep.class), mc.getMethodParam(0), step);
+                        ResultHandle builder = mc.invokeVirtualMethod(MethodDescriptor.ofMethod(BuildChainBuilder.class, "addBuildStep", BuildStepBuilder.class, org.jboss.builder.BuildStep.class), mc.getMethodParam(0), step);
 
                         for (BuildResourceField field : fieldList) {
                             if (field.consumedTypeName != null) {
@@ -177,7 +175,7 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
                         if(capabilities.length > 0) {
                             for(String i : capabilities) {
                                 step = mc.newInstance(ofConstructor("org.jboss.shamrock.deployment.steps.CapabilityBuildStep", String.class), mc.load(i));
-                                builder = mc.invokeVirtualMethod(MethodDescriptor.ofMethod(BuildChainBuilder.class, "addBuildStep", BuildStepBuilder.class, BuildStep.class), mc.getMethodParam(0), step);
+                                builder = mc.invokeVirtualMethod(MethodDescriptor.ofMethod(BuildChainBuilder.class, "addBuildStep", BuildStepBuilder.class, org.jboss.builder.BuildStep.class), mc.getMethodParam(0), step);
                                 mc.invokeVirtualMethod(ofMethod(BuildStepBuilder.class, "produces", BuildStepBuilder.class, Class.class), builder, mc.loadClass("org.jboss.shamrock.deployment.builditem.CapabilityBuildItem"));
                                 mc.invokeVirtualMethod(ofMethod(BuildStepBuilder.class, "build", BuildChainBuilder.class), builder);
                             }
@@ -186,7 +184,7 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
                         mc.returnValue(null);
                     }
 
-                    try (ClassCreator creator = new ClassCreator(new ProcessorClassOutput(processor), buildStepName, null, Object.class.getName(), BuildStep.class.getName())) {
+                    try (ClassCreator creator = new ClassCreator(new ProcessorClassOutput(processor), buildStepName, null, Object.class.getName(), org.jboss.builder.BuildStep.class.getName())) {
                         MethodCreator mc = creator.getMethodCreator("execute", void.class, BuildContext.class);
 
                         ResultHandle p = mc.newInstance(ofConstructor(processorClassName));

@@ -41,7 +41,7 @@ import org.jboss.protean.gizmo.FieldDescriptor;
 import org.jboss.protean.gizmo.MethodCreator;
 import org.jboss.protean.gizmo.MethodDescriptor;
 import org.jboss.protean.gizmo.ResultHandle;
-import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
@@ -57,7 +57,7 @@ import org.objectweb.asm.Opcodes;
 
 /**
  */
-@BuildProcessor
+@BuildStep
 public final class LoggingResourceProcessor implements BuildProcessingStep {
 
     private static final String GENERATED_CONFIGURATOR = "org/jboss/logmanager/GeneratedConfigurator";

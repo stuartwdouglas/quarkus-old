@@ -1,17 +1,14 @@
 package org.jboss.shamrock.vertx;
 
-import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
-import org.jboss.shamrock.deployment.ArchiveContext;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
-import org.jboss.shamrock.deployment.ProcessorContext;
-import org.jboss.shamrock.deployment.ResourceProcessor;
 import org.jboss.shamrock.deployment.builditem.NativeImageSystemPropertyBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.RuntimeInitializedClassBuildItem;
 
-@BuildProcessor
+@BuildStep
 class VertxProcessor implements BuildProcessingStep {
 
     @BuildResource

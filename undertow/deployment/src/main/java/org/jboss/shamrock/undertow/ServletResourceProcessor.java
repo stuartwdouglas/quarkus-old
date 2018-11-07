@@ -60,7 +60,7 @@ import org.jboss.metadata.web.spec.ServletSecurityMetaData;
 import org.jboss.metadata.web.spec.ServletsMetaData;
 import org.jboss.metadata.web.spec.TransportGuaranteeType;
 import org.jboss.metadata.web.spec.WebMetaData;
-import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.deployment.ApplicationArchive;
@@ -83,7 +83,7 @@ import io.undertow.servlet.api.InstanceFactory;
 import io.undertow.servlet.api.ServletInfo;
 import io.undertow.servlet.handlers.DefaultServlet;
 
-@BuildProcessor
+@BuildStep
 public class ServletResourceProcessor implements BuildProcessingStep {
 
 
@@ -102,12 +102,6 @@ public class ServletResourceProcessor implements BuildProcessingStep {
     BuildProducer<ReflectiveClassBuildItem> reflectiveClasses;
 
     @BuildResource
-    BuildProducer<RuntimeInitializedClassBuildItem> runtimeInitClasses;
-
-    @BuildResource
-    BuildProducer<ResourceBuildItem> resourceProducer;
-
-    @BuildResource
     ArchiveRootBuildItem root;
 
     @BuildResource
@@ -118,6 +112,9 @@ public class ServletResourceProcessor implements BuildProcessingStep {
 
     @BuildResource
     CombinedIndexBuildItem combinedIndexBuildItem;
+
+    @BuildResource
+    BuildProducer<DeploymentInfoBuildItem> deploymentInfoBuildItemBuildProducer;
 
     @Override
     public void build() throws Exception {
@@ -153,7 +150,8 @@ public class ServletResourceProcessor implements BuildProcessingStep {
             }
 
 
-            template.createDeployment("test", knownFiles, knownDirectories);
+            DeploymentInfoBuildItem item = template.createDeployment("test", knownFiles, knownDirectories);
+            deploymentInfoBuildItemBuildProducer.produce(item);
             template.initHandlerWrappers();
         }
         final IndexView index = combinedIndexBuildItem.getIndex();

@@ -1,12 +1,12 @@
 package org.jboss.shamrock.deployment.steps;
 
-import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.deployment.BeanDeployment;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
 
-@BuildProcessor
+@BuildStep
 public class BeanDeploymentProducer implements BuildProcessingStep {
 
     @BuildResource

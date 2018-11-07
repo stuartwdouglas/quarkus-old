@@ -10,7 +10,7 @@ import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
-import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.deployment.BeanDeployment;
@@ -28,7 +28,7 @@ import org.jboss.shamrock.jpa.runtime.JPAConfig;
 import org.jboss.shamrock.jpa.runtime.JPADeploymentTemplate;
 import org.jboss.shamrock.jpa.runtime.TransactionEntityManagers;
 
-@BuildProcessor
+@BuildStep
 class HibernateCdiResourceProcessor implements BuildProcessingStep {
 
     private static final DotName PERSISTENCE_CONTEXT = DotName.createSimple(PersistenceContext.class.getName());

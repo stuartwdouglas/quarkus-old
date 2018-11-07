@@ -14,7 +14,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.enterprise.event.Observes;
-import javax.inject.Inject;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
@@ -33,7 +32,7 @@ import org.jboss.protean.arc.processor.BeanProcessor;
 import org.jboss.protean.arc.processor.BeanProcessor.Builder;
 import org.jboss.protean.arc.processor.ReflectionRegistration;
 import org.jboss.protean.arc.processor.ResourceOutput;
-import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.arc.runtime.ArcDeploymentTemplate;
@@ -54,7 +53,7 @@ import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
 
 import io.smallrye.config.inject.ConfigProducer;
 
-@BuildProcessor(providesCapabilities = Capabilities.CDI_ARC, applicationArchiveMarkers = {"META-INF/beans.xml", "META-INF/services/javax.enterprise.inject.spi.Extension"})
+@BuildStep(providesCapabilities = Capabilities.CDI_ARC, applicationArchiveMarkers = {"META-INF/beans.xml", "META-INF/services/javax.enterprise.inject.spi.Extension"})
 public class ArcAnnotationProcessor implements BuildProcessingStep {
 
     private static final DotName JAVA_LANG_OBJECT = DotName.createSimple(Object.class.getName());

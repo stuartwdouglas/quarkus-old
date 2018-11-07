@@ -9,7 +9,7 @@ import java.util.function.BiFunction;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.DotName;
-import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
@@ -27,7 +27,7 @@ import org.objectweb.asm.Opcodes;
  * This is intended as a test of the class transformation functionality, it should probably be removed
  * when we have better test frameworks
  */
-@BuildProcessor
+@BuildStep
 public class ClassTransformerProcessor implements BuildProcessingStep {
 
     private static final DotName PATH = DotName.createSimple("javax.ws.rs.Path");

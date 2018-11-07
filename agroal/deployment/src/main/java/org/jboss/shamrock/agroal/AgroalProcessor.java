@@ -2,7 +2,7 @@ package org.jboss.shamrock.agroal;
 
 import org.jboss.shamrock.agroal.runtime.DataSourceProducer;
 import org.jboss.shamrock.agroal.runtime.DataSourceTemplate;
-import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
@@ -14,7 +14,7 @@ import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
 import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
 import org.jboss.shamrock.runtime.ConfiguredValue;
 
-@BuildProcessor
+@BuildStep
 class AgroalProcessor implements BuildProcessingStep {
 
     @BuildResource

@@ -2,7 +2,7 @@ package org.jboss.shamrock.transactions;
 
 import java.util.Properties;
 
-import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
@@ -31,7 +31,7 @@ import com.arjuna.ats.internal.jta.transaction.arjunacore.UserTransactionImple;
 import com.arjuna.ats.jta.common.JTAEnvironmentBean;
 import com.arjuna.common.util.propertyservice.PropertiesFactory;
 
-@BuildProcessor(providesCapabilities = Capabilities.TRANSACTIONS)
+@BuildStep(providesCapabilities = Capabilities.TRANSACTIONS)
 class TransactionsProcessor implements BuildProcessingStep {
 
     @BuildResource

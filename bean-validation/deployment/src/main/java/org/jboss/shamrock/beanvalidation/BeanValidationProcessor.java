@@ -18,7 +18,7 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.ParameterizedType;
 import org.jboss.jandex.Type;
-import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.beanvalidation.runtime.ValidatorProvider;
@@ -37,7 +37,7 @@ import org.jboss.shamrock.deployment.builditem.RuntimeInitializedClassBuildItem;
 import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
 import org.jboss.shamrock.runtime.InjectionInstance;
 
-@BuildProcessor
+@BuildStep
 class BeanValidationProcessor implements BuildProcessingStep {
 
     private static final DotName CONSTRAINT_VALIDATOR = DotName.createSimple(ConstraintValidator.class.getName());

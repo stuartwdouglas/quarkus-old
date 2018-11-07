@@ -5,7 +5,7 @@ import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
@@ -19,7 +19,7 @@ import org.jboss.shamrock.undertow.runtime.UndertowDeploymentTemplate;
 import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
 
-@BuildProcessor()
+@BuildStep()
 public class RuntimeCompilationSetup implements BuildProcessingStep {
 
     private static final Logger log = Logger.getLogger(RuntimeCompilationTemplate.class.getName());

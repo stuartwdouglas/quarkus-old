@@ -16,7 +16,7 @@ import org.jboss.jandex.Type;
 import org.jboss.jandex.UnresolvedTypeVariable;
 import org.jboss.jandex.VoidType;
 import org.jboss.logging.Logger;
-import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
@@ -24,7 +24,7 @@ import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveHierarchyBuildItem;
 
-@BuildProcessor
+@BuildStep
 public class ReflectiveHierarchyStep implements BuildProcessingStep {
 
     private static final Logger log = Logger.getLogger(ReflectiveHierarchyStep.class);

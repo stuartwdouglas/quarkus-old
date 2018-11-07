@@ -9,7 +9,7 @@ import java.util.Set;
 import org.hibernate.boot.archive.scan.spi.ClassDescriptor;
 import org.hibernate.jpa.boot.internal.ParsedPersistenceXmlDescriptor;
 import org.hibernate.protean.impl.PersistenceUnitsHolder;
-import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
@@ -32,7 +32,7 @@ import org.jboss.shamrock.jpa.runtime.ShamrockScanner;
  * @author Emmanuel Bernard emmanuel@hibernate.org
  * @author Sanne Grinovero  <sanne@hibernate.org>
  */
-@BuildProcessor
+@BuildStep
 public final class HibernateResourceProcessor implements BuildProcessingStep {
 
     @BuildResource

@@ -21,7 +21,7 @@ import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
-import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.deployment.BeanDeployment;
@@ -43,7 +43,7 @@ import io.smallrye.faulttolerance.HystrixCommandInterceptor;
 import io.smallrye.faulttolerance.HystrixExtension;
 import io.smallrye.faulttolerance.HystrixInitializer;
 
-@BuildProcessor
+@BuildStep
 public class FaultToleranceAnnotationProcessor implements BuildProcessingStep {
 
     private static final DotName[] FT_ANNOTATIONS = {DotName.createSimple(Asynchronous.class.getName()), DotName.createSimple(Bulkhead.class.getName()),

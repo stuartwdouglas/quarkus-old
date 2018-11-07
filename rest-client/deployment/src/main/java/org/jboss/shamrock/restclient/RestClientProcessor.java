@@ -27,7 +27,7 @@ import org.jboss.protean.gizmo.MethodDescriptor;
 import org.jboss.protean.gizmo.ResultHandle;
 import org.jboss.resteasy.client.jaxrs.internal.proxy.ResteasyClientProxy;
 import org.jboss.resteasy.spi.ResteasyConfiguration;
-import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.deployment.BeanDeployment;
@@ -43,7 +43,7 @@ import org.jboss.shamrock.restclient.runtime.DefaultResponseExceptionMapper;
 import org.jboss.shamrock.restclient.runtime.RestClientBase;
 import org.jboss.shamrock.restclient.runtime.RestClientProxy;
 
-@BuildProcessor
+@BuildStep
 class RestClientProcessor implements BuildProcessingStep {
 
     private static final DotName[] CLIENT_ANNOTATIONS = {

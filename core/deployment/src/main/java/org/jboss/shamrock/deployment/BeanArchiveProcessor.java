@@ -11,13 +11,13 @@ import org.jboss.jandex.AnnotationTarget.Kind;
 import org.jboss.jandex.CompositeIndex;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
-import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.deployment.builditem.ApplicationArchivesBuildItem;
 import org.jboss.shamrock.deployment.builditem.BeanArchiveIndexBuildItem;
 
-@BuildProcessor
+@BuildStep
 public class BeanArchiveProcessor implements BuildProcessingStep {
 
     @BuildResource

@@ -9,7 +9,7 @@ import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.openapi.models.OpenAPI;
 import org.jboss.jandex.IndexView;
-import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
@@ -34,7 +34,7 @@ import io.smallrye.openapi.runtime.scanner.OpenApiAnnotationScanner;
 /**
  * @author Ken Finnigan
  */
-@BuildProcessor
+@BuildStep
 public class OpenApiProcessor implements BuildProcessingStep {
 
     @BuildResource

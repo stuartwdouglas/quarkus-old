@@ -4,14 +4,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.Capabilities;
 import org.jboss.shamrock.deployment.builditem.CapabilityBuildItem;
 
-@BuildProcessor
+@BuildStep
 public class CapabilityStep implements BuildProcessingStep {
 
     @BuildResource

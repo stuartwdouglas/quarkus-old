@@ -46,7 +46,7 @@ import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 import org.jboss.resteasy.plugins.server.servlet.HttpServlet30Dispatcher;
 import org.jboss.resteasy.plugins.server.servlet.ResteasyContextParameters;
-import org.jboss.shamrock.annotations.BuildProcessor;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildResource;
 import org.jboss.shamrock.deployment.BuildProcessingStep;
@@ -71,7 +71,7 @@ import io.undertow.servlet.api.InstanceFactory;
  *
  * @author Stuart Douglas
  */
-@BuildProcessor
+@BuildStep
 public class JaxrsScanningProcessor implements BuildProcessingStep {
 
     private static final String JAX_RS_SERVLET_NAME = "javax.ws.rs.Application";
@@ -115,6 +115,9 @@ public class JaxrsScanningProcessor implements BuildProcessingStep {
 
     @BuildResource
     BuildProducer<ProxyDefinitionBuildItem> proxyDefinition;
+
+    @BuildResource
+    DeploymentInfoBuildItem deployment;
 
     @Override
     public void build() throws Exception {

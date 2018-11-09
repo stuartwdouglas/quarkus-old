@@ -27,6 +27,8 @@ import java.util.logging.Formatter;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 
+import javax.inject.Inject;
+
 import org.graalvm.nativeimage.ImageInfo;
 import org.jboss.logmanager.EmbeddedConfigurator;
 import org.jboss.logmanager.formatters.ColorPatternFormatter;
@@ -41,10 +43,8 @@ import org.jboss.protean.gizmo.FieldDescriptor;
 import org.jboss.protean.gizmo.MethodCreator;
 import org.jboss.protean.gizmo.MethodDescriptor;
 import org.jboss.protean.gizmo.ResultHandle;
-import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import javax.inject.Inject;
-import org.jboss.shamrock.deployment.BuildProcessingStep;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.deployment.buildconfig.BuildConfig;
 import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
 import org.jboss.shamrock.deployment.builditem.GeneratedClassBuildItem;
@@ -57,8 +57,7 @@ import org.objectweb.asm.Opcodes;
 
 /**
  */
-@BuildStep
-public final class LoggingResourceProcessor implements BuildProcessingStep {
+public final class LoggingResourceProcessor {
 
     private static final String GENERATED_CONFIGURATOR = "org/jboss/logmanager/GeneratedConfigurator";
 
@@ -81,6 +80,7 @@ public final class LoggingResourceProcessor implements BuildProcessingStep {
     @Inject
     BytecodeOutputBuildItem bytecode;
 
+    @BuildStep
     public void build() throws Exception {
         final BuildConfig.ConfigNode loggingNode = config.getApplicationConfig().get("logging");
         final BuildConfig.ConfigNode enableNode = loggingNode.get("enable");

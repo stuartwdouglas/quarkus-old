@@ -3,6 +3,7 @@ package org.jboss.shamrock.jpa;
 import java.util.List;
 
 import javax.enterprise.inject.Produces;
+import javax.inject.Inject;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceUnit;
 
@@ -10,11 +11,9 @@ import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
-import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import javax.inject.Inject;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.deployment.BeanDeployment;
-import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.Capabilities;
 import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
@@ -28,8 +27,7 @@ import org.jboss.shamrock.jpa.runtime.JPAConfig;
 import org.jboss.shamrock.jpa.runtime.JPADeploymentTemplate;
 import org.jboss.shamrock.jpa.runtime.TransactionEntityManagers;
 
-@BuildStep
-class HibernateCdiResourceProcessor implements BuildProcessingStep {
+class HibernateCdiResourceProcessor {
 
     private static final DotName PERSISTENCE_CONTEXT = DotName.createSimple(PersistenceContext.class.getName());
     private static final DotName PERSISTENCE_UNIT = DotName.createSimple(PersistenceUnit.class.getName());
@@ -56,7 +54,7 @@ class HibernateCdiResourceProcessor implements BuildProcessingStep {
     @Inject
     CombinedIndexBuildItem combinedIndex;
 
-    @Override
+    @BuildStep
     public void build() throws Exception {
 
         try (BytecodeRecorder recorder = bytecode.addDeploymentTask(RuntimePriority.BOOTSTRAP_EMF)) {

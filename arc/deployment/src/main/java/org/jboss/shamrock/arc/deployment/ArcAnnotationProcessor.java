@@ -14,6 +14,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.enterprise.event.Observes;
+import javax.inject.Inject;
 
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
@@ -32,13 +33,11 @@ import org.jboss.protean.arc.processor.BeanProcessor;
 import org.jboss.protean.arc.processor.BeanProcessor.Builder;
 import org.jboss.protean.arc.processor.ReflectionRegistration;
 import org.jboss.protean.arc.processor.ResourceOutput;
-import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import javax.inject.Inject;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.arc.runtime.ArcDeploymentTemplate;
 import org.jboss.shamrock.arc.runtime.StartupEventRunner;
 import org.jboss.shamrock.deployment.BeanDeployment;
-import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.Capabilities;
 import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
@@ -53,8 +52,7 @@ import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
 
 import io.smallrye.config.inject.ConfigProducer;
 
-@BuildStep(providesCapabilities = Capabilities.CDI_ARC, applicationArchiveMarkers = {"META-INF/beans.xml", "META-INF/services/javax.enterprise.inject.spi.Extension"})
-public class ArcAnnotationProcessor implements BuildProcessingStep {
+public class ArcAnnotationProcessor {
 
     private static final DotName JAVA_LANG_OBJECT = DotName.createSimple(Object.class.getName());
 
@@ -87,11 +85,11 @@ public class ArcAnnotationProcessor implements BuildProcessingStep {
     @Inject
     BuildProducer<ReflectiveFieldBuildItem> reflectiveFields;
 
-    @Override
+    @BuildStep(providesCapabilities = Capabilities.CDI_ARC, applicationArchiveMarkers = {"META-INF/beans.xml", "META-INF/services/javax.enterprise.inject.spi.Extension"})
     public void build() throws Exception {
 
         List<String> additionalBeans = new ArrayList<>();
-        for(AdditionalBeanBuildItem i : this.additionalBeans) {
+        for (AdditionalBeanBuildItem i : this.additionalBeans) {
             additionalBeans.addAll(i.getBeanNames());
         }
         additionalBeans.add(StartupEventRunner.class.getName());

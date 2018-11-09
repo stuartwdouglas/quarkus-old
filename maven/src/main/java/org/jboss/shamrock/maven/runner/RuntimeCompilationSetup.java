@@ -5,10 +5,10 @@ import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.jboss.shamrock.annotations.BuildStep;
-import org.jboss.shamrock.annotations.BuildProducer;
 import javax.inject.Inject;
-import org.jboss.shamrock.deployment.BuildProcessingStep;
+
+import org.jboss.shamrock.annotations.BuildProducer;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
@@ -19,8 +19,7 @@ import org.jboss.shamrock.undertow.runtime.UndertowDeploymentTemplate;
 import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
 
-@BuildStep()
-public class RuntimeCompilationSetup implements BuildProcessingStep {
+public class RuntimeCompilationSetup {
 
     private static final Logger log = Logger.getLogger(RuntimeCompilationTemplate.class.getName());
 
@@ -35,7 +34,7 @@ public class RuntimeCompilationSetup implements BuildProcessingStep {
     @Inject
     BuildProducer<ReflectiveClassBuildItem> hack;
 
-    @Override
+    @BuildStep()
     public void build() throws Exception {
         try {
             //don't do this if we don't have Undertow
@@ -43,7 +42,6 @@ public class RuntimeCompilationSetup implements BuildProcessingStep {
         } catch (ClassNotFoundException e) {
             return;
         }
-
         String classesDir = System.getProperty("shamrock.runner.classes");
         if (classesDir != null) {
             try (BytecodeRecorder recorder = bytecode.addStaticInitTask(RuntimePriority.HOT_DEPLOYMENT_START_UNDERTOW)) {

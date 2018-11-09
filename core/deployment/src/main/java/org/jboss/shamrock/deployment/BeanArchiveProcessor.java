@@ -6,19 +6,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import javax.inject.Inject;
+
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget.Kind;
 import org.jboss.jandex.CompositeIndex;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
-import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import javax.inject.Inject;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.deployment.builditem.ApplicationArchivesBuildItem;
 import org.jboss.shamrock.deployment.builditem.BeanArchiveIndexBuildItem;
 
-@BuildStep
-public class BeanArchiveProcessor implements BuildProcessingStep {
+public class BeanArchiveProcessor {
 
     @Inject
     BuildProducer<BeanArchiveIndexBuildItem> beanArchiveIndexBuildProducer;
@@ -26,7 +26,7 @@ public class BeanArchiveProcessor implements BuildProcessingStep {
     @Inject
     ApplicationArchivesBuildItem applicationArchivesBuildItem;
 
-    @Override
+    @BuildStep
     public void build() throws Exception {
 
         Set<ApplicationArchive> archives = applicationArchivesBuildItem.getAllApplicationArchives();

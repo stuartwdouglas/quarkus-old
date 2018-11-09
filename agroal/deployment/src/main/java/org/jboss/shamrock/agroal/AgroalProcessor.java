@@ -1,11 +1,11 @@
 package org.jboss.shamrock.agroal;
 
+import javax.inject.Inject;
+
 import org.jboss.shamrock.agroal.runtime.DataSourceProducer;
 import org.jboss.shamrock.agroal.runtime.DataSourceTemplate;
-import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import javax.inject.Inject;
-import org.jboss.shamrock.deployment.BuildProcessingStep;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.buildconfig.BuildConfig;
 import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
@@ -14,8 +14,7 @@ import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
 import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
 import org.jboss.shamrock.runtime.ConfiguredValue;
 
-@BuildStep
-class AgroalProcessor implements BuildProcessingStep {
+class AgroalProcessor {
 
     @Inject
     BuildProducer<AdditionalBeanBuildItem> additionalBean;
@@ -29,7 +28,7 @@ class AgroalProcessor implements BuildProcessingStep {
     @Inject
     BuildConfig config;
 
-    @Override
+    @BuildStep
     public void build() throws Exception {
         reflectiveClass.produce(new ReflectiveClassBuildItem(false, false,
                 io.agroal.pool.ConnectionHandler[].class.getName(),

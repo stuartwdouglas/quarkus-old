@@ -31,7 +31,6 @@ import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import javax.inject.Inject;
 import org.jboss.shamrock.deployment.BeanDeployment;
-import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.ShamrockConfig;
 import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
 import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
@@ -43,8 +42,7 @@ import org.jboss.shamrock.restclient.runtime.DefaultResponseExceptionMapper;
 import org.jboss.shamrock.restclient.runtime.RestClientBase;
 import org.jboss.shamrock.restclient.runtime.RestClientProxy;
 
-@BuildStep
-class RestClientProcessor implements BuildProcessingStep {
+class RestClientProcessor {
 
     private static final DotName[] CLIENT_ANNOTATIONS = {
             DotName.createSimple("javax.ws.rs.GET"),
@@ -83,7 +81,7 @@ class RestClientProcessor implements BuildProcessingStep {
     @Inject
     CombinedIndexBuildItem combinedIndexBuildItem;
 
-    @Override
+    @BuildStep
     public void build() throws Exception {
         reflectiveClass.produce(new ReflectiveClassBuildItem(false, false,
                 DefaultResponseExceptionMapper.class.getName(),

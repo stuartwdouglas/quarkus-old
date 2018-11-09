@@ -2,6 +2,7 @@ package org.jboss.shamrock.metrics;
 
 import java.util.Collection;
 
+import javax.inject.Inject;
 import javax.interceptor.Interceptor;
 
 import org.eclipse.microprofile.metrics.annotation.Counted;
@@ -12,10 +13,8 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.MethodInfo;
-import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import javax.inject.Inject;
-import org.jboss.shamrock.deployment.BuildProcessingStep;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.ShamrockConfig;
 import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
@@ -37,8 +36,7 @@ import io.smallrye.metrics.interceptors.MetricsBinding;
 import io.smallrye.metrics.interceptors.MetricsInterceptor;
 import io.smallrye.metrics.interceptors.TimedInterceptor;
 
-@BuildStep
-public class MetricsProcessor implements BuildProcessingStep {
+public class MetricsProcessor {
 
     @Inject
     ShamrockConfig config;
@@ -58,7 +56,7 @@ public class MetricsProcessor implements BuildProcessingStep {
     @Inject
     BuildProducer<AdditionalBeanBuildItem> additionalBeans;
 
-    @Override
+    @BuildStep
     public void build() throws Exception {
         ServletData servletData = new ServletData("metrics", MetricsServlet.class.getName());
         servletData.getMapings().add(config.getConfig("metrics.path", "/metrics"));

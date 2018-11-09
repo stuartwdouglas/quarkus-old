@@ -1,18 +1,18 @@
 package org.jboss.shamrock.deployment;
 
+import javax.inject.Inject;
+
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
-import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import javax.inject.Inject;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.RuntimeInitializedClassBuildItem;
 import org.jboss.shamrock.runtime.RegisterForReflection;
 
-@BuildStep
-public class RegisterForReflectionProcessor implements BuildProcessingStep {
+public class RegisterForReflectionProcessor {
 
     @Inject
     BuildProducer<RuntimeInitializedClassBuildItem> runtimeInit;
@@ -23,7 +23,7 @@ public class RegisterForReflectionProcessor implements BuildProcessingStep {
     @Inject
     CombinedIndexBuildItem combinedIndexBuildItem;
 
-    @Override
+    @BuildStep
     public void build() throws Exception {
         for (AnnotationInstance i : combinedIndexBuildItem.getIndex().getAnnotations(DotName.createSimple(RegisterForReflection.class.getName()))) {
             ClassInfo target = i.target().asClass();

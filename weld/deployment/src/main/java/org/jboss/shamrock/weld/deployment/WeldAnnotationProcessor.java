@@ -5,14 +5,13 @@ import java.util.List;
 
 import javax.enterprise.inject.se.SeContainer;
 import javax.enterprise.inject.se.SeContainerInitializer;
+import javax.inject.Inject;
 
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.IndexView;
-import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import javax.inject.Inject;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.deployment.BeanDeployment;
-import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.Capabilities;
 import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
@@ -24,8 +23,7 @@ import org.jboss.shamrock.weld.runtime.WeldDeploymentTemplate;
 
 import io.smallrye.config.inject.ConfigProducer;
 
-@BuildStep(providesCapabilities = Capabilities.CDI_WELD, applicationArchiveMarkers = {"META-INF/beans.xml", "META-INF/services/javax.enterprise.inject.spi.Extension"})
-public class WeldAnnotationProcessor implements BuildProcessingStep {
+public class WeldAnnotationProcessor {
 
     @Inject
     BeanDeployment beanDeployment;
@@ -42,7 +40,7 @@ public class WeldAnnotationProcessor implements BuildProcessingStep {
     @Inject
     BytecodeOutputBuildItem bytecode;
 
-    @Override
+    @BuildStep(providesCapabilities = Capabilities.CDI_WELD, applicationArchiveMarkers = {"META-INF/beans.xml", "META-INF/services/javax.enterprise.inject.spi.Extension"})
     public void build() throws Exception {
         IndexView index = beanArchiveIndex.getIndex();
         List<String> additionalBeans = new ArrayList<>();

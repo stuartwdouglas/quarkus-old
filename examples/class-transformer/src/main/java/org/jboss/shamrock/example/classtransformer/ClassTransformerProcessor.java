@@ -12,7 +12,7 @@ import org.jboss.jandex.DotName;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import javax.inject.Inject;
-import org.jboss.shamrock.deployment.BuildProcessingStep;
+
 import org.jboss.shamrock.deployment.builditem.BytecodeTransformerBuildItem;
 import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
 import org.objectweb.asm.AnnotationVisitor;
@@ -27,8 +27,7 @@ import org.objectweb.asm.Opcodes;
  * This is intended as a test of the class transformation functionality, it should probably be removed
  * when we have better test frameworks
  */
-@BuildStep
-public class ClassTransformerProcessor implements BuildProcessingStep {
+public class ClassTransformerProcessor {
 
     private static final DotName PATH = DotName.createSimple("javax.ws.rs.Path");
 
@@ -38,7 +37,7 @@ public class ClassTransformerProcessor implements BuildProcessingStep {
     @Inject
     BuildProducer<BytecodeTransformerBuildItem> transformers;
 
-    @Override
+    @BuildStep
     public void build() throws Exception {
         final Set<String> pathAnnotatedClasses = new HashSet<>();
 

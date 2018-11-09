@@ -19,13 +19,12 @@ import org.jboss.logging.Logger;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import javax.inject.Inject;
-import org.jboss.shamrock.deployment.BuildProcessingStep;
+
 import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveHierarchyBuildItem;
 
-@BuildStep
-public class ReflectiveHierarchyStep implements BuildProcessingStep {
+public class ReflectiveHierarchyStep {
 
     private static final Logger log = Logger.getLogger(ReflectiveHierarchyStep.class);
 
@@ -38,7 +37,7 @@ public class ReflectiveHierarchyStep implements BuildProcessingStep {
     @Inject
     BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
 
-    @Override
+    @BuildStep
     public void build() throws Exception {
         Set<DotName> processedReflectiveHierarchies = new HashSet<>();
         for (ReflectiveHierarchyBuildItem i : heiracy) {

@@ -16,6 +16,7 @@ import java.util.function.Consumer;
 
 import javax.annotation.security.DeclareRoles;
 import javax.annotation.security.RunAs;
+import javax.inject.Inject;
 import javax.servlet.Filter;
 import javax.servlet.Servlet;
 import javax.servlet.annotation.MultipartConfig;
@@ -60,19 +61,17 @@ import org.jboss.metadata.web.spec.ServletSecurityMetaData;
 import org.jboss.metadata.web.spec.ServletsMetaData;
 import org.jboss.metadata.web.spec.TransportGuaranteeType;
 import org.jboss.metadata.web.spec.WebMetaData;
-import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import javax.inject.Inject;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.deployment.ApplicationArchive;
-import org.jboss.shamrock.deployment.builditem.ArchiveRootBuildItem;
-import org.jboss.shamrock.deployment.BuildProcessingStep;
+import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.builditem.ApplicationArchivesBuildItem;
+import org.jboss.shamrock.deployment.builditem.ArchiveRootBuildItem;
 import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
 import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.ResourceBuildItem;
 import org.jboss.shamrock.deployment.builditem.RuntimeInitializedClassBuildItem;
-import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
 import org.jboss.shamrock.runtime.ConfiguredValue;
 import org.jboss.shamrock.runtime.InjectionInstance;
@@ -83,8 +82,7 @@ import io.undertow.servlet.api.InstanceFactory;
 import io.undertow.servlet.api.ServletInfo;
 import io.undertow.servlet.handlers.DefaultServlet;
 
-@BuildStep
-public class ServletResourceProcessor implements BuildProcessingStep {
+public class ServletResourceProcessor {
 
 
     private static final DotName webFilter = DotName.createSimple(WebFilter.class.getName());
@@ -114,12 +112,15 @@ public class ServletResourceProcessor implements BuildProcessingStep {
     CombinedIndexBuildItem combinedIndexBuildItem;
 
     @Inject
-    BuildProducer<DeploymentInfoBuildItem> deploymentInfoBuildItemBuildProducer;
+    BuildProducer<RuntimeInitializedClassBuildItem> runtimeInitClasses;
 
-    @Override
+    @Inject
+    BuildProducer<ResourceBuildItem> resourceProducer;
+
+    @BuildStep
     public void build() throws Exception {
 
-        reflectiveClasses.produce(new ReflectiveClassBuildItem( false, false, DefaultServlet.class.getName(), "io.undertow.server.protocol.http.HttpRequestParser$$generated"));
+        reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, DefaultServlet.class.getName(), "io.undertow.server.protocol.http.HttpRequestParser$$generated"));
 
         runtimeInitClasses.produce(new RuntimeInitializedClassBuildItem("io.undertow.server.protocol.ajp.AjpServerResponseConduit"));
         runtimeInitClasses.produce(new RuntimeInitializedClassBuildItem("io.undertow.server.protocol.ajp.AjpServerRequestConduit"));
@@ -132,14 +133,14 @@ public class ServletResourceProcessor implements BuildProcessingStep {
             //this kinda sucks
             Set<String> knownFiles = new HashSet<>();
             Set<String> knownDirectories = new HashSet<>();
-            for(ApplicationArchive i : applicationArchivesBuildItem.getAllApplicationArchives()) {
+            for (ApplicationArchive i : applicationArchivesBuildItem.getAllApplicationArchives()) {
                 Path resource = root.getPath().resolve("META-INF/resources");
-                if(Files.exists(resource)) {
+                if (Files.exists(resource)) {
                     Files.walk(resource).forEach(new Consumer<Path>() {
                         @Override
                         public void accept(Path path) {
                             Path rel = resource.relativize(path);
-                            if(Files.isDirectory(rel)) {
+                            if (Files.isDirectory(rel)) {
                                 knownDirectories.add(rel.toString());
                             } else {
                                 knownFiles.add(rel.toString());
@@ -150,8 +151,7 @@ public class ServletResourceProcessor implements BuildProcessingStep {
             }
 
 
-            DeploymentInfoBuildItem item = template.createDeployment("test", knownFiles, knownDirectories);
-            deploymentInfoBuildItemBuildProducer.produce(item);
+            template.createDeployment("test", knownFiles, knownDirectories);
             template.initHandlerWrappers();
         }
         final IndexView index = combinedIndexBuildItem.getIndex();
@@ -176,7 +176,7 @@ public class ServletResourceProcessor implements BuildProcessingStep {
                             template.addServletInitParam(sref, init.getParamName(), init.getParamValue());
                         }
                     }
-                    if(servlet.getMultipartConfig() != null) {
+                    if (servlet.getMultipartConfig() != null) {
                         template.setMultipartConfig(sref, servlet.getMultipartConfig().getLocation(), servlet.getMultipartConfig().getMaxFileSize(), servlet.getMultipartConfig().getMaxRequestSize(), servlet.getMultipartConfig().getFileSizeThreshold());
                     }
                 }
@@ -225,7 +225,7 @@ public class ServletResourceProcessor implements BuildProcessingStep {
             //listeners
             if (result.getListeners() != null) {
                 for (ListenerMetaData listener : result.getListeners()) {
-                    reflectiveClasses.produce(new ReflectiveClassBuildItem( false, false, listener.getListenerClass()));
+                    reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, listener.getListenerClass()));
                     InjectionInstance<? extends EventListener> injection = (InjectionInstance<? extends EventListener>) context.newInstanceFactory(listener.getListenerClass());
                     InstanceFactory<? extends EventListener> factory = template.createInstanceFactory(injection);
                     template.registerListener(null, context.classProxy(listener.getListenerClass()), factory);
@@ -253,17 +253,17 @@ public class ServletResourceProcessor implements BuildProcessingStep {
 
         try (BytecodeRecorder context = bytecodeOutput.addDeploymentTask(RuntimePriority.UNDERTOW_START)) {
             UndertowDeploymentTemplate template = context.getRecordingProxy(UndertowDeploymentTemplate.class);
-            template.startUndertow(null, null, new ConfiguredValue("http.port", "8080"), new ConfiguredValue("http.host", "localhost"), new ConfiguredValue("http.io-threads",""), new ConfiguredValue("http.worker-threads",""), null);
+            template.startUndertow(null, null, new ConfiguredValue("http.port", "8080"), new ConfiguredValue("http.host", "localhost"), new ConfiguredValue("http.io-threads", ""), new ConfiguredValue("http.worker-threads", ""), null);
         }
     }
 
     private void handleResources() throws IOException {
         Path resources = applicationArchivesBuildItem.getRootArchive().getChildPath("META-INF/resources");
-        if(resources != null) {
+        if (resources != null) {
             Files.walk(resources).forEach(new Consumer<Path>() {
                 @Override
                 public void accept(Path path) {
-                    if(!Files.isDirectory(path)) {
+                    if (!Files.isDirectory(path)) {
                         resourceProducer.produce(new ResourceBuildItem(root.getPath().relativize(path).toString()));
                     }
                 }

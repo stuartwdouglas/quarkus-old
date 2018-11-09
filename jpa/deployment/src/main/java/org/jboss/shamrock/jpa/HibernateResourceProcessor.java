@@ -12,7 +12,7 @@ import org.hibernate.protean.impl.PersistenceUnitsHolder;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import javax.inject.Inject;
-import org.jboss.shamrock.deployment.BuildProcessingStep;
+
 import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
 import org.jboss.shamrock.deployment.builditem.BytecodeTransformerBuildItem;
@@ -32,8 +32,7 @@ import org.jboss.shamrock.jpa.runtime.ShamrockScanner;
  * @author Emmanuel Bernard emmanuel@hibernate.org
  * @author Sanne Grinovero  <sanne@hibernate.org>
  */
-@BuildStep
-public final class HibernateResourceProcessor implements BuildProcessingStep {
+public final class HibernateResourceProcessor {
 
     @Inject
     BuildProducer<PersistenceUnitDescriptorBuildItem> persistenceProducer;
@@ -52,7 +51,7 @@ public final class HibernateResourceProcessor implements BuildProcessingStep {
     @Inject
     CombinedIndexBuildItem index;
 
-    @Override
+    @BuildStep
     public void build() throws Exception {
 
         List<ParsedPersistenceXmlDescriptor> descriptors = PersistenceUnitsHolder.loadOriginalXMLParsedDescriptors();

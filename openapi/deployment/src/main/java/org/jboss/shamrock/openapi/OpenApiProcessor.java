@@ -12,7 +12,7 @@ import org.jboss.jandex.IndexView;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import javax.inject.Inject;
-import org.jboss.shamrock.deployment.BuildProcessingStep;
+
 import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.ShamrockConfig;
 import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
@@ -34,8 +34,7 @@ import io.smallrye.openapi.runtime.scanner.OpenApiAnnotationScanner;
 /**
  * @author Ken Finnigan
  */
-@BuildStep
-public class OpenApiProcessor implements BuildProcessingStep {
+public class OpenApiProcessor {
 
     @Inject
     BuildProducer<AdditionalBeanBuildItem> additionalBean;
@@ -55,7 +54,7 @@ public class OpenApiProcessor implements BuildProcessingStep {
     @Inject
     ApplicationArchivesBuildItem archivesBuildItem;
 
-    @Override
+    @BuildStep
     public void build() throws Exception {
         ServletData servletData = new ServletData("openapi", OpenApiServlet.class.getName());
         servletData.getMapings().add(config.getConfig("openapi.path", "/openapi"));

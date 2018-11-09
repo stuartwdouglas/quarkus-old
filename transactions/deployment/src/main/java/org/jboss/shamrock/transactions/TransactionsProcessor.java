@@ -2,10 +2,10 @@ package org.jboss.shamrock.transactions;
 
 import java.util.Properties;
 
-import org.jboss.shamrock.annotations.BuildStep;
-import org.jboss.shamrock.annotations.BuildProducer;
 import javax.inject.Inject;
-import org.jboss.shamrock.deployment.BuildProcessingStep;
+
+import org.jboss.shamrock.annotations.BuildProducer;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.deployment.Capabilities;
 import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
@@ -31,8 +31,7 @@ import com.arjuna.ats.internal.jta.transaction.arjunacore.UserTransactionImple;
 import com.arjuna.ats.jta.common.JTAEnvironmentBean;
 import com.arjuna.common.util.propertyservice.PropertiesFactory;
 
-@BuildStep(providesCapabilities = Capabilities.TRANSACTIONS)
-class TransactionsProcessor implements BuildProcessingStep {
+class TransactionsProcessor {
 
     @Inject
     BuildProducer<AdditionalBeanBuildItem> additionalBeans;
@@ -49,7 +48,7 @@ class TransactionsProcessor implements BuildProcessingStep {
     @Inject
     BuildProducer<RuntimeInitializedClassBuildItem> runtimeInit;
 
-    @Override
+    @BuildStep(providesCapabilities = Capabilities.TRANSACTIONS)
     public void build() throws Exception {
         additionalBeans.produce(new AdditionalBeanBuildItem(TransactionProducers.class));
         runtimeInit.produce(new RuntimeInitializedClassBuildItem("com.arjuna.ats.internal.jta.resources.arjunacore.CommitMarkableResourceRecord"));

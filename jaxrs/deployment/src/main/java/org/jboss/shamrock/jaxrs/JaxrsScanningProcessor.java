@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 
+import javax.inject.Inject;
 import javax.servlet.Servlet;
 import javax.ws.rs.container.DynamicFeature;
 import javax.ws.rs.core.Application;
@@ -46,10 +47,8 @@ import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 import org.jboss.resteasy.plugins.server.servlet.HttpServlet30Dispatcher;
 import org.jboss.resteasy.plugins.server.servlet.ResteasyContextParameters;
-import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import javax.inject.Inject;
-import org.jboss.shamrock.deployment.BuildProcessingStep;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
 import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
@@ -71,8 +70,7 @@ import io.undertow.servlet.api.InstanceFactory;
  *
  * @author Stuart Douglas
  */
-@BuildStep
-public class JaxrsScanningProcessor implements BuildProcessingStep {
+public class JaxrsScanningProcessor {
 
     private static final String JAX_RS_SERVLET_NAME = "javax.ws.rs.Application";
 
@@ -116,10 +114,8 @@ public class JaxrsScanningProcessor implements BuildProcessingStep {
     @Inject
     BuildProducer<ProxyDefinitionBuildItem> proxyDefinition;
 
-    @Inject
-    DeploymentInfoBuildItem deployment;
 
-    @Override
+    @BuildStep
     public void build() throws Exception {
         //this is pretty yuck, and does not really belong here, but it is needed to get the json-p
         //provider to work

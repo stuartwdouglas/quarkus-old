@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.BiFunction;
 
+import javax.inject.Inject;
+
 import org.eclipse.microprofile.faulttolerance.Asynchronous;
 import org.eclipse.microprofile.faulttolerance.Bulkhead;
 import org.eclipse.microprofile.faulttolerance.CircuitBreaker;
@@ -21,11 +23,9 @@ import org.jboss.jandex.AnnotationValue;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
-import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import javax.inject.Inject;
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.deployment.BeanDeployment;
-import org.jboss.shamrock.deployment.BuildProcessingStep;
 import org.jboss.shamrock.deployment.Capabilities;
 import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
 import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
@@ -43,8 +43,7 @@ import io.smallrye.faulttolerance.HystrixCommandInterceptor;
 import io.smallrye.faulttolerance.HystrixExtension;
 import io.smallrye.faulttolerance.HystrixInitializer;
 
-@BuildStep
-public class FaultToleranceAnnotationProcessor implements BuildProcessingStep {
+public class FaultToleranceAnnotationProcessor {
 
     private static final DotName[] FT_ANNOTATIONS = {DotName.createSimple(Asynchronous.class.getName()), DotName.createSimple(Bulkhead.class.getName()),
             DotName.createSimple(CircuitBreaker.class.getName()), DotName.createSimple(Fallback.class.getName()), DotName.createSimple(Retry.class.getName()),
@@ -68,7 +67,7 @@ public class FaultToleranceAnnotationProcessor implements BuildProcessingStep {
     @Inject
     Capabilities capabilities;
 
-    @Override
+    @BuildStep
     public void build() throws Exception {
 
         IndexView index = combinedIndexBuildItem.getIndex();

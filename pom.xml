@@ -73,7 +73,6 @@
 
     <modules>
         <module>builder</module>
-        <module>build-annotations</module>
         <module>openssl</module>
         <module>jboss-logmanager-embedded</module>
         <module>jboss-logging-embedded</module>
@@ -205,7 +204,7 @@
             </dependency>
             <dependency>
                 <groupId>org.jboss.shamrock</groupId>
-                <artifactId>shamrock-build-annotations</artifactId>
+                <artifactId>shamrock-deployment-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

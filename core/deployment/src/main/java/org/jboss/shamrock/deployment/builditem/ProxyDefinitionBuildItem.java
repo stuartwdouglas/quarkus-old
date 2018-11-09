@@ -1,5 +1,6 @@
 package org.jboss.shamrock.deployment.builditem;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -12,6 +13,10 @@ public final class ProxyDefinitionBuildItem extends MultiBuildItem {
     public ProxyDefinitionBuildItem(String... classes) {
         this.classes = Arrays.asList(classes);
     }
+    public ProxyDefinitionBuildItem(List<String> classes) {
+        this.classes = new ArrayList<>(classes);
+    }
+
 
     public List<String> getClasses() {
         return classes;

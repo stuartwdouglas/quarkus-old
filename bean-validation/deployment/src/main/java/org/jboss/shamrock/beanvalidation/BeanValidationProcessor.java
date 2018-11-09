@@ -33,6 +33,7 @@ import org.jboss.shamrock.deployment.builditem.ReflectiveFieldBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveMethodBuildItem;
 import org.jboss.shamrock.deployment.builditem.ResourceBundleBuildItem;
 import org.jboss.shamrock.deployment.builditem.RuntimeInitializedClassBuildItem;
+import org.jboss.shamrock.deployment.builditem.SubstrateConfigBuildItem;
 import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
 import org.jboss.shamrock.runtime.InjectionInstance;
 
@@ -44,13 +45,7 @@ class BeanValidationProcessor {
     BuildProducer<AdditionalBeanBuildItem> additionalBean;
 
     @Inject
-    BuildProducer<RuntimeInitializedClassBuildItem> runtimeInitClasses;
-
-    @Inject
     BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
-
-    @Inject
-    BuildProducer<ResourceBundleBuildItem> resourceBundle;
 
     @Inject
     BytecodeOutputBuildItem bytecode;
@@ -68,9 +63,6 @@ class BeanValidationProcessor {
     public void build() throws Exception {
         additionalBean.produce(new AdditionalBeanBuildItem(ValidatorProvider.class));
 
-
-        runtimeInitClasses.produce(new RuntimeInitializedClassBuildItem("javax.el.ELUtil"));
-        resourceBundle.produce(new ResourceBundleBuildItem("org.hibernate.validator.ValidationMessages"));
         //TODO: this should not rely on the index and implementation being indexed, this stuff should just be hard coded
         reflectiveClass.produce(new ReflectiveClassBuildItem(true, false, Constraint.class.getName()));
         Map<DotName, Set<DotName>> seenConstraints = new HashMap<>();
@@ -154,6 +146,15 @@ class BeanValidationProcessor {
             template.forceInit((InjectionInstance<ValidatorProvider>) recorder.newInstanceFactory(ValidatorProvider.class.getName()), classes);
         }
     }
+
+    @BuildStep
+    SubstrateConfigBuildItem substrateConfig() {
+        return SubstrateConfigBuildItem.builder()
+                .addRuntimeInitializedClass("javax.el.ELUtil")
+                .addResourceBundle("org.hibernate.validator.ValidationMessages")
+                .build();
+    }
+
 
     private Map<DotName, Map<DotName, DotName>> lookForValidatorsByConstraint() {
         Map<DotName, Map<DotName, DotName>> validatorsByConstraint = new HashMap<>();

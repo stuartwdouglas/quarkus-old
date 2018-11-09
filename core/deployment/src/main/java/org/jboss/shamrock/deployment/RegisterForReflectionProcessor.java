@@ -31,10 +31,6 @@ public class RegisterForReflectionProcessor {
             boolean fields = i.value("fields") == null || i.value("fields").asBoolean();
             reflectiveClass.produce(new ReflectiveClassBuildItem(methods, fields, target.name().toString()));
         }
-
-        //TODO: where should stuff like this go?
-        //this will hold a heap of memory when it is initialized, and is rarely used (but it generally on the analysis path)
-        runtimeInit.produce(new RuntimeInitializedClassBuildItem("com.sun.org.apache.xml.internal.serializer.ToHTMLStream"));
     }
 
 }

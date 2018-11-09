@@ -28,10 +28,6 @@
             <groupId>org.jboss.metadata</groupId>
             <artifactId>jboss-metadata-web</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.jboss.shamrock</groupId>
-            <artifactId>shamrock-build-annotations</artifactId>
-        </dependency>
     </dependencies>
 
 

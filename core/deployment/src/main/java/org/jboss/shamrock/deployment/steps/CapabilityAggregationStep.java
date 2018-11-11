@@ -11,7 +11,7 @@ import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.deployment.Capabilities;
 import org.jboss.shamrock.deployment.builditem.CapabilityBuildItem;
 
-public class CapabilityStep {
+public class CapabilityAggregationStep {
 
     @Inject
     BuildProducer<Capabilities> producer;

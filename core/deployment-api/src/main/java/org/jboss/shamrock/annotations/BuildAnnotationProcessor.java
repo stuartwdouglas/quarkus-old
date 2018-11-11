@@ -44,11 +44,11 @@ import org.jboss.builder.item.SimpleBuildItem;
 import org.jboss.protean.gizmo.CatchBlockCreator;
 import org.jboss.protean.gizmo.ClassCreator;
 import org.jboss.protean.gizmo.ClassOutput;
-import org.jboss.protean.gizmo.ExceptionTable;
 import org.jboss.protean.gizmo.FieldDescriptor;
 import org.jboss.protean.gizmo.MethodCreator;
 import org.jboss.protean.gizmo.MethodDescriptor;
 import org.jboss.protean.gizmo.ResultHandle;
+import org.jboss.protean.gizmo.TryBlock;
 
 public class BuildAnnotationProcessor extends AbstractProcessor {
 
@@ -230,7 +230,7 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
                                         buildStepMc.writeInstanceField(FieldDescriptor.of(processorClassName, field.element.getSimpleName().toString(), BuildProducer.class), p, val);
                                     }
                                 }
-                                ExceptionTable table = buildStepMc.addTryCatch();
+                                TryBlock table = buildStepMc.tryBlock();
                                 List<ResultHandle> args = new ArrayList<>();
                                 for (InjectedBuildResource i : methodInjection) {
                                     ResultHandle val;
@@ -255,9 +255,8 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
                                 }
 
 
-                                CatchBlockCreator catchBlockCreator = table.addCatchClause(Exception.class);
+                                CatchBlockCreator catchBlockCreator = table.addCatch(Exception.class);
                                 catchBlockCreator.throwException(RuntimeException.class, "Failed to process build step", catchBlockCreator.getCaughtException());
-                                table.complete();
                                 buildStepMc.returnValue(null);
                             }
 

@@ -306,11 +306,15 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
     }
 
     private InjectedBuildResource createInjectionResource(Element element) {
-        TypeMirror elementType = element.asType();
-        if (elementType.getKind() != TypeKind.DECLARED) {
-            throw new RuntimeException("Unexpected field type: " + elementType);
+        try {
+            TypeMirror elementType = element.asType();
+            if (elementType.getKind() != TypeKind.DECLARED) {
+                throw new RuntimeException("Unexpected field type: " + elementType);
+            }
+            return createInjectionResource(element, (DeclaredType) elementType);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to process " + element, e);
         }
-        return createInjectionResource(element, (DeclaredType) elementType);
     }
 
     private InjectedBuildResource createInjectionResource(Element element, DeclaredType elementType) {

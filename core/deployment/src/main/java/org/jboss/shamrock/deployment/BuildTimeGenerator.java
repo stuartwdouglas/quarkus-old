@@ -70,7 +70,13 @@ import org.jboss.shamrock.deployment.builditem.BytecodeTransformerBuildItem;
 import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
 import org.jboss.shamrock.deployment.builditem.GeneratedClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.GeneratedResourceBuildItem;
+import org.jboss.shamrock.deployment.builditem.ProxyDefinitionBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
+import org.jboss.shamrock.deployment.builditem.ReflectiveFieldBuildItem;
+import org.jboss.shamrock.deployment.builditem.ReflectiveMethodBuildItem;
+import org.jboss.shamrock.deployment.builditem.ResourceBuildItem;
+import org.jboss.shamrock.deployment.builditem.ResourceBundleBuildItem;
+import org.jboss.shamrock.deployment.builditem.RuntimeInitializedClassBuildItem;
 import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
 import org.jboss.shamrock.deployment.codegen.BytecodeRecorderImpl;
 import org.jboss.shamrock.deployment.index.ApplicationArchiveLoader;
@@ -92,6 +98,7 @@ public class BuildTimeGenerator {
     public static final String MAIN_CLASS = MAIN_CLASS_INTERNAL.replace('/', '.');
     private static final String GRAAL_AUTOFEATURE = "org/jboss/shamrock/runner/AutoFeature";
     private static final String STARTUP_CONTEXT = "STARTUP_CONTEXT";
+    private static final String[] EMPTY_STRING_ARRAY = new String[0];
 
     private final ClassOutput output;
     private final DeploymentProcessorInjection injection;
@@ -188,9 +195,14 @@ public class BuildTimeGenerator {
                         .produces(BuildConfig.class)
                         .build()
                         .addFinal(ReflectiveClassBuildItem.class)
+                        .addFinal(RuntimeInitializedClassBuildItem.class)
                         .addFinal(GeneratedClassBuildItem.class)
                         .addFinal(GeneratedResourceBuildItem.class)
                         .addFinal(BytecodeTransformerBuildItem.class)
+                        .addFinal(ResourceBuildItem.class)
+                        .addFinal(ResourceBundleBuildItem.class)
+                        .addFinal(ReflectiveFieldBuildItem.class)
+                        .addFinal(ReflectiveMethodBuildItem.class)
                         .build();
                 BuildResult result = chain.createExecutionBuilder("main").execute();
 
@@ -202,6 +214,27 @@ public class BuildTimeGenerator {
                 }
                 for(BytecodeTransformerBuildItem i : result.consumeMulti(BytecodeTransformerBuildItem.class)) {
                     processorContext.addByteCodeTransformer(i.getClassToTransform(), i.getVisitorFunction());
+                }
+                for(RuntimeInitializedClassBuildItem i : result.consumeMulti(RuntimeInitializedClassBuildItem.class)) {
+                    processorContext.addRuntimeInitializedClasses(i.getClassName());
+                }
+                for(ResourceBuildItem i : result.consumeMulti(ResourceBuildItem.class)) {
+                    processorContext.addResource(i.getName());
+                }
+                for(ResourceBundleBuildItem i : result.consumeMulti(ResourceBundleBuildItem.class)) {
+                    processorContext.addResourceBundle(i.getBundleName());
+                }
+                for(ReflectiveClassBuildItem i : result.consumeMulti(ReflectiveClassBuildItem.class)) {
+                    processorContext.addReflectiveClass(i.isMethods(), i.isFields(), i.getClassName().toArray(EMPTY_STRING_ARRAY));
+                }
+                for(ProxyDefinitionBuildItem i : result.consumeMulti(ProxyDefinitionBuildItem.class)) {
+                    processorContext.addProxyDefinition(i.getClasses().toArray(EMPTY_STRING_ARRAY));
+                }
+                for(ReflectiveMethodBuildItem i : result.consumeMulti(ReflectiveMethodBuildItem.class)) {
+                    processorContext.addReflectiveMethod(i.getMethod());
+                }
+                for(ReflectiveFieldBuildItem i : result.consumeMulti(ReflectiveFieldBuildItem.class)) {
+                    processorContext.addReflectiveField(i.getField());
                 }
 
                 processorContext.writeProperties(root.toFile());

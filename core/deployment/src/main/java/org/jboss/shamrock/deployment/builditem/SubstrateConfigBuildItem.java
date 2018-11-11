@@ -7,9 +7,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jboss.builder.item.MultiBuildItem;
 import org.jboss.builder.item.SimpleBuildItem;
 
-public class SubstrateConfigBuildItem extends SimpleBuildItem {
+public final class SubstrateConfigBuildItem extends MultiBuildItem {
 
     private final List<String> runtimeInitializedClasses;
     private final List<String> resourceBundles;

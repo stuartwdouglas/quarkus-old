@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import javax.annotation.security.DeclareRoles;
 import javax.annotation.security.RunAs;
@@ -63,26 +64,28 @@ import org.jboss.metadata.web.spec.TransportGuaranteeType;
 import org.jboss.metadata.web.spec.WebMetaData;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildStep;
+import org.jboss.shamrock.annotations.Record;
 import org.jboss.shamrock.deployment.ApplicationArchive;
-import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.builditem.ApplicationArchivesBuildItem;
 import org.jboss.shamrock.deployment.builditem.ArchiveRootBuildItem;
-import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
 import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.ResourceBuildItem;
-import org.jboss.shamrock.deployment.builditem.RuntimeInitializedClassBuildItem;
-import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
+import org.jboss.shamrock.deployment.builditem.ServiceStartBuildItem;
+import org.jboss.shamrock.deployment.builditem.SubstrateConfigBuildItem;
+import org.jboss.shamrock.deployment.recording.BytecodeRecorder;
 import org.jboss.shamrock.runtime.ConfiguredValue;
 import org.jboss.shamrock.runtime.InjectionInstance;
+import org.jboss.shamrock.runtime.RuntimeValue;
 import org.jboss.shamrock.undertow.runtime.UndertowDeploymentTemplate;
 
+import io.undertow.servlet.api.DeploymentInfo;
 import io.undertow.servlet.api.FilterInfo;
 import io.undertow.servlet.api.InstanceFactory;
 import io.undertow.servlet.api.ServletInfo;
 import io.undertow.servlet.handlers.DefaultServlet;
 
-public class ServletResourceProcessor {
+public class UndertowBuildStep {
 
 
     private static final DotName webFilter = DotName.createSimple(WebFilter.class.getName());
@@ -93,17 +96,9 @@ public class ServletResourceProcessor {
     private static final DotName multipartConfig = DotName.createSimple(MultipartConfig.class.getName());
     private static final DotName servletSecurity = DotName.createSimple(ServletSecurity.class.getName());
 
-    @Inject
-    List<ServletData> servlets;
 
     @Inject
     BuildProducer<ReflectiveClassBuildItem> reflectiveClasses;
-
-    @Inject
-    ArchiveRootBuildItem root;
-
-    @Inject
-    BytecodeOutputBuildItem bytecodeOutput;
 
     @Inject
     ApplicationArchivesBuildItem applicationArchivesBuildItem;
@@ -112,152 +107,154 @@ public class ServletResourceProcessor {
     CombinedIndexBuildItem combinedIndexBuildItem;
 
     @Inject
-    BuildProducer<RuntimeInitializedClassBuildItem> runtimeInitClasses;
-
-    @Inject
     BuildProducer<ResourceBuildItem> resourceProducer;
 
+
     @BuildStep
-    public void build() throws Exception {
+    @Record(staticInit = true)
+    public DeploymentInfoBuildItem createDeploymentInfo(UndertowDeploymentTemplate template) throws Exception {
+        //we need to check for web resources in order to get welcome files to work
+        //this kinda sucks
+        Set<String> knownFiles = new HashSet<>();
+        Set<String> knownDirectories = new HashSet<>();
+        for (ApplicationArchive i : applicationArchivesBuildItem.getAllApplicationArchives()) {
+            Path resource = i.getChildPath("META-INF/resources");
+            if (Files.exists(resource)) {
+                Files.walk(resource).forEach(new Consumer<Path>() {
+                    @Override
+                    public void accept(Path path) {
+                        Path rel = resource.relativize(path);
+                        if (Files.isDirectory(rel)) {
+                            knownDirectories.add(rel.toString());
+                        } else {
+                            knownFiles.add(rel.toString());
+                        }
+                    }
+                });
+            }
+        }
+
+        RuntimeValue<DeploymentInfo> info = template.createDeployment("test", knownFiles, knownDirectories);
+        return new DeploymentInfoBuildItem(info);
+    }
+
+    @BuildStep
+    @Record(staticInit = false)
+    public ServiceStartBuildItem boot(UndertowDeploymentTemplate template, ServletHandlerBuildItem servletHandlerBuildItem, List<HttpHandlerWrapperBuildItem> wrappers) throws Exception {
+        template.startUndertow(null, servletHandlerBuildItem.getHandler(), new ConfiguredValue("http.port", "8080"), new ConfiguredValue("http.host", "localhost"), new ConfiguredValue("http.io-threads", ""), new ConfiguredValue("http.worker-threads", ""), wrappers.stream().map(HttpHandlerWrapperBuildItem::getValue).collect(Collectors.toList()));
+        return new ServiceStartBuildItem("undertow");
+    }
+
+
+    @BuildStep
+    SubstrateConfigBuildItem config() {
+        return SubstrateConfigBuildItem.builder()
+                .addRuntimeInitializedClass("io.undertow.server.protocol.ajp.AjpServerResponseConduit")
+                .addRuntimeInitializedClass("io.undertow.server.protocol.ajp.AjpServerRequestConduit")
+
+                .build();
+    }
+
+    @Record(staticInit = true)
+    @BuildStep
+    public ServletHandlerBuildItem build(List<ServletData> servlets, ArchiveRootBuildItem root, UndertowDeploymentTemplate template, BytecodeRecorder context, DeploymentInfoBuildItem deployment) throws Exception {
 
         reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, DefaultServlet.class.getName(), "io.undertow.server.protocol.http.HttpRequestParser$$generated"));
 
-        runtimeInitClasses.produce(new RuntimeInitializedClassBuildItem("io.undertow.server.protocol.ajp.AjpServerResponseConduit"));
-        runtimeInitClasses.produce(new RuntimeInitializedClassBuildItem("io.undertow.server.protocol.ajp.AjpServerRequestConduit"));
+        handleResources(root);
 
-        handleResources();
-
-        try (BytecodeRecorder context = bytecodeOutput.addStaticInitTask(RuntimePriority.UNDERTOW_CREATE_DEPLOYMENT)) {
-            UndertowDeploymentTemplate template = context.getRecordingProxy(UndertowDeploymentTemplate.class);
-            //we need to check for web resources in order to get welcome files to work
-            //this kinda sucks
-            Set<String> knownFiles = new HashSet<>();
-            Set<String> knownDirectories = new HashSet<>();
-            for (ApplicationArchive i : applicationArchivesBuildItem.getAllApplicationArchives()) {
-                Path resource = root.getPath().resolve("META-INF/resources");
-                if (Files.exists(resource)) {
-                    Files.walk(resource).forEach(new Consumer<Path>() {
-                        @Override
-                        public void accept(Path path) {
-                            Path rel = resource.relativize(path);
-                            if (Files.isDirectory(rel)) {
-                                knownDirectories.add(rel.toString());
-                            } else {
-                                knownFiles.add(rel.toString());
-                            }
-                        }
-                    });
-                }
-            }
-
-
-            template.createDeployment("test", knownFiles, knownDirectories);
-            template.initHandlerWrappers();
-        }
         final IndexView index = combinedIndexBuildItem.getIndex();
         WebMetaData result = processAnnotations(index);
 
-        try (BytecodeRecorder context = bytecodeOutput.addStaticInitTask(RuntimePriority.UNDERTOW_REGISTER_SERVLET)) {
-            UndertowDeploymentTemplate template = context.getRecordingProxy(UndertowDeploymentTemplate.class);
 
-            //add servlets
-            if (result.getServlets() != null) {
-                for (ServletMetaData servlet : result.getServlets()) {
-                    reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, servlet.getServletClass()));
-                    InjectionInstance<? extends Servlet> injection = (InjectionInstance<? extends Servlet>) context.newInstanceFactory(servlet.getServletClass());
-                    InstanceFactory<? extends Servlet> factory = template.createInstanceFactory(injection);
-                    AtomicReference<ServletInfo> sref = template.registerServlet(null, servlet.getServletName(),
-                            context.classProxy(servlet.getServletClass()),
-                            servlet.isAsyncSupported(),
-                            servlet.getLoadOnStartupInt(),
-                            factory);
-                    if (servlet.getInitParam() != null) {
-                        for (ParamValueMetaData init : servlet.getInitParam()) {
-                            template.addServletInitParam(sref, init.getParamName(), init.getParamValue());
-                        }
-                    }
-                    if (servlet.getMultipartConfig() != null) {
-                        template.setMultipartConfig(sref, servlet.getMultipartConfig().getLocation(), servlet.getMultipartConfig().getMaxFileSize(), servlet.getMultipartConfig().getMaxRequestSize(), servlet.getMultipartConfig().getFileSizeThreshold());
-                    }
-                }
-            }
-            //servlet mappings
-            if (result.getServletMappings() != null) {
-                for (ServletMappingMetaData mapping : result.getServletMappings()) {
-                    for (String m : mapping.getUrlPatterns()) {
-                        template.addServletMapping(null, mapping.getServletName(), m);
-                    }
-                }
-            }
-            //filters
-            if (result.getFilters() != null) {
-                for (FilterMetaData filter : result.getFilters()) {
-                    reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, filter.getFilterClass()));
-                    InjectionInstance<? extends Filter> injection = (InjectionInstance<? extends Filter>) context.newInstanceFactory(filter.getFilterClass());
-                    InstanceFactory<? extends Filter> factory = template.createInstanceFactory(injection);
-                    AtomicReference<FilterInfo> sref = template.registerFilter(null,
-                            filter.getFilterName(),
-                            context.classProxy(filter.getFilterClass()),
-                            filter.isAsyncSupported(),
-                            factory);
-                    if (filter.getInitParam() != null) {
-                        for (ParamValueMetaData init : filter.getInitParam()) {
-                            template.addFilterInitParam(sref, init.getParamName(), init.getParamValue());
-                        }
-                    }
-                }
-            }
-            if (result.getFilterMappings() != null) {
-                for (FilterMappingMetaData mapping : result.getFilterMappings()) {
-                    for (String m : mapping.getUrlPatterns()) {
-                        if (mapping.getDispatchers() == null || mapping.getDispatchers().isEmpty()) {
-                            template.addFilterMapping(null, mapping.getFilterName(), m, REQUEST);
-                        } else {
-
-                            for (DispatcherType dispatcher : mapping.getDispatchers()) {
-                                template.addFilterMapping(null, mapping.getFilterName(), m, javax.servlet.DispatcherType.valueOf(dispatcher.name()));
-                            }
-                        }
-                    }
-                }
-            }
-
-            //listeners
-            if (result.getListeners() != null) {
-                for (ListenerMetaData listener : result.getListeners()) {
-                    reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, listener.getListenerClass()));
-                    InjectionInstance<? extends EventListener> injection = (InjectionInstance<? extends EventListener>) context.newInstanceFactory(listener.getListenerClass());
-                    InstanceFactory<? extends EventListener> factory = template.createInstanceFactory(injection);
-                    template.registerListener(null, context.classProxy(listener.getListenerClass()), factory);
-                }
-            }
-
-            for (ServletData servlet : servlets) {
-
-                String servletClass = servlet.getServletClass();
-                InjectionInstance<? extends Servlet> injection = (InjectionInstance<? extends Servlet>) context.newInstanceFactory(servletClass);
+        //add servlets
+        if (result.getServlets() != null) {
+            for (ServletMetaData servlet : result.getServlets()) {
+                reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, servlet.getServletClass()));
+                InjectionInstance<? extends Servlet> injection = (InjectionInstance<? extends Servlet>) context.newInstanceFactory(servlet.getServletClass());
                 InstanceFactory<? extends Servlet> factory = template.createInstanceFactory(injection);
-                template.registerServlet(null, servlet.getName(), context.classProxy(servletClass), true, servlet.getLoadOnStartup(), factory);
+                AtomicReference<ServletInfo> sref = template.registerServlet(null, servlet.getServletName(),
+                        context.classProxy(servlet.getServletClass()),
+                        servlet.isAsyncSupported(),
+                        servlet.getLoadOnStartupInt(),
+                        factory);
+                if (servlet.getInitParam() != null) {
+                    for (ParamValueMetaData init : servlet.getInitParam()) {
+                        template.addServletInitParam(sref, init.getParamName(), init.getParamValue());
+                    }
+                }
+                if (servlet.getMultipartConfig() != null) {
+                    template.setMultipartConfig(sref, servlet.getMultipartConfig().getLocation(), servlet.getMultipartConfig().getMaxFileSize(), servlet.getMultipartConfig().getMaxRequestSize(), servlet.getMultipartConfig().getFileSizeThreshold());
+                }
+            }
+        }
+        //servlet mappings
+        if (result.getServletMappings() != null) {
+            for (ServletMappingMetaData mapping : result.getServletMappings()) {
+                for (String m : mapping.getUrlPatterns()) {
+                    template.addServletMapping(null, mapping.getServletName(), m);
+                }
+            }
+        }
+        //filters
+        if (result.getFilters() != null) {
+            for (FilterMetaData filter : result.getFilters()) {
+                reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, filter.getFilterClass()));
+                InjectionInstance<? extends Filter> injection = (InjectionInstance<? extends Filter>) context.newInstanceFactory(filter.getFilterClass());
+                InstanceFactory<? extends Filter> factory = template.createInstanceFactory(injection);
+                AtomicReference<FilterInfo> sref = template.registerFilter(null,
+                        filter.getFilterName(),
+                        context.classProxy(filter.getFilterClass()),
+                        filter.isAsyncSupported(),
+                        factory);
+                if (filter.getInitParam() != null) {
+                    for (ParamValueMetaData init : filter.getInitParam()) {
+                        template.addFilterInitParam(sref, init.getParamName(), init.getParamValue());
+                    }
+                }
+            }
+        }
+        if (result.getFilterMappings() != null) {
+            for (FilterMappingMetaData mapping : result.getFilterMappings()) {
+                for (String m : mapping.getUrlPatterns()) {
+                    if (mapping.getDispatchers() == null || mapping.getDispatchers().isEmpty()) {
+                        template.addFilterMapping(null, mapping.getFilterName(), m, REQUEST);
+                    } else {
 
-                for (String m : servlet.getMapings()) {
-                    template.addServletMapping(null, servlet.getName(), m);
+                        for (DispatcherType dispatcher : mapping.getDispatchers()) {
+                            template.addFilterMapping(null, mapping.getFilterName(), m, javax.servlet.DispatcherType.valueOf(dispatcher.name()));
+                        }
+                    }
                 }
             }
         }
 
-
-        try (BytecodeRecorder context = bytecodeOutput.addStaticInitTask(RuntimePriority.UNDERTOW_DEPLOY)) {
-            UndertowDeploymentTemplate template = context.getRecordingProxy(UndertowDeploymentTemplate.class);
-            template.bootServletContainer(null);
+        //listeners
+        if (result.getListeners() != null) {
+            for (ListenerMetaData listener : result.getListeners()) {
+                reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, listener.getListenerClass()));
+                InjectionInstance<? extends EventListener> injection = (InjectionInstance<? extends EventListener>) context.newInstanceFactory(listener.getListenerClass());
+                InstanceFactory<? extends EventListener> factory = template.createInstanceFactory(injection);
+                template.registerListener(null, context.classProxy(listener.getListenerClass()), factory);
+            }
         }
 
-        try (BytecodeRecorder context = bytecodeOutput.addDeploymentTask(RuntimePriority.UNDERTOW_START)) {
-            UndertowDeploymentTemplate template = context.getRecordingProxy(UndertowDeploymentTemplate.class);
-            template.startUndertow(null, null, new ConfiguredValue("http.port", "8080"), new ConfiguredValue("http.host", "localhost"), new ConfiguredValue("http.io-threads", ""), new ConfiguredValue("http.worker-threads", ""), null);
+        for (ServletData servlet : servlets) {
+            String servletClass = servlet.getServletClass();
+            InjectionInstance<? extends Servlet> injection = (InjectionInstance<? extends Servlet>) context.newInstanceFactory(servletClass);
+            InstanceFactory<? extends Servlet> factory = template.createInstanceFactory(injection);
+            template.registerServlet(null, servlet.getName(), context.classProxy(servletClass), true, servlet.getLoadOnStartup(), factory);
+
+            for (String m : servlet.getMapings()) {
+                template.addServletMapping(null, servlet.getName(), m);
+            }
         }
+        return new ServletHandlerBuildItem(template.bootServletContainer(deployment.getValue()));
+
+
     }
 
-    private void handleResources() throws IOException {
+    private void handleResources(ArchiveRootBuildItem root) throws IOException {
         Path resources = applicationArchivesBuildItem.getRootArchive().getChildPath("META-INF/resources");
         if (resources != null) {
             Files.walk(resources).forEach(new Consumer<Path>() {
@@ -276,7 +273,7 @@ public class ServletResourceProcessor {
      *
      * @param index the annotation index
      */
-    protected WebMetaData processAnnotations(IndexView index) {
+    private WebMetaData processAnnotations(IndexView index) {
         WebMetaData metaData = new WebMetaData();
         // @WebServlet
         final Collection<AnnotationInstance> webServletAnnotations = index.getAnnotations(webServlet);

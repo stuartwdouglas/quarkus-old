@@ -1,7 +1,7 @@
 package org.jboss.shamrock.deployment.builditem;
 
 import org.jboss.builder.item.MultiBuildItem;
-import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
+import org.jboss.shamrock.deployment.recording.BytecodeRecorder;
 
 /**
  * TODO: this class is wrong, at the moment it basically just provides a way to make sure all bytecode is generated

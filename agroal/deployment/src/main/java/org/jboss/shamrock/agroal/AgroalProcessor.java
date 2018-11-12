@@ -6,12 +6,12 @@ import org.jboss.shamrock.agroal.runtime.DataSourceProducer;
 import org.jboss.shamrock.agroal.runtime.DataSourceTemplate;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildStep;
-import org.jboss.shamrock.deployment.RuntimePriority;
+import org.jboss.shamrock.annotations.Record;
 import org.jboss.shamrock.deployment.buildconfig.BuildConfig;
 import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
-import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
+import org.jboss.shamrock.deployment.builditem.BeanContainerBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
-import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
+import org.jboss.shamrock.deployment.recording.BytecodeRecorder;
 import org.jboss.shamrock.runtime.ConfiguredValue;
 
 class AgroalProcessor {
@@ -20,16 +20,14 @@ class AgroalProcessor {
     BuildProducer<AdditionalBeanBuildItem> additionalBean;
 
     @Inject
-    BytecodeOutputBuildItem bytecode;
-
-    @Inject
     BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
 
     @Inject
     BuildConfig config;
 
     @BuildStep
-    public void build() throws Exception {
+    @Record(staticInit = false)
+    public void build(DataSourceTemplate template, BytecodeRecorder bc, BeanContainerBuildItem beanContainer) throws Exception {
         reflectiveClass.produce(new ReflectiveClassBuildItem(false, false,
                 io.agroal.pool.ConnectionHandler[].class.getName(),
                 io.agroal.pool.ConnectionHandler.class.getName(),
@@ -63,9 +61,7 @@ class AgroalProcessor {
 
         reflectiveClass.produce(new ReflectiveClassBuildItem(false, false, driver));
         additionalBean.produce(new AdditionalBeanBuildItem(DataSourceProducer.class));
-        try (BytecodeRecorder bc = bytecode.addDeploymentTask(RuntimePriority.DATASOURCE_DEPLOYMENT)) {
-            DataSourceTemplate template = bc.getRecordingProxy(DataSourceTemplate.class);
-            template.addDatasource(null, configuredURL.getValue(), bc.classProxy(configuredDriver.getValue()), configuredUsername.getValue(), configuredPassword.getValue(), minSize, maxSize);
-        }
+        template.addDatasource(beanContainer.getValue(), configuredURL.getValue(), bc.classProxy(configuredDriver.getValue()), configuredUsername.getValue(), configuredPassword.getValue(), minSize, maxSize);
+
     }
 }

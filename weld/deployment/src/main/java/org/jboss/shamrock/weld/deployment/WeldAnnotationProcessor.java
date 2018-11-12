@@ -11,14 +11,15 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.IndexView;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildStep;
+import org.jboss.shamrock.annotations.Record;
 import org.jboss.shamrock.deployment.BeanDeployment;
 import org.jboss.shamrock.deployment.Capabilities;
-import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
 import org.jboss.shamrock.deployment.builditem.BeanArchiveIndexBuildItem;
-import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
+import org.jboss.shamrock.deployment.builditem.BeanContainerBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
-import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
+import org.jboss.shamrock.deployment.recording.BytecodeRecorder;
+import org.jboss.shamrock.runtime.BeanContainer;
 import org.jboss.shamrock.weld.runtime.WeldDeploymentTemplate;
 
 import io.smallrye.config.inject.ConfigProducer;
@@ -37,11 +38,10 @@ public class WeldAnnotationProcessor {
     @Inject
     List<AdditionalBeanBuildItem> additionalBeans;
 
-    @Inject
-    BytecodeOutputBuildItem bytecode;
 
+    @Record(staticInit = true)
     @BuildStep(providesCapabilities = Capabilities.CDI_WELD, applicationArchiveMarkers = {"META-INF/beans.xml", "META-INF/services/javax.enterprise.inject.spi.Extension"})
-    public void build() throws Exception {
+    public BeanContainerBuildItem build(WeldDeploymentTemplate template, BytecodeRecorder recorder) throws Exception {
         IndexView index = beanArchiveIndex.getIndex();
         List<String> additionalBeans = new ArrayList<>();
         for (AdditionalBeanBuildItem i : this.additionalBeans) {
@@ -49,27 +49,24 @@ public class WeldAnnotationProcessor {
         }
         //make config injectable
         additionalBeans.add(ConfigProducer.class.getName());
-        try (BytecodeRecorder recorder = bytecode.addStaticInitTask(RuntimePriority.WELD_DEPLOYMENT)) {
-            WeldDeploymentTemplate template = recorder.getRecordingProxy(WeldDeploymentTemplate.class);
-            SeContainerInitializer init = template.createWeld();
-            for (ClassInfo cl : index.getKnownClasses()) {
-                String name = cl.name().toString();
-                template.addClass(init, recorder.classProxy(name));
-                reflectiveClass.produce(new ReflectiveClassBuildItem(true, true, name));
-            }
-            for (String clazz : additionalBeans) {
-                template.addClass(init, recorder.classProxy(clazz));
-            }
-            for (String clazz : beanDeployment.getGeneratedBeans().keySet()) {
-                template.addClass(init, recorder.classProxy(clazz));
-            }
-            for (String extensionClazz : beanDeployment.getExtensions()) {
-                template.addExtension(init, recorder.classProxy(extensionClazz));
-            }
-            SeContainer weld = template.doBoot(null, init);
-            template.initBeanContainer(weld);
-            template.setupInjection(null, weld);
+        SeContainerInitializer init = template.createWeld();
+        for (ClassInfo cl : index.getKnownClasses()) {
+            String name = cl.name().toString();
+            template.addClass(init, recorder.classProxy(name));
+            reflectiveClass.produce(new ReflectiveClassBuildItem(true, true, name));
         }
-
+        for (String clazz : additionalBeans) {
+            template.addClass(init, recorder.classProxy(clazz));
+        }
+        for (String clazz : beanDeployment.getGeneratedBeans().keySet()) {
+            template.addClass(init, recorder.classProxy(clazz));
+        }
+        for (String extensionClazz : beanDeployment.getExtensions()) {
+            template.addExtension(init, recorder.classProxy(extensionClazz));
+        }
+        SeContainer weld = template.doBoot(null, init);
+        BeanContainer container = template.initBeanContainer(weld);
+        template.setupInjection(null, weld);
+        return new BeanContainerBuildItem(container);
     }
 }

@@ -21,20 +21,17 @@ import org.jboss.jandex.ParameterizedType;
 import org.jboss.jandex.Type;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildStep;
+import org.jboss.shamrock.annotations.Record;
 import org.jboss.shamrock.beanvalidation.runtime.ValidatorProvider;
 import org.jboss.shamrock.beanvalidation.runtime.ValidatorTemplate;
 import org.jboss.shamrock.beanvalidation.runtime.graal.ConstraintHelperSubstitution;
-import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
-import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
 import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveFieldBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveMethodBuildItem;
-import org.jboss.shamrock.deployment.builditem.ResourceBundleBuildItem;
-import org.jboss.shamrock.deployment.builditem.RuntimeInitializedClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.SubstrateConfigBuildItem;
-import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
+import org.jboss.shamrock.deployment.recording.BytecodeRecorder;
 import org.jboss.shamrock.runtime.InjectionInstance;
 
 class BeanValidationProcessor {
@@ -48,9 +45,6 @@ class BeanValidationProcessor {
     BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
 
     @Inject
-    BytecodeOutputBuildItem bytecode;
-
-    @Inject
     CombinedIndexBuildItem combinedIndexBuildItem;
 
     @Inject
@@ -60,7 +54,8 @@ class BeanValidationProcessor {
     BuildProducer<ReflectiveFieldBuildItem> reflectiveFields;
 
     @BuildStep
-    public void build() throws Exception {
+    @Record(staticInit = true)
+    public void build(ValidatorTemplate template, BytecodeRecorder recorder) throws Exception {
         additionalBean.produce(new AdditionalBeanBuildItem(ValidatorProvider.class));
 
         //TODO: this should not rely on the index and implementation being indexed, this stuff should just be hard coded
@@ -136,15 +131,12 @@ class BeanValidationProcessor {
             }
         }
 
-        try (BytecodeRecorder recorder = bytecode.addStaticInitTask(RuntimePriority.BEAN_VALIDATION_DEPLOYMENT)) {
-            ValidatorTemplate template = recorder.getRecordingProxy(ValidatorTemplate.class);
-            Class[] classes = new Class[classesToBeValidated.size()];
-            int j = 0;
-            for (String c : classesToBeValidated) {
-                classes[j++] = recorder.classProxy(c);
-            }
-            template.forceInit((InjectionInstance<ValidatorProvider>) recorder.newInstanceFactory(ValidatorProvider.class.getName()), classes);
+        Class[] classes = new Class[classesToBeValidated.size()];
+        int j = 0;
+        for (String c : classesToBeValidated) {
+            classes[j++] = recorder.classProxy(c);
         }
+        template.forceInit((InjectionInstance<ValidatorProvider>) recorder.newInstanceFactory(ValidatorProvider.class.getName()), classes);
     }
 
     @BuildStep

@@ -8,11 +8,12 @@ import org.jboss.protean.arc.Arc;
 import org.jboss.protean.arc.ArcContainer;
 import org.jboss.protean.arc.InstanceHandle;
 import org.jboss.protean.arc.ManagedContext;
+import org.jboss.shamrock.annotations.runtime.Template;
 import org.jboss.shamrock.runtime.BeanContainer;
-import org.jboss.shamrock.runtime.ContextObject;
 import org.jboss.shamrock.runtime.InjectionFactory;
 import org.jboss.shamrock.runtime.InjectionInstance;
 import org.jboss.shamrock.runtime.RuntimeInjector;
+import org.jboss.shamrock.runtime.RuntimeValue;
 import org.jboss.shamrock.runtime.StartupContext;
 
 import io.undertow.server.HttpServerExchange;
@@ -22,9 +23,9 @@ import io.undertow.servlet.api.ThreadSetupHandler;
 /**
  * @author Martin Kouba
  */
+@Template
 public class ArcDeploymentTemplate {
 
-    @ContextObject("arc.container")
     public ArcContainer getContainer(StartupContext startupContext) throws Exception {
         ArcContainer container = Arc.initialize();
         startupContext.addCloseable(new Closeable() {
@@ -36,7 +37,6 @@ public class ArcDeploymentTemplate {
         return container;
     }
 
-    @ContextObject("bean.container")
     public BeanContainer initBeanContainer(ArcContainer container) throws Exception {
         return new BeanContainer() {
 
@@ -56,11 +56,11 @@ public class ArcDeploymentTemplate {
         };
     }
 
-    public void setupRequestScope(@ContextObject("deploymentInfo") DeploymentInfo deploymentInfo, @ContextObject("arc.container") ArcContainer arcContainer) {
+    public void setupRequestScope(RuntimeValue<DeploymentInfo> deploymentInfo, ArcContainer arcContainer) {
         if (deploymentInfo == null) {
             return;
         }
-        deploymentInfo.addThreadSetupAction(new ThreadSetupHandler() {
+        deploymentInfo.getValue().addThreadSetupAction(new ThreadSetupHandler() {
             @Override
             public <T, C> Action<T, C> create(Action<T, C> action) {
                 return new Action<T, C>() {
@@ -114,7 +114,7 @@ public class ArcDeploymentTemplate {
 
     }
 
-    public void fireStartupEvent(@ContextObject("bean.container") BeanContainer beanContainer) {
+    public void fireStartupEvent(BeanContainer beanContainer) {
         beanContainer.instance(StartupEventRunner.class).fireEvent();
     }
 

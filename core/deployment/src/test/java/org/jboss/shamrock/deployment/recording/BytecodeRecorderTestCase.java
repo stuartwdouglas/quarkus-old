@@ -1,4 +1,4 @@
-package org.jboss.shamrock.deployment.codegen;
+package org.jboss.shamrock.deployment.recording;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -83,9 +83,10 @@ public class BytecodeRecorderTestCase {
     void runTest(Consumer<BytecodeRecorder> generator, Object... expected) throws Exception {
         TestTemplate.RESULT.clear();
         TestClassLoader tcl = new TestClassLoader(getClass().getClassLoader());
-        try (BytecodeRecorderImpl recorder = new BytecodeRecorderImpl(tcl, TEST_CLASS, StartupTask.class, new TestClassOutput(tcl))) {
-            generator.accept(recorder);
-        }
+        BytecodeRecorderImpl recorder = new BytecodeRecorderImpl(tcl);
+        generator.accept(recorder);
+        recorder.writeBytecode(new TestClassOutput(tcl), TEST_CLASS);
+
         StartupTask task = (StartupTask) tcl.loadClass(TEST_CLASS).newInstance();
         task.deploy(new StartupContext());
         Assert.assertEquals(expected.length, TestTemplate.RESULT.size());

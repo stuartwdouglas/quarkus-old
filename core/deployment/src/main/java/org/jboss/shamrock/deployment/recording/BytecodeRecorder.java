@@ -1,6 +1,5 @@
-package org.jboss.shamrock.deployment.codegen;
+package org.jboss.shamrock.deployment.recording;
 
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.List;
 import java.util.function.Function;
@@ -16,20 +15,18 @@ import org.jboss.shamrock.runtime.InjectionInstance;
  * <p>
  * A recording proxy is a proxy of a template that records all invocations on the template, and then writes out a sequence
  * of java bytecode that performs the same invocations.
- *
+ * <p>
  * There are some limitations on what can be recorded. Only the following objects are allowed as parameters to
  * recording proxies:
- *
+ * <p>
  * - primitives
  * - String
  * - Class (see {@link #classProxy(String)} to handle classes that are not loadable at generation time)
  * - Objects with a no-arg constructor and getter/setters for all properties
  * - Any arbitrary object via the {@link #registerSubstitution(Class, Class, Class)} mechanism
  * - arrays, lists and maps of the above
- * 
- *
  */
-public interface BytecodeRecorder extends AutoCloseable {
+public interface BytecodeRecorder {
 
     /**
      * Registers a substitution to allow objects that are not serialisable to bytecode to be substituted for an object
@@ -46,8 +43,8 @@ public interface BytecodeRecorder extends AutoCloseable {
      * non-default constructor registered
      *
      * @param constructor The constructor
-     * @param parameters A function that maps the object to a list of constructor parameters
-     * @param <T> The type of the object
+     * @param parameters  A function that maps the object to a list of constructor parameters
+     * @param <T>         The type of the object
      */
     <T> void registerNonDefaultConstructor(Constructor<T> constructor, Function<T, List<Object>> parameters);
 
@@ -80,12 +77,4 @@ public interface BytecodeRecorder extends AutoCloseable {
      * @return A Class instance that can be passed to a recording proxy
      */
     Class<?> classProxy(String name);
-
-    /**
-     * Close the recorder and create the bytecode
-     *
-     * @throws IOException
-     */
-    @Override
-    void close() throws IOException;
 }

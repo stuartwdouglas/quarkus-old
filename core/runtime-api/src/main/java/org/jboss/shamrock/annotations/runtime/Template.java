@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 /**
  * Indicates that the given ty
  */
-@Retention(RetentionPolicy.SOURCE)
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface Template {
 }

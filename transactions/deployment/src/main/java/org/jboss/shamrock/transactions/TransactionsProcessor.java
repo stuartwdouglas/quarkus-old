@@ -6,14 +6,12 @@ import javax.inject.Inject;
 
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildStep;
+import org.jboss.shamrock.annotations.Record;
 import org.jboss.shamrock.deployment.Capabilities;
-import org.jboss.shamrock.deployment.RuntimePriority;
 import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
 import org.jboss.shamrock.deployment.builditem.BeanArchiveIndexBuildItem;
-import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.RuntimeInitializedClassBuildItem;
-import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
 import org.jboss.shamrock.runtime.ConfiguredValue;
 import org.jboss.shamrock.transactions.runtime.TransactionProducers;
 import org.jboss.shamrock.transactions.runtime.TransactionTemplate;
@@ -37,19 +35,14 @@ class TransactionsProcessor {
     BuildProducer<AdditionalBeanBuildItem> additionalBeans;
 
     @Inject
-    BeanArchiveIndexBuildItem beanArchiveIndex;
-
-    @Inject
     BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
-
-    @Inject
-    BytecodeOutputBuildItem bytecode;
 
     @Inject
     BuildProducer<RuntimeInitializedClassBuildItem> runtimeInit;
 
     @BuildStep(providesCapabilities = Capabilities.TRANSACTIONS)
-    public void build() throws Exception {
+    @Record(staticInit = true)
+    public void build(TransactionTemplate tt) throws Exception {
         additionalBeans.produce(new AdditionalBeanBuildItem(TransactionProducers.class));
         runtimeInit.produce(new RuntimeInitializedClassBuildItem("com.arjuna.ats.internal.jta.resources.arjunacore.CommitMarkableResourceRecord"));
         reflectiveClass.produce(new ReflectiveClassBuildItem(false, false, JTAEnvironmentBean.class.getName(),
@@ -66,12 +59,9 @@ class TransactionsProcessor {
         additionalBeans.produce(new AdditionalBeanBuildItem(TransactionalInterceptorNotSupported.class));
 
         //we want to force Arjuna to init at static init time
-        try (BytecodeRecorder bc = bytecode.addStaticInitTask(RuntimePriority.TRANSACTIONS_DEPLOYMENT)) {
-            TransactionTemplate tt = bc.getRecordingProxy(TransactionTemplate.class);
-            Properties defaultProperties = PropertiesFactory.getDefaultProperties();
-            tt.setDefaultProperties(defaultProperties);
-            tt.setNodeName(new ConfiguredValue("transactions.node-name", "shamrock"));
-        }
+        Properties defaultProperties = PropertiesFactory.getDefaultProperties();
+        tt.setDefaultProperties(defaultProperties);
+        tt.setNodeName(new ConfiguredValue("transactions.node-name", "shamrock"));
 
     }
 }

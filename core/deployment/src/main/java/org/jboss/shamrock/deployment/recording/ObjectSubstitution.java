@@ -1,4 +1,4 @@
-package org.jboss.shamrock.deployment.codegen;
+package org.jboss.shamrock.deployment.recording;
 
 /**
  * An interface that can be used to substitute a non-bytecode serializable class

@@ -10,12 +10,14 @@ import org.hibernate.jpa.boot.internal.ParsedPersistenceXmlDescriptor;
 import org.hibernate.protean.Hibernate;
 import org.hibernate.protean.impl.PersistenceUnitsHolder;
 import org.jboss.logging.Logger;
+import org.jboss.shamrock.annotations.runtime.Template;
 import org.jboss.shamrock.runtime.BeanContainer;
 import org.jboss.shamrock.runtime.ContextObject;
 
 /**
  * @author Emmanuel Bernard emmanuel@hibernate.org
  */
+@Template
 public class JPADeploymentTemplate {
     private List<String> entities = new ArrayList<>();
 
@@ -33,19 +35,19 @@ public class JPADeploymentTemplate {
         Hibernate.featureInit();
     }
 
-    public void initializeJpa(@ContextObject("bean.container") BeanContainer beanContainer, boolean jtaEnabled) {
+    public void initializeJpa(BeanContainer beanContainer, boolean jtaEnabled) {
         beanContainer.instance(JPAConfig.class).setJtaEnabled(jtaEnabled);
     }
 
-    public void bootstrapPersistenceUnit(@ContextObject("bean.container") BeanContainer beanContainer, String unitName) {
+    public void bootstrapPersistenceUnit(BeanContainer beanContainer, String unitName) {
         beanContainer.instance(JPAConfig.class).bootstrapPersistenceUnit(unitName);
     }
 
-    public void initDefaultPersistenceUnit(@ContextObject("bean.container") BeanContainer beanContainer) {
+    public void initDefaultPersistenceUnit(BeanContainer beanContainer) {
         beanContainer.instance(JPAConfig.class).initDefaultPersistenceUnit();
     }
 
-    public void initMetadata(List<ParsedPersistenceXmlDescriptor> parsedPersistenceXmlDescriptors, Scanner scanner, @ContextObject("bean.container") BeanContainer beanContainer) {
+    public void initMetadata(List<ParsedPersistenceXmlDescriptor> parsedPersistenceXmlDescriptors, Scanner scanner, BeanContainer beanContainer) {
 
         //this initializes the JPA metadata, and also sets the datasource if no connection URL has been set and a DataSource
         //is available

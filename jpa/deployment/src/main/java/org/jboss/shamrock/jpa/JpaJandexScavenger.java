@@ -23,9 +23,7 @@ import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.IndexView;
 import org.jboss.logging.Logger;
 import org.jboss.shamrock.annotations.BuildProducer;
-import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
-import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
 import org.jboss.shamrock.jpa.runtime.JPADeploymentTemplate;
 
 /**
@@ -52,13 +50,13 @@ final class JpaJandexScavenger {
     private final List<ParsedPersistenceXmlDescriptor> descriptors;
     private final BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
     private final IndexView combinedIndex;
-    private final BytecodeOutputBuildItem bytecode;
+    private final JPADeploymentTemplate template;
 
-    JpaJandexScavenger(BuildProducer<ReflectiveClassBuildItem> reflectiveClass, List<ParsedPersistenceXmlDescriptor> descriptors, IndexView combinedIndex, BytecodeOutputBuildItem bytecode) {
+    JpaJandexScavenger(BuildProducer<ReflectiveClassBuildItem> reflectiveClass, List<ParsedPersistenceXmlDescriptor> descriptors, IndexView combinedIndex, JPADeploymentTemplate template) {
         this.reflectiveClass = reflectiveClass;
         this.descriptors = descriptors;
         this.combinedIndex = combinedIndex;
-        this.bytecode = bytecode;
+        this.template = template;
     }
 
     public KnownDomainObjects discoverModelAndRegisterForReflection() throws IOException {
@@ -78,14 +76,9 @@ final class JpaJandexScavenger {
 
         collector.registerAllForReflection(reflectiveClass);
 
-        // TODO what priority to give JPA?
-        try (BytecodeRecorder context = bytecode.addStaticInitTask(100)) {
-            JPADeploymentTemplate template = context.getRecordingProxy(JPADeploymentTemplate.class);
-            collector.dumpAllToJPATemplate(template);
-            template.enlistPersistenceUnit();
-            template.callHibernateFeatureInit();
-        }
-
+        collector.dumpAllToJPATemplate(template);
+        template.enlistPersistenceUnit();
+        template.callHibernateFeatureInit();
 
         return collector;
     }

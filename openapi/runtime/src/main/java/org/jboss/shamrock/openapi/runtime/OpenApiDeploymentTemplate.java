@@ -4,6 +4,7 @@ import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.openapi.OASFilter;
 import org.eclipse.microprofile.openapi.models.OpenAPI;
+import org.jboss.shamrock.annotations.runtime.Template;
 import org.jboss.shamrock.runtime.BeanContainer;
 import org.jboss.shamrock.runtime.ContextObject;
 import org.jboss.shamrock.runtime.Shamrock;
@@ -16,9 +17,10 @@ import io.smallrye.openapi.runtime.OpenApiProcessor;
 /**
  * @author Ken Finnigan
  */
+@Template
 public class OpenApiDeploymentTemplate {
 
-    public void setupModel(@ContextObject("bean.container") BeanContainer container, OpenAPI staticModel, OpenAPI annotationModel) {
+    public void setupModel(BeanContainer container, OpenAPI staticModel, OpenAPI annotationModel) {
         Config config = ConfigProvider.getConfig();
         OpenApiConfig openApiConfig = new OpenApiConfigImpl(config);
 
@@ -30,7 +32,6 @@ public class OpenApiDeploymentTemplate {
         document.modelFromStaticFile(staticModel);
         document.filter(filter(openApiConfig));
         document.initialize();
-
         container.instance(OpenApiDocumentProducer.class).setDocument(document);
     }
 

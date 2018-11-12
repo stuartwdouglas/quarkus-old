@@ -5,21 +5,20 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
 
+import javax.inject.Inject;
+
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.openapi.models.OpenAPI;
 import org.jboss.jandex.IndexView;
-import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import javax.inject.Inject;
-
-import org.jboss.shamrock.deployment.RuntimePriority;
+import org.jboss.shamrock.annotations.BuildStep;
+import org.jboss.shamrock.annotations.Record;
 import org.jboss.shamrock.deployment.ShamrockConfig;
 import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
 import org.jboss.shamrock.deployment.builditem.ApplicationArchivesBuildItem;
-import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
+import org.jboss.shamrock.deployment.builditem.BeanContainerBuildItem;
 import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
-import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
 import org.jboss.shamrock.openapi.runtime.OpenApiDeploymentTemplate;
 import org.jboss.shamrock.openapi.runtime.OpenApiDocumentProducer;
 import org.jboss.shamrock.openapi.runtime.OpenApiServlet;
@@ -49,13 +48,11 @@ public class OpenApiProcessor {
     CombinedIndexBuildItem combinedIndexBuildItem;
 
     @Inject
-    BytecodeOutputBuildItem bytecode;
-
-    @Inject
     ApplicationArchivesBuildItem archivesBuildItem;
 
     @BuildStep
-    public void build() throws Exception {
+    @Record(staticInit = true)
+    public void build(OpenApiDeploymentTemplate template, BeanContainerBuildItem beanContainer) throws Exception {
         ServletData servletData = new ServletData("openapi", OpenApiServlet.class.getName());
         servletData.getMapings().add(config.getConfig("openapi.path", "/openapi"));
         servlets.produce(servletData);
@@ -64,12 +61,9 @@ public class OpenApiProcessor {
 
         Result resourcePath = findStaticModel();
 
-        try (BytecodeRecorder recorder = bytecode.addStaticInitTask(RuntimePriority.WELD_DEPLOYMENT + 30)) {
-            OpenApiDeploymentTemplate template = recorder.getRecordingProxy(OpenApiDeploymentTemplate.class);
-            OpenAPI sm = generateStaticModel(resourcePath == null ? null : resourcePath.path, resourcePath == null ? OpenApiSerializer.Format.YAML : resourcePath.format);
-            OpenAPI am = generateAnnotationModel(combinedIndexBuildItem.getIndex());
-            template.setupModel(null, sm, am);
-        }
+        OpenAPI sm = generateStaticModel(resourcePath == null ? null : resourcePath.path, resourcePath == null ? OpenApiSerializer.Format.YAML : resourcePath.format);
+        OpenAPI am = generateAnnotationModel(combinedIndexBuildItem.getIndex());
+        template.setupModel(beanContainer.getValue(), sm, am);
     }
 
 

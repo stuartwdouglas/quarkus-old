@@ -22,7 +22,6 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -42,19 +41,12 @@ import org.jboss.builder.BuildChain;
 import org.jboss.builder.BuildContext;
 import org.jboss.builder.BuildResult;
 import org.jboss.builder.BuildStep;
-import org.jboss.jandex.ArrayType;
-import org.jboss.jandex.ClassInfo;
-import org.jboss.jandex.ClassType;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
 import org.jboss.jandex.MethodInfo;
-import org.jboss.jandex.ParameterizedType;
-import org.jboss.jandex.PrimitiveType;
 import org.jboss.jandex.Type;
-import org.jboss.jandex.UnresolvedTypeVariable;
-import org.jboss.jandex.VoidType;
 import org.jboss.protean.gizmo.CatchBlockCreator;
 import org.jboss.protean.gizmo.ClassCreator;
 import org.jboss.protean.gizmo.FieldCreator;
@@ -65,11 +57,11 @@ import org.jboss.protean.gizmo.TryBlock;
 import org.jboss.shamrock.deployment.buildconfig.BuildConfig;
 import org.jboss.shamrock.deployment.builditem.ApplicationArchivesBuildItem;
 import org.jboss.shamrock.deployment.builditem.ArchiveRootBuildItem;
-import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
 import org.jboss.shamrock.deployment.builditem.BytecodeTransformerBuildItem;
 import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
 import org.jboss.shamrock.deployment.builditem.GeneratedClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.GeneratedResourceBuildItem;
+import org.jboss.shamrock.deployment.builditem.LogSetupBuildItem;
 import org.jboss.shamrock.deployment.builditem.ProxyDefinitionBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveFieldBuildItem;
@@ -77,9 +69,10 @@ import org.jboss.shamrock.deployment.builditem.ReflectiveMethodBuildItem;
 import org.jboss.shamrock.deployment.builditem.ResourceBuildItem;
 import org.jboss.shamrock.deployment.builditem.ResourceBundleBuildItem;
 import org.jboss.shamrock.deployment.builditem.RuntimeInitializedClassBuildItem;
-import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
-import org.jboss.shamrock.deployment.codegen.BytecodeRecorderImpl;
+import org.jboss.shamrock.deployment.recording.BytecodeRecorderImpl;
 import org.jboss.shamrock.deployment.index.ApplicationArchiveLoader;
+import org.jboss.shamrock.deployment.recording.MainBytecodeRecorderBuildItem;
+import org.jboss.shamrock.deployment.recording.StaticBytecodeRecorderBuildItem;
 import org.jboss.shamrock.runtime.ResourceHelper;
 import org.jboss.shamrock.runtime.StartupContext;
 import org.jboss.shamrock.runtime.StartupTask;
@@ -103,14 +96,12 @@ public class BuildTimeGenerator {
     private final ClassOutput output;
     private final DeploymentProcessorInjection injection;
     private final ClassLoader classLoader;
-    private final boolean useStaticInit;
     private final Map<String, List<BiFunction<String, ClassVisitor, ClassVisitor>>> byteCodeTransformers = new HashMap<>();
     private final Set<String> applicationArchiveMarkers;
     private final ArchiveContextBuilder archiveContextBuilder;
     private final Set<String> capabilities;
 
-    public BuildTimeGenerator(ClassOutput classOutput, ClassLoader cl, boolean useStaticInit, ArchiveContextBuilder contextBuilder) {
-        this.useStaticInit = useStaticInit;
+    public BuildTimeGenerator(ClassOutput classOutput, ClassLoader cl, ArchiveContextBuilder contextBuilder) {
         Iterator<ShamrockSetup> loader = ServiceLoader.load(ShamrockSetup.class, cl).iterator();
         SetupContextImpl setupContext = new SetupContextImpl();
         while (loader.hasNext()) {
@@ -182,17 +173,16 @@ public class BuildTimeGenerator {
                                 context.produce(ShamrockConfig.INSTANCE);
                                 context.produce(new ApplicationArchivesBuildItem(archiveContext));
                                 context.produce(new CombinedIndexBuildItem(archiveContext.getCombinedIndex()));
-                                context.produce(new BytecodeOutputBuildItem(processorContext));
                                 context.produce(new ArchiveRootBuildItem(archiveContext.getRootArchive().getArchiveRoot()));
                                 context.produce(archiveContext.getBuildConfig());
                             }
                         })
                         .produces(ShamrockConfig.class)
                         .produces(ApplicationArchivesBuildItem.class)
-                        .produces(BytecodeOutputBuildItem.class)
                         .produces(CombinedIndexBuildItem.class)
                         .produces(ArchiveRootBuildItem.class)
                         .produces(BuildConfig.class)
+                        .consumes(LogSetupBuildItem.class)
                         .build()
                         .addFinal(ReflectiveClassBuildItem.class)
                         .addFinal(RuntimeInitializedClassBuildItem.class)
@@ -203,6 +193,8 @@ public class BuildTimeGenerator {
                         .addFinal(ResourceBundleBuildItem.class)
                         .addFinal(ReflectiveFieldBuildItem.class)
                         .addFinal(ReflectiveMethodBuildItem.class)
+                        .addFinal(StaticBytecodeRecorderBuildItem.class)
+                        .addFinal(MainBytecodeRecorderBuildItem.class)
                         .build();
                 BuildResult result = chain.createExecutionBuilder("main").execute();
 
@@ -236,6 +228,12 @@ public class BuildTimeGenerator {
                 for(ReflectiveFieldBuildItem i : result.consumeMulti(ReflectiveFieldBuildItem.class)) {
                     processorContext.addReflectiveField(i.getField());
                 }
+                for(MainBytecodeRecorderBuildItem i : result.consumeMulti(MainBytecodeRecorderBuildItem.class)) {
+                    processorContext.addDeploymentTask(i.getBytecodeRecorder());
+                }
+                for(StaticBytecodeRecorderBuildItem i : result.consumeMulti(StaticBytecodeRecorderBuildItem.class)) {
+                    processorContext.addStaticInitTask(i.getBytecodeRecorder());
+                }
 
                 processorContext.writeProperties(root.toFile());
                 processorContext.writeMainClass();
@@ -261,8 +259,8 @@ public class BuildTimeGenerator {
     private final class ProcessorContextImpl implements ProcessorContext {
 
 
-        private final List<DeploymentTaskHolder> tasks = new CopyOnWriteArrayList<>();
-        private final List<DeploymentTaskHolder> staticInitTasks = new CopyOnWriteArrayList<>();
+        private final List<BytecodeRecorderImpl> tasks = new CopyOnWriteArrayList<>();
+        private final List<BytecodeRecorderImpl> staticInitTasks = new CopyOnWriteArrayList<>();
         private final Map<String, ReflectionInfo> reflectiveClasses = new LinkedHashMap<>();
         private final Set<DotName> processedReflectiveHierarchies = new HashSet<>();
         private final Set<String> resources = new HashSet<>();
@@ -277,18 +275,12 @@ public class BuildTimeGenerator {
             this.archiveContext = archiveContext;
         }
 
-        @Override
-        public BytecodeRecorder addStaticInitTask(int priority) {
-            String className = getClass().getName() + "$$Proxy" + COUNT.incrementAndGet();
-            staticInitTasks.add(new DeploymentTaskHolder(className, priority));
-            return new BytecodeRecorderImpl(classLoader, className, StartupTask.class, output);
+        public void addStaticInitTask(BytecodeRecorderImpl recorder) {
+            staticInitTasks.add(recorder);
         }
 
-        @Override
-        public BytecodeRecorder addDeploymentTask(int priority) {
-            String className = getClass().getName() + "$$Proxy" + COUNT.incrementAndGet();
-            tasks.add(new DeploymentTaskHolder(className, priority));
-            return new BytecodeRecorderImpl(classLoader, className, StartupTask.class, output);
+        public void addDeploymentTask(BytecodeRecorderImpl recorder) {
+            tasks.add(recorder);
         }
 
         @Override
@@ -435,15 +427,6 @@ public class BuildTimeGenerator {
 
         void writeMainClass() throws IOException {
 
-            Collections.sort(tasks);
-            if (!useStaticInit) {
-                Collections.sort(staticInitTasks);
-                tasks.addAll(0, staticInitTasks);
-                staticInitTasks.clear();
-            } else {
-                Collections.sort(staticInitTasks);
-            }
-
             ClassCreator file = new ClassCreator(ClassOutput.gizmoAdaptor(output, true), MAIN_CLASS, null, Object.class.getName());
 
             FieldCreator scField = file.getFieldCreator(STARTUP_CONTEXT, StartupContext.class);
@@ -455,9 +438,14 @@ public class BuildTimeGenerator {
             ResultHandle startupContext = mv.newInstance(ofConstructor(StartupContext.class));
             mv.writeStaticField(scField.getFieldDescriptor(), startupContext);
             TryBlock catchBlock = mv.tryBlock();
-            for (DeploymentTaskHolder holder : staticInitTasks) {
-                ResultHandle dup = catchBlock.newInstance(ofConstructor(holder.className));
-                catchBlock.invokeInterfaceMethod(ofMethod(StartupTask.class, "deploy", void.class, StartupContext.class), dup, startupContext);
+            for (BytecodeRecorderImpl holder : staticInitTasks) {
+                if(!holder.isEmpty()) {
+                    String className = getClass().getName() + "$$Proxy" + COUNT.incrementAndGet();
+                    holder.writeBytecode(output, className);
+
+                    ResultHandle dup = catchBlock.newInstance(ofConstructor(className));
+                    catchBlock.invokeInterfaceMethod(ofMethod(StartupTask.class, "deploy", void.class, StartupContext.class), dup, startupContext);
+                }
             }
             catchBlock.returnValue(null);
 
@@ -470,9 +458,13 @@ public class BuildTimeGenerator {
             mv.invokeStaticMethod(ofMethod(Timing.class, "mainStarted", void.class));
             startupContext = mv.readStaticField(scField.getFieldDescriptor());
             catchBlock = mv.tryBlock();
-            for (DeploymentTaskHolder holder : tasks) {
-                ResultHandle dup = catchBlock.newInstance(ofConstructor(holder.className));
-                catchBlock.invokeInterfaceMethod(ofMethod(StartupTask.class, "deploy", void.class, StartupContext.class), dup, startupContext);
+            for (BytecodeRecorderImpl holder : tasks) {
+                if(!holder.isEmpty()) {
+                    String className = getClass().getName() + "$$Proxy" + COUNT.incrementAndGet();
+                    holder.writeBytecode(output, className);
+                    ResultHandle dup = catchBlock.newInstance(ofConstructor(className));
+                    catchBlock.invokeInterfaceMethod(ofMethod(StartupTask.class, "deploy", void.class, StartupContext.class), dup, startupContext);
+                }
             }
             catchBlock.invokeStaticMethod(ofMethod(Timing.class, "printStartupTime", void.class));
             mv.returnValue(null);

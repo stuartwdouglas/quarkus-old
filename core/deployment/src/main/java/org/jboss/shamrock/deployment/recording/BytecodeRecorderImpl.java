@@ -1,4 +1,4 @@
-package org.jboss.shamrock.deployment.codegen;
+package org.jboss.shamrock.deployment.recording;
 
 import static org.jboss.protean.gizmo.MethodDescriptor.ofConstructor;
 import static org.jboss.protean.gizmo.MethodDescriptor.ofMethod;
@@ -25,6 +25,7 @@ import java.util.function.Function;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
+import org.jboss.builder.item.MultiBuildItem;
 import org.jboss.invocation.proxy.ProxyConfiguration;
 import org.jboss.invocation.proxy.ProxyFactory;
 import org.jboss.protean.gizmo.BranchResult;
@@ -50,35 +51,23 @@ public class BytecodeRecorderImpl implements BytecodeRecorder {
     private static final MethodDescriptor MAP_PUT = ofMethod(Map.class, "put", Object.class, Object.class, Object.class);
 
     private final ClassLoader classLoader;
-    private final String className;
-    private final Class<?> serviceType;
-    private final ClassOutput classOutput;
-    private final MethodRecorder methodRecorder;
-    private final Method method;
+    private final MethodRecorder methodRecorder = new MethodRecorder();
 
     private final Map<Class, ProxyFactory<?>> returnValueProxy = new HashMap<>();
     private final IdentityHashMap<Class<?>, String> classProxies = new IdentityHashMap<>();
     private final Map<Class<?>, SubstitutionHolder> substitutions = new HashMap<>();
     private final Map<Class<?>, NonDefaultConstructorHolder> nonDefaulConstructors = new HashMap<>();
 
-    public BytecodeRecorderImpl(ClassLoader classLoader, String className, Class<?> serviceType, ClassOutput classOutput) {
+    public BytecodeRecorderImpl(ClassLoader classLoader) {
         this.classLoader = classLoader;
-        this.className = className;
-        this.serviceType = serviceType;
-        this.classOutput = classOutput;
-        MethodRecorder mr = null;
-        Method m = null;
-        for (Method method : serviceType.getMethods()) {
-            if (method.getDeclaringClass() != Object.class) {
-                if (mr != null) {
-                    throw new RuntimeException("Invalid type, must have a single method");
-                }
-                mr = new MethodRecorder();
-                m = method;
-            }
-        }
-        methodRecorder = mr;
-        method = m;
+    }
+
+    public BytecodeRecorderImpl() {
+        this(Thread.currentThread().getContextClassLoader());
+    }
+
+    public boolean isEmpty() {
+        return methodRecorder.storedMethodCalls.isEmpty();
     }
 
     private String findContextName(Annotation[] annotations) {
@@ -190,21 +179,9 @@ public class BytecodeRecorderImpl implements BytecodeRecorder {
     }
 
 
-    @Override
-    public void close() {
-        ClassCreator file = ClassCreator.builder().classOutput(ClassOutput.gizmoAdaptor(classOutput,  true)).className(className).superClass(Object.class).interfaces(StartupTask.class).build();
-        MethodCreator method = file.getMethodCreator(this.method.getName(), this.method.getReturnType(), this.method.getParameterTypes());
-
-        //figure out where we can start using local variables
-        int localVarCounter = 1;
-        for (Class<?> t : this.method.getParameterTypes()) {
-            if (t == double.class || t == long.class) {
-                localVarCounter += 2;
-            } else {
-                localVarCounter++;
-            }
-        }
-
+    public void writeBytecode(ClassOutput classOutput, String className) {
+        ClassCreator file = ClassCreator.builder().classOutput(ClassOutput.gizmoAdaptor(classOutput, true)).className(className).superClass(Object.class).interfaces(StartupTask.class).build();
+        MethodCreator method = file.getMethodCreator("deploy", void.class, StartupContext.class);
         //now create instances of all the classes we invoke on and store them in variables as well
         Map<Class, ResultHandle> classInstanceVariables = new HashMap<>();
         Map<Object, ResultHandle> returnValueResults = new IdentityHashMap<>();
@@ -247,7 +224,7 @@ public class BytecodeRecorderImpl implements BytecodeRecorder {
                         params[i] = method.getMethodParam(0);
                     } else if (contextName != null) {
                         ResultHandle existing = contextResults.get(contextName);
-                        if(existing != null) {
+                        if (existing != null) {
                             params[i] = existing;
                         } else {
                             params[i] = method.invokeVirtualMethod(ofMethod(StartupContext.class, "getValue", Object.class, String.class), method.getMethodParam(0), method.load(contextName));
@@ -386,15 +363,15 @@ public class BytecodeRecorderImpl implements BytecodeRecorder {
                 method.writeArrayValue(out, i, component);
             }
         } else {
-            if(nonDefaulConstructors.containsKey(param.getClass())) {
+            if (nonDefaulConstructors.containsKey(param.getClass())) {
                 NonDefaultConstructorHolder holder = nonDefaulConstructors.get(param.getClass());
                 List<Object> params = holder.paramGenerator.apply(param);
-                if(params.size() != holder.constructor.getParameterCount()) {
+                if (params.size() != holder.constructor.getParameterCount()) {
                     throw new RuntimeException("Unable to serialize " + param + " as the wrong number of parameters were generated for " + holder.constructor);
                 }
                 List<ResultHandle> handles = new ArrayList<>();
                 int count = 0;
-                for(Object i : params) {
+                for (Object i : params) {
                     handles.add(loadObjectInstance(method, i, returnValueResults, holder.constructor.getParameterTypes()[count++]));
                 }
                 out = method.newInstance(ofConstructor(holder.constructor.getDeclaringClass(), holder.constructor.getParameterTypes()), handles.toArray(new ResultHandle[handles.size()]));
@@ -423,36 +400,36 @@ public class BytecodeRecorderImpl implements BytecodeRecorder {
             }
             PropertyDescriptor[] desc = PropertyUtils.getPropertyDescriptors(param);
             for (PropertyDescriptor i : desc) {
-                if(i.getReadMethod() != null && i.getWriteMethod() == null ) {
+                if (i.getReadMethod() != null && i.getWriteMethod() == null) {
                     try {
-                    //read only prop, we may still be able to do stuff with it if it is a collection
-                    if(Collection.class.isAssignableFrom(i.getPropertyType())) {
-                        //special case, a collection with only a read method
-                        //we assume we can just add to the connection
+                        //read only prop, we may still be able to do stuff with it if it is a collection
+                        if (Collection.class.isAssignableFrom(i.getPropertyType())) {
+                            //special case, a collection with only a read method
+                            //we assume we can just add to the connection
 
-                        Collection propertyValue = (Collection) PropertyUtils.getProperty(param, i.getName());
-                        if(!propertyValue.isEmpty()) {
-                            ResultHandle prop = method.invokeVirtualMethod(MethodDescriptor.ofMethod(i.getReadMethod()), out);
-                            for (Object c : propertyValue) {
-                                ResultHandle toAdd = loadObjectInstance(method, c, returnValueResults, Object.class);
-                                method.invokeInterfaceMethod(COLLECTION_ADD, prop, toAdd);
+                            Collection propertyValue = (Collection) PropertyUtils.getProperty(param, i.getName());
+                            if (!propertyValue.isEmpty()) {
+                                ResultHandle prop = method.invokeVirtualMethod(MethodDescriptor.ofMethod(i.getReadMethod()), out);
+                                for (Object c : propertyValue) {
+                                    ResultHandle toAdd = loadObjectInstance(method, c, returnValueResults, Object.class);
+                                    method.invokeInterfaceMethod(COLLECTION_ADD, prop, toAdd);
+                                }
+                            }
+
+                        } else if (Map.class.isAssignableFrom(i.getPropertyType())) {
+                            //special case, a map with only a read method
+                            //we assume we can just add to the map
+
+                            Map<Object, Object> propertyValue = (Map<Object, Object>) PropertyUtils.getProperty(param, i.getName());
+                            if (!propertyValue.isEmpty()) {
+                                ResultHandle prop = method.invokeVirtualMethod(MethodDescriptor.ofMethod(i.getReadMethod()), out);
+                                for (Map.Entry<Object, Object> entry : propertyValue.entrySet()) {
+                                    ResultHandle key = loadObjectInstance(method, entry.getKey(), returnValueResults, Object.class);
+                                    ResultHandle val = entry.getValue() != null ? loadObjectInstance(method, entry.getValue(), returnValueResults, Object.class) : method.loadNull();
+                                    method.invokeInterfaceMethod(MAP_PUT, prop, key, val);
+                                }
                             }
                         }
-
-                    } else if(Map.class.isAssignableFrom(i.getPropertyType())) {
-                        //special case, a map with only a read method
-                        //we assume we can just add to the map
-
-                        Map<Object, Object> propertyValue = (Map<Object, Object>)PropertyUtils.getProperty(param, i.getName());
-                        if(!propertyValue.isEmpty()) {
-                            ResultHandle prop = method.invokeVirtualMethod(MethodDescriptor.ofMethod(i.getReadMethod()), out);
-                            for (Map.Entry<Object, Object> entry : propertyValue.entrySet()) {
-                                ResultHandle key = loadObjectInstance(method, entry.getKey(), returnValueResults, Object.class);
-                                ResultHandle val = entry.getValue() != null ? loadObjectInstance(method, entry.getValue(), returnValueResults, Object.class) : method.loadNull();
-                                method.invokeInterfaceMethod(MAP_PUT, prop, key, val);
-                            }
-                        }
-                    }
 
                     } catch (Exception e) {
                         throw new RuntimeException(e);

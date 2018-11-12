@@ -46,12 +46,11 @@ import org.jboss.protean.gizmo.ResultHandle;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.deployment.buildconfig.BuildConfig;
-import org.jboss.shamrock.deployment.builditem.BytecodeOutputBuildItem;
 import org.jboss.shamrock.deployment.builditem.GeneratedClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.GeneratedResourceBuildItem;
 import org.jboss.shamrock.deployment.builditem.NativeImageSystemPropertyBuildItem;
 import org.jboss.shamrock.deployment.builditem.RuntimeInitializedClassBuildItem;
-import org.jboss.shamrock.deployment.codegen.BytecodeRecorder;
+import org.jboss.shamrock.deployment.recording.BytecodeRecorder;
 import org.jboss.shamrock.logging.runtime.LogSetupTemplate;
 import org.objectweb.asm.Opcodes;
 
@@ -77,10 +76,7 @@ public final class LoggingResourceProcessor {
     @Inject
     BuildProducer<GeneratedResourceBuildItem> generatedResource;
 
-    @Inject
-    BytecodeOutputBuildItem bytecode;
-
-    @BuildStep
+    @BuildStep()
     public void build() throws Exception {
         final BuildConfig.ConfigNode loggingNode = config.getApplicationConfig().get("logging");
         final BuildConfig.ConfigNode enableNode = loggingNode.get("enable");
@@ -310,13 +306,6 @@ public final class LoggingResourceProcessor {
         generatedResource.produce(new GeneratedResourceBuildItem("META-INF/services/org.jboss.logmanager.EmbeddedConfigurator", GENERATED_CONFIGURATOR.replace('/', '.').getBytes(StandardCharsets.UTF_8)));
 
         // now inject the system property setter
-
-        final LogSetupTemplate proxy;
-        try (BytecodeRecorder recorder = bytecode.addStaticInitTask(-1000)) {
-            proxy = recorder.getRecordingProxy(LogSetupTemplate.class);
-            proxy.initializeLogManager();
-        }
-
         systemProp.produce(new NativeImageSystemPropertyBuildItem("java.util.logging.manager", "org.jboss.logmanager.LogManager"));
     }
 

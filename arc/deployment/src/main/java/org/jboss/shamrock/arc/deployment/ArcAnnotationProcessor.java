@@ -45,6 +45,7 @@ import org.jboss.shamrock.deployment.builditem.BeanArchiveIndexBuildItem;
 import org.jboss.shamrock.deployment.builditem.BeanContainerBuildItem;
 import org.jboss.shamrock.deployment.builditem.GeneratedClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.GeneratedResourceBuildItem;
+import org.jboss.shamrock.deployment.builditem.InjectionProviderBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveFieldBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveMethodBuildItem;
@@ -85,9 +86,10 @@ public class ArcAnnotationProcessor {
     @Inject
     BuildProducer<ReflectiveFieldBuildItem> reflectiveFields;
 
+
     @BuildStep(providesCapabilities = Capabilities.CDI_ARC, applicationArchiveMarkers = {"META-INF/beans.xml", "META-INF/services/javax.enterprise.inject.spi.Extension"})
     @Record(staticInit = true)
-    public BeanContainerBuildItem build(ArcDeploymentTemplate arcTemplate, DeploymentInfoBuildItem deploymentInfo) throws Exception {
+    public BeanContainerBuildItem build(ArcDeploymentTemplate arcTemplate, DeploymentInfoBuildItem deploymentInfo, BuildProducer<InjectionProviderBuildItem> injectionProvider) throws Exception {
 
         List<String> additionalBeans = new ArrayList<>();
         for (AdditionalBeanBuildItem i : this.additionalBeans) {
@@ -193,6 +195,7 @@ public class ArcAnnotationProcessor {
 
         ArcContainer container = arcTemplate.getContainer(null);
         BeanContainer bc = arcTemplate.initBeanContainer(container);
+        injectionProvider.produce(new InjectionProviderBuildItem());
         arcTemplate.setupInjection(null, container);
         arcTemplate.setupRequestScope(deploymentInfo.getValue(), container);
 

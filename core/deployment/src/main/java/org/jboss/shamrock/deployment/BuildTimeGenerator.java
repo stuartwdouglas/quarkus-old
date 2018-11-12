@@ -69,8 +69,8 @@ import org.jboss.shamrock.deployment.builditem.ReflectiveMethodBuildItem;
 import org.jboss.shamrock.deployment.builditem.ResourceBuildItem;
 import org.jboss.shamrock.deployment.builditem.ResourceBundleBuildItem;
 import org.jboss.shamrock.deployment.builditem.RuntimeInitializedClassBuildItem;
-import org.jboss.shamrock.deployment.recording.BytecodeRecorderImpl;
 import org.jboss.shamrock.deployment.index.ApplicationArchiveLoader;
+import org.jboss.shamrock.deployment.recording.BytecodeRecorderImpl;
 import org.jboss.shamrock.deployment.recording.MainBytecodeRecorderBuildItem;
 import org.jboss.shamrock.deployment.recording.StaticBytecodeRecorderBuildItem;
 import org.jboss.shamrock.runtime.ResourceHelper;
@@ -198,40 +198,40 @@ public class BuildTimeGenerator {
                         .build();
                 BuildResult result = chain.createExecutionBuilder("main").execute();
 
-                for(GeneratedClassBuildItem i : result.consumeMulti(GeneratedClassBuildItem.class)) {
+                for (GeneratedClassBuildItem i : result.consumeMulti(GeneratedClassBuildItem.class)) {
                     processorContext.addGeneratedClass(i.isApplicationClass(), i.getName(), i.getClassData());
                 }
-                for(GeneratedResourceBuildItem i : result.consumeMulti(GeneratedResourceBuildItem.class)) {
+                for (GeneratedResourceBuildItem i : result.consumeMulti(GeneratedResourceBuildItem.class)) {
                     processorContext.createResource(i.getName(), i.getClassData());
                 }
-                for(BytecodeTransformerBuildItem i : result.consumeMulti(BytecodeTransformerBuildItem.class)) {
+                for (BytecodeTransformerBuildItem i : result.consumeMulti(BytecodeTransformerBuildItem.class)) {
                     processorContext.addByteCodeTransformer(i.getClassToTransform(), i.getVisitorFunction());
                 }
-                for(RuntimeInitializedClassBuildItem i : result.consumeMulti(RuntimeInitializedClassBuildItem.class)) {
+                for (RuntimeInitializedClassBuildItem i : result.consumeMulti(RuntimeInitializedClassBuildItem.class)) {
                     processorContext.addRuntimeInitializedClasses(i.getClassName());
                 }
-                for(ResourceBuildItem i : result.consumeMulti(ResourceBuildItem.class)) {
+                for (ResourceBuildItem i : result.consumeMulti(ResourceBuildItem.class)) {
                     processorContext.addResource(i.getName());
                 }
-                for(ResourceBundleBuildItem i : result.consumeMulti(ResourceBundleBuildItem.class)) {
+                for (ResourceBundleBuildItem i : result.consumeMulti(ResourceBundleBuildItem.class)) {
                     processorContext.addResourceBundle(i.getBundleName());
                 }
-                for(ReflectiveClassBuildItem i : result.consumeMulti(ReflectiveClassBuildItem.class)) {
+                for (ReflectiveClassBuildItem i : result.consumeMulti(ReflectiveClassBuildItem.class)) {
                     processorContext.addReflectiveClass(i.isMethods(), i.isFields(), i.getClassName().toArray(EMPTY_STRING_ARRAY));
                 }
-                for(ProxyDefinitionBuildItem i : result.consumeMulti(ProxyDefinitionBuildItem.class)) {
+                for (ProxyDefinitionBuildItem i : result.consumeMulti(ProxyDefinitionBuildItem.class)) {
                     processorContext.addProxyDefinition(i.getClasses().toArray(EMPTY_STRING_ARRAY));
                 }
-                for(ReflectiveMethodBuildItem i : result.consumeMulti(ReflectiveMethodBuildItem.class)) {
+                for (ReflectiveMethodBuildItem i : result.consumeMulti(ReflectiveMethodBuildItem.class)) {
                     processorContext.addReflectiveMethod(i.getMethod());
                 }
-                for(ReflectiveFieldBuildItem i : result.consumeMulti(ReflectiveFieldBuildItem.class)) {
+                for (ReflectiveFieldBuildItem i : result.consumeMulti(ReflectiveFieldBuildItem.class)) {
                     processorContext.addReflectiveField(i.getField());
                 }
-                for(MainBytecodeRecorderBuildItem i : result.consumeMulti(MainBytecodeRecorderBuildItem.class)) {
+                for (MainBytecodeRecorderBuildItem i : result.consumeMulti(MainBytecodeRecorderBuildItem.class)) {
                     processorContext.addDeploymentTask(i.getBytecodeRecorder());
                 }
-                for(StaticBytecodeRecorderBuildItem i : result.consumeMulti(StaticBytecodeRecorderBuildItem.class)) {
+                for (StaticBytecodeRecorderBuildItem i : result.consumeMulti(StaticBytecodeRecorderBuildItem.class)) {
                     processorContext.addStaticInitTask(i.getBytecodeRecorder());
                 }
 
@@ -439,7 +439,7 @@ public class BuildTimeGenerator {
             mv.writeStaticField(scField.getFieldDescriptor(), startupContext);
             TryBlock catchBlock = mv.tryBlock();
             for (BytecodeRecorderImpl holder : staticInitTasks) {
-                if(!holder.isEmpty()) {
+                if (!holder.isEmpty()) {
                     String className = getClass().getName() + "$$Proxy" + COUNT.incrementAndGet();
                     holder.writeBytecode(output, className);
 
@@ -459,7 +459,7 @@ public class BuildTimeGenerator {
             startupContext = mv.readStaticField(scField.getFieldDescriptor());
             catchBlock = mv.tryBlock();
             for (BytecodeRecorderImpl holder : tasks) {
-                if(!holder.isEmpty()) {
+                if (!holder.isEmpty()) {
                     String className = getClass().getName() + "$$Proxy" + COUNT.incrementAndGet();
                     holder.writeBytecode(output, className);
                     ResultHandle dup = catchBlock.newInstance(ofConstructor(className));

@@ -73,6 +73,7 @@ import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.ResourceBuildItem;
 import org.jboss.shamrock.deployment.builditem.ServiceStartBuildItem;
 import org.jboss.shamrock.deployment.builditem.SubstrateConfigBuildItem;
+import org.jboss.shamrock.deployment.recording.BeanFactory;
 import org.jboss.shamrock.deployment.recording.BytecodeRecorder;
 import org.jboss.shamrock.runtime.ConfiguredValue;
 import org.jboss.shamrock.runtime.InjectionInstance;
@@ -119,7 +120,7 @@ public class UndertowBuildStep {
         Set<String> knownDirectories = new HashSet<>();
         for (ApplicationArchive i : applicationArchivesBuildItem.getAllApplicationArchives()) {
             Path resource = i.getChildPath("META-INF/resources");
-            if (Files.exists(resource)) {
+            if (resource != null && Files.exists(resource)) {
                 Files.walk(resource).forEach(new Consumer<Path>() {
                     @Override
                     public void accept(Path path) {
@@ -157,7 +158,8 @@ public class UndertowBuildStep {
 
     @Record(staticInit = true)
     @BuildStep
-    public ServletHandlerBuildItem build(List<ServletData> servlets, ArchiveRootBuildItem root, UndertowDeploymentTemplate template, BytecodeRecorder context, DeploymentInfoBuildItem deployment) throws Exception {
+    public ServletHandlerBuildItem build(List<ServletData> servlets, ArchiveRootBuildItem root,
+                                         UndertowDeploymentTemplate template, BytecodeRecorder context, DeploymentInfoBuildItem deployment, BeanFactory beanFactory) throws Exception {
 
         reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, DefaultServlet.class.getName(), "io.undertow.server.protocol.http.HttpRequestParser$$generated"));
 
@@ -171,9 +173,9 @@ public class UndertowBuildStep {
         if (result.getServlets() != null) {
             for (ServletMetaData servlet : result.getServlets()) {
                 reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, servlet.getServletClass()));
-                InjectionInstance<? extends Servlet> injection = (InjectionInstance<? extends Servlet>) context.newInstanceFactory(servlet.getServletClass());
+                InjectionInstance<? extends Servlet> injection = (InjectionInstance<? extends Servlet>) beanFactory.newInstanceFactory(servlet.getServletClass());
                 InstanceFactory<? extends Servlet> factory = template.createInstanceFactory(injection);
-                AtomicReference<ServletInfo> sref = template.registerServlet(null, servlet.getServletName(),
+                AtomicReference<ServletInfo> sref = template.registerServlet(deployment.getValue(), servlet.getServletName(),
                         context.classProxy(servlet.getServletClass()),
                         servlet.isAsyncSupported(),
                         servlet.getLoadOnStartupInt(),
@@ -192,7 +194,7 @@ public class UndertowBuildStep {
         if (result.getServletMappings() != null) {
             for (ServletMappingMetaData mapping : result.getServletMappings()) {
                 for (String m : mapping.getUrlPatterns()) {
-                    template.addServletMapping(null, mapping.getServletName(), m);
+                    template.addServletMapping(deployment.getValue(), mapping.getServletName(), m);
                 }
             }
         }
@@ -200,9 +202,9 @@ public class UndertowBuildStep {
         if (result.getFilters() != null) {
             for (FilterMetaData filter : result.getFilters()) {
                 reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, filter.getFilterClass()));
-                InjectionInstance<? extends Filter> injection = (InjectionInstance<? extends Filter>) context.newInstanceFactory(filter.getFilterClass());
+                InjectionInstance<? extends Filter> injection = (InjectionInstance<? extends Filter>) beanFactory.newInstanceFactory(filter.getFilterClass());
                 InstanceFactory<? extends Filter> factory = template.createInstanceFactory(injection);
-                AtomicReference<FilterInfo> sref = template.registerFilter(null,
+                AtomicReference<FilterInfo> sref = template.registerFilter(deployment.getValue(),
                         filter.getFilterName(),
                         context.classProxy(filter.getFilterClass()),
                         filter.isAsyncSupported(),
@@ -218,11 +220,11 @@ public class UndertowBuildStep {
             for (FilterMappingMetaData mapping : result.getFilterMappings()) {
                 for (String m : mapping.getUrlPatterns()) {
                     if (mapping.getDispatchers() == null || mapping.getDispatchers().isEmpty()) {
-                        template.addFilterMapping(null, mapping.getFilterName(), m, REQUEST);
+                        template.addFilterMapping(deployment.getValue(), mapping.getFilterName(), m, REQUEST);
                     } else {
 
                         for (DispatcherType dispatcher : mapping.getDispatchers()) {
-                            template.addFilterMapping(null, mapping.getFilterName(), m, javax.servlet.DispatcherType.valueOf(dispatcher.name()));
+                            template.addFilterMapping(deployment.getValue(), mapping.getFilterName(), m, javax.servlet.DispatcherType.valueOf(dispatcher.name()));
                         }
                     }
                 }
@@ -233,20 +235,20 @@ public class UndertowBuildStep {
         if (result.getListeners() != null) {
             for (ListenerMetaData listener : result.getListeners()) {
                 reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, listener.getListenerClass()));
-                InjectionInstance<? extends EventListener> injection = (InjectionInstance<? extends EventListener>) context.newInstanceFactory(listener.getListenerClass());
+                InjectionInstance<? extends EventListener> injection = (InjectionInstance<? extends EventListener>) beanFactory.newInstanceFactory(listener.getListenerClass());
                 InstanceFactory<? extends EventListener> factory = template.createInstanceFactory(injection);
-                template.registerListener(null, context.classProxy(listener.getListenerClass()), factory);
+                template.registerListener(deployment.getValue(), context.classProxy(listener.getListenerClass()), factory);
             }
         }
 
         for (ServletData servlet : servlets) {
             String servletClass = servlet.getServletClass();
-            InjectionInstance<? extends Servlet> injection = (InjectionInstance<? extends Servlet>) context.newInstanceFactory(servletClass);
+            InjectionInstance<? extends Servlet> injection = (InjectionInstance<? extends Servlet>) beanFactory.newInstanceFactory(servletClass);
             InstanceFactory<? extends Servlet> factory = template.createInstanceFactory(injection);
-            template.registerServlet(null, servlet.getName(), context.classProxy(servletClass), true, servlet.getLoadOnStartup(), factory);
+            template.registerServlet(deployment.getValue(), servlet.getName(), context.classProxy(servletClass), true, servlet.getLoadOnStartup(), factory);
 
             for (String m : servlet.getMapings()) {
-                template.addServletMapping(null, servlet.getName(), m);
+                template.addServletMapping(deployment.getValue(), servlet.getName(), m);
             }
         }
         return new ServletHandlerBuildItem(template.bootServletContainer(deployment.getValue()));

@@ -4,14 +4,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
-
-import javax.inject.Inject;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.openapi.models.OpenAPI;
 import org.jboss.jandex.IndexView;
-import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.Record;
 import org.jboss.shamrock.deployment.ShamrockConfig;
@@ -35,35 +35,32 @@ import io.smallrye.openapi.runtime.scanner.OpenApiAnnotationScanner;
  */
 public class OpenApiProcessor {
 
-    @Inject
-    BuildProducer<AdditionalBeanBuildItem> additionalBean;
+    @BuildStep
+    ServletData servlet(ShamrockConfig config) {
+        ServletData servletData = new ServletData("openapi", OpenApiServlet.class.getName());
+        servletData.getMapings().add(config.getConfig("openapi.path", "/openapi"));
+        return servletData;
+    }
 
-    @Inject
-    ShamrockConfig config;
-
-    @Inject
-    BuildProducer<ServletData> servlets;
-
-    @Inject
-    CombinedIndexBuildItem combinedIndexBuildItem;
-
-    @Inject
-    ApplicationArchivesBuildItem archivesBuildItem;
+    @BuildStep
+    List<AdditionalBeanBuildItem> beans() {
+        return Arrays.asList(new AdditionalBeanBuildItem(OpenApiServlet.class),
+                new AdditionalBeanBuildItem(OpenApiDocumentProducer.class));
+    }
 
     @BuildStep
     @Record(staticInit = true)
-    public void build(OpenApiDeploymentTemplate template, BeanContainerBuildItem beanContainer) throws Exception {
-        ServletData servletData = new ServletData("openapi", OpenApiServlet.class.getName());
-        servletData.getMapings().add(config.getConfig("openapi.path", "/openapi"));
-        servlets.produce(servletData);
-        additionalBean.produce(new AdditionalBeanBuildItem(OpenApiServlet.class));
-        additionalBean.produce(new AdditionalBeanBuildItem(OpenApiDocumentProducer.class));
+    public List<ServletData> build(OpenApiDeploymentTemplate template,
+                      ApplicationArchivesBuildItem archivesBuildItem,
+                      BeanContainerBuildItem beanContainer,
+                      CombinedIndexBuildItem combinedIndexBuildItem) throws Exception {
 
-        Result resourcePath = findStaticModel();
+        Result resourcePath = findStaticModel(archivesBuildItem);
 
         OpenAPI sm = generateStaticModel(resourcePath == null ? null : resourcePath.path, resourcePath == null ? OpenApiSerializer.Format.YAML : resourcePath.format);
         OpenAPI am = generateAnnotationModel(combinedIndexBuildItem.getIndex());
         template.setupModel(beanContainer.getValue(), sm, am);
+        return Collections.emptyList(); //TODO: this is a hack to enforce ordering
     }
 
 
@@ -88,7 +85,7 @@ public class OpenApiProcessor {
         return new OpenApiAnnotationScanner(openApiConfig, indexView).scan();
     }
 
-    private Result findStaticModel() {
+    private Result findStaticModel(ApplicationArchivesBuildItem archivesBuildItem) {
         // Check for the file in both META-INF and WEB-INF/classes/META-INF
         OpenApiSerializer.Format format = OpenApiSerializer.Format.YAML;
         Path resourcePath = archivesBuildItem.getRootArchive().getChildPath("META-INF/openapi.yaml");

@@ -56,12 +56,16 @@ import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveHierarchyBuildItem;
 import org.jboss.shamrock.deployment.builditem.ResourceBuildItem;
 import org.jboss.shamrock.deployment.builditem.SubstrateConfigBuildItem;
+import org.jboss.shamrock.deployment.recording.BeanFactory;
 import org.jboss.shamrock.deployment.recording.BytecodeRecorder;
 import org.jboss.shamrock.jaxrs.runtime.graal.JaxrsTemplate;
 import org.jboss.shamrock.jaxrs.runtime.graal.ShamrockInjectorFactory;
 import org.jboss.shamrock.runtime.InjectionInstance;
+import org.jboss.shamrock.undertow.DeploymentInfoBuildItem;
+import org.jboss.shamrock.undertow.ServletData;
 import org.jboss.shamrock.undertow.runtime.UndertowDeploymentTemplate;
 
+import io.undertow.servlet.api.Deployment;
 import io.undertow.servlet.api.InstanceFactory;
 
 /**
@@ -105,9 +109,11 @@ public class JaxrsScanningProcessor {
                       BuildProducer<ProxyDefinitionBuildItem> proxyDefinition,
                       BuildProducer<ReflectiveHierarchyBuildItem> reflectiveHierarchy,
                       BuildProducer<ResourceBuildItem> resource,
+                      DeploymentInfoBuildItem deploymentInfo,
                       CombinedIndexBuildItem combinedIndexBuildItem,
                       UndertowDeploymentTemplate undertow,
-                      BytecodeRecorder recorder
+                      BytecodeRecorder recorder,
+                      BeanFactory beanFactory
     ) throws Exception {
         //this is pretty yuck, and does not really belong here, but it is needed to get the json-p
         //provider to work
@@ -175,9 +181,9 @@ public class JaxrsScanningProcessor {
         AnnotationInstance appPath = app.iterator().next();
         String path = appPath.value().asString();
         String appClass = appPath.target().asClass().name().toString();
-        InjectionInstance<? extends Servlet> instanceFactory = (InjectionInstance<? extends Servlet>) recorder.newInstanceFactory(HttpServlet30Dispatcher.class.getName());
+        InjectionInstance<? extends Servlet> instanceFactory = (InjectionInstance<? extends Servlet>) beanFactory.newInstanceFactory(HttpServlet30Dispatcher.class.getName());
         InstanceFactory<? extends Servlet> factory = undertow.createInstanceFactory(instanceFactory);
-        undertow.registerServlet(null, JAX_RS_SERVLET_NAME, recorder.classProxy(HttpServlet30Dispatcher.class.getName()), true, 1, factory);
+        undertow.registerServlet(deploymentInfo.getValue(), JAX_RS_SERVLET_NAME, recorder.classProxy(HttpServlet30Dispatcher.class.getName()), true, 1, factory);
         String mappingPath;
         if (path.endsWith("/")) {
             mappingPath = path + "*";
@@ -185,7 +191,7 @@ public class JaxrsScanningProcessor {
             mappingPath = path + "/*";
         }
 
-        undertow.addServletMapping(null, JAX_RS_SERVLET_NAME, mappingPath);
+        undertow.addServletMapping(deploymentInfo.getValue(), JAX_RS_SERVLET_NAME, mappingPath);
         Collection<AnnotationInstance> paths = index.getAnnotations(PATH);
         if (paths != null) {
             reflectiveClass.produce(new ReflectiveClassBuildItem(false, false, HttpServlet30Dispatcher.class.getName()));
@@ -208,11 +214,11 @@ public class JaxrsScanningProcessor {
             }
 
             if (sb.length() > 0) {
-                undertow.addServletContextParameter(null, ResteasyContextParameters.RESTEASY_SCANNED_RESOURCES, sb.toString());
+                undertow.addServletContextParameter(deploymentInfo.getValue(), ResteasyContextParameters.RESTEASY_SCANNED_RESOURCES, sb.toString());
             }
-            undertow.addServletContextParameter(null, "resteasy.servlet.mapping.prefix", path);
-            undertow.addServletContextParameter(null, "resteasy.injector.factory", ShamrockInjectorFactory.class.getName());
-            undertow.addServletContextParameter(null, Application.class.getName(), appClass);
+            undertow.addServletContextParameter(deploymentInfo.getValue(), "resteasy.servlet.mapping.prefix", path);
+            undertow.addServletContextParameter(deploymentInfo.getValue(), "resteasy.injector.factory", ShamrockInjectorFactory.class.getName());
+            undertow.addServletContextParameter(deploymentInfo.getValue(), Application.class.getName(), appClass);
 
         }
         for (DotName annotationType : METHOD_ANNOTATIONS) {

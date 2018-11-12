@@ -2,7 +2,6 @@ package org.jboss.shamrock.metrics;
 
 import java.util.Collection;
 
-import javax.inject.Inject;
 import javax.interceptor.Interceptor;
 
 import org.eclipse.microprofile.metrics.annotation.Counted;
@@ -37,29 +36,16 @@ import io.smallrye.metrics.interceptors.TimedInterceptor;
 
 public class MetricsProcessor {
 
-    @Inject
-    ShamrockConfig config;
-
-    @Inject
-    BeanArchiveIndexBuildItem beanArchiveIndex;
-
-    @Inject
-    BuildProducer<ReflectiveClassBuildItem> reflectiveClasses;
-
-    @Inject
-    BuildProducer<ServletData> servlets;
-
-    @Inject
-    BuildProducer<AdditionalBeanBuildItem> additionalBeans;
 
     @BuildStep
-    @Record(staticInit = true)
-    public void build(BeanContainerBuildItem beanContainerBuildItem,
-                      MetricsDeploymentTemplate metrics) throws Exception {
+    ServletData createServlet(ShamrockConfig config) {
         ServletData servletData = new ServletData("metrics", MetricsServlet.class.getName());
         servletData.getMapings().add(config.getConfig("metrics.path", "/metrics"));
-        servlets.produce(servletData);
+        return servletData;
+    }
 
+    @BuildStep
+    void beans( BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
         additionalBeans.produce(new AdditionalBeanBuildItem(MetricProducer.class,
                 MetricNameFactory.class,
                 MetricRegistries.class,
@@ -69,6 +55,15 @@ public class MetricsProcessor {
                 TimedInterceptor.class,
                 MetricsRequestHandler.class,
                 MetricsServlet.class));
+    }
+
+    @BuildStep
+    @Record(staticInit = true)
+    public void build(BeanContainerBuildItem beanContainerBuildItem,
+                      MetricsDeploymentTemplate metrics,
+                      BuildProducer<ReflectiveClassBuildItem> reflectiveClasses,
+                      BeanArchiveIndexBuildItem beanArchiveIndex) throws Exception {
+
 
         reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, Counted.class.getName()));
         reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, MetricsBinding.class.getName()));

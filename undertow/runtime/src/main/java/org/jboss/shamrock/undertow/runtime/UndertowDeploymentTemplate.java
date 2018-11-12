@@ -18,7 +18,6 @@ import javax.servlet.ServletException;
 
 import org.jboss.shamrock.annotations.runtime.Template;
 import org.jboss.shamrock.runtime.ConfiguredValue;
-import org.jboss.shamrock.runtime.ContextObject;
 import org.jboss.shamrock.runtime.InjectionInstance;
 import org.jboss.shamrock.runtime.RuntimeValue;
 import org.jboss.shamrock.runtime.StartupContext;
@@ -87,14 +86,14 @@ public class UndertowDeploymentTemplate {
         return new ShamrockInstanceFactory<T>(injectionInstance);
     }
 
-    public AtomicReference<ServletInfo> registerServlet(@ContextObject("deploymentInfo") DeploymentInfo info,
+    public AtomicReference<ServletInfo> registerServlet(RuntimeValue<DeploymentInfo> deploymentInfo,
                                                         String name,
                                                         Class<?> servletClass,
                                                         boolean asyncSupported,
                                                         int loadOnStartup,
                                                         InstanceFactory<? extends Servlet> instanceFactory) throws Exception {
         ServletInfo servletInfo = new ServletInfo(name, (Class<? extends Servlet>) servletClass, instanceFactory);
-        info.addServlet(servletInfo);
+        deploymentInfo.getValue().addServlet(servletInfo);
         servletInfo.setAsyncSupported(asyncSupported);
         if (loadOnStartup > 0) {
             servletInfo.setLoadOnStartup(loadOnStartup);
@@ -106,8 +105,8 @@ public class UndertowDeploymentTemplate {
         info.get().addInitParam(name, value);
     }
 
-    public void addServletMapping(@ContextObject("deploymentInfo") DeploymentInfo info, String name, String mapping) throws Exception {
-        ServletInfo sv = info.getServlets().get(name);
+    public void addServletMapping(RuntimeValue<DeploymentInfo> info, String name, String mapping) throws Exception {
+        ServletInfo sv = info.getValue().getServlets().get(name);
         sv.addMapping(mapping);
     }
 
@@ -116,12 +115,12 @@ public class UndertowDeploymentTemplate {
         sref.get().setMultipartConfig(mp);
     }
 
-    public AtomicReference<FilterInfo> registerFilter(@ContextObject("deploymentInfo") DeploymentInfo info,
+    public AtomicReference<FilterInfo> registerFilter(RuntimeValue<DeploymentInfo> info,
                                                       String name, Class<?> filterClass,
                                                       boolean asyncSupported,
                                                       InstanceFactory<? extends Filter> instanceFactory) throws Exception {
         FilterInfo filterInfo = new FilterInfo(name, (Class<? extends Filter>) filterClass, instanceFactory);
-        info.addFilter(filterInfo);
+        info.getValue().addFilter(filterInfo);
         filterInfo.setAsyncSupported(asyncSupported);
         return new AtomicReference<>(filterInfo);
     }
@@ -130,20 +129,20 @@ public class UndertowDeploymentTemplate {
         info.get().addInitParam(name, value);
     }
 
-    public void addFilterMapping(@ContextObject("deploymentInfo") DeploymentInfo info, String name, String mapping, DispatcherType dispatcherType) throws Exception {
-        info.addFilterUrlMapping(name, mapping, dispatcherType);
+    public void addFilterMapping(RuntimeValue<DeploymentInfo> info, String name, String mapping, DispatcherType dispatcherType) throws Exception {
+        info.getValue().addFilterUrlMapping(name, mapping, dispatcherType);
     }
 
 
-    public void registerListener(@ContextObject("deploymentInfo") DeploymentInfo info, Class<?> listenerClass, InstanceFactory<? extends EventListener> factory) {
-        info.addListener(new ListenerInfo((Class<? extends EventListener>) listenerClass, factory));
+    public void registerListener(RuntimeValue<DeploymentInfo> info, Class<?> listenerClass, InstanceFactory<? extends EventListener> factory) {
+        info.getValue().addListener(new ListenerInfo((Class<? extends EventListener>) listenerClass, factory));
     }
 
-    public void addServletContextParameter(@ContextObject("deploymentInfo") DeploymentInfo info, String name, String value) {
-        info.addInitParameter(name, value);
+    public void addServletContextParameter(RuntimeValue<DeploymentInfo> info, String name, String value) {
+        info.getValue().addInitParameter(name, value);
     }
 
-    public void startUndertow(StartupContext startupContext, HttpHandler handler, ConfiguredValue port, ConfiguredValue host, ConfiguredValue ioThreads, ConfiguredValue workerThreads, @ContextObject("undertow.handler-wrappers") List<HandlerWrapper> wrappers) throws ServletException {
+    public void startUndertow(StartupContext startupContext, HttpHandler handler, ConfiguredValue port, ConfiguredValue host, ConfiguredValue ioThreads, ConfiguredValue workerThreads, List<HandlerWrapper> wrappers) throws ServletException {
         if (undertow == null) {
             startUndertowEagerly(port, host, ioThreads, workerThreads, null);
 

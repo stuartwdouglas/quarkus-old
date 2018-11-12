@@ -49,18 +49,6 @@ public interface BytecodeRecorder {
     <T> void registerNonDefaultConstructor(Constructor<T> constructor, Function<T, List<Object>> parameters);
 
     /**
-     * Creates an instance factory that can be used to create an injected instance.
-     * <p>
-     * The instance that is returned from this method is a proxy that can be passed into recording proxies. When this is
-     * written to bytecode a functional instance will be injected into the template that can be used to create CDI injected
-     * instance
-     *
-     * @param className The name of the class to be created
-     * @return A InjectionInstance proxy that can be passed into recording proxies
-     */
-    InjectionInstance<?> newInstanceFactory(String className);
-
-    /**
      * Gets a proxy that can be used to record invocations into bytecode
      *
      * @param theClass

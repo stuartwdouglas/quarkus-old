@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -14,6 +15,7 @@ import org.hibernate.protean.impl.PersistenceUnitsHolder;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.Record;
+import org.jboss.shamrock.deployment.builditem.BeanContainerBuildItem;
 import org.jboss.shamrock.deployment.builditem.BytecodeTransformerBuildItem;
 import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
@@ -34,9 +36,6 @@ import org.jboss.shamrock.jpa.runtime.ShamrockScanner;
 public final class HibernateResourceProcessor {
 
     @Inject
-    BuildProducer<PersistenceUnitDescriptorBuildItem> persistenceProducer;
-
-    @Inject
     BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
 
     @Inject
@@ -47,15 +46,20 @@ public final class HibernateResourceProcessor {
     @Inject
     CombinedIndexBuildItem index;
 
-    @BuildStep
-    @Record(staticInit = true)
-    public void build(BytecodeRecorder recorder, JPADeploymentTemplate template) throws Exception {
 
+    @BuildStep
+    void doParse(BuildProducer<PersistenceUnitDescriptorBuildItem> persistenceProducer) {
         List<ParsedPersistenceXmlDescriptor> descriptors = PersistenceUnitsHolder.loadOriginalXMLParsedDescriptors();
         for (ParsedPersistenceXmlDescriptor i : descriptors) {
             persistenceProducer.produce(new PersistenceUnitDescriptorBuildItem(i));
         }
+    }
 
+    @BuildStep
+    @Record(staticInit = true)
+    public void build(BytecodeRecorder recorder, JPADeploymentTemplate template, BeanContainerBuildItem beanContainer, List<PersistenceUnitDescriptorBuildItem> descItems) throws Exception {
+
+        List<ParsedPersistenceXmlDescriptor> descriptors = descItems.stream().map(PersistenceUnitDescriptorBuildItem::getDescriptor).collect(Collectors.toList());
         // Hibernate specific reflective classes; these are independent from the model and configuration details.
         HibernateReflectiveNeeds.registerStaticReflectiveNeeds(reflectiveClass);
 
@@ -85,7 +89,7 @@ public final class HibernateResourceProcessor {
 
         //now we serialize the XML and class list to bytecode, to remove the need to re-parse the XML on JVM startup
         recorder.registerNonDefaultConstructor(ParsedPersistenceXmlDescriptor.class.getDeclaredConstructor(URL.class), (i) -> Collections.singletonList(i.getPersistenceUnitRootUrl()));
-        template.initMetadata(descriptors, scanner, null);
+        template.initMetadata(descriptors, scanner, beanContainer.getValue());
     }
 
     private void enhanceEntities(final KnownDomainObjects domainObjects, BuildProducer<BytecodeTransformerBuildItem> transformers) {

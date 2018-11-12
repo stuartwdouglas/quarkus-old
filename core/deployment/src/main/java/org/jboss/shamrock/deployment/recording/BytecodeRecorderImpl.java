@@ -25,7 +25,6 @@ import java.util.function.Function;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
-import org.jboss.builder.item.MultiBuildItem;
 import org.jboss.invocation.proxy.ProxyConfiguration;
 import org.jboss.invocation.proxy.ProxyFactory;
 import org.jboss.protean.gizmo.BranchResult;
@@ -47,6 +46,11 @@ import org.jboss.shamrock.runtime.StartupTask;
 public class BytecodeRecorderImpl implements BytecodeRecorder {
 
     private static final AtomicInteger COUNT = new AtomicInteger();
+
+    private static final String PROXY_KEY = "proxykey";
+
+    private static final Map<Object, String> proxyMap = new IdentityHashMap<>();
+
     private static final MethodDescriptor COLLECTION_ADD = ofMethod(Collection.class, "add", boolean.class, Object.class);
     private static final MethodDescriptor MAP_PUT = ofMethod(Map.class, "put", Object.class, Object.class, Object.class);
 
@@ -89,7 +93,6 @@ public class BytecodeRecorderImpl implements BytecodeRecorder {
         nonDefaulConstructors.put(constructor.getDeclaringClass(), new NonDefaultConstructorHolder(constructor, (Function<Object, List<Object>>) parameters));
     }
 
-    @Override
     public InjectionInstance<?> newInstanceFactory(String className) {
         NewInstance instance = new NewInstance(className);
         methodRecorder.storedMethodCalls.add(instance);
@@ -159,13 +162,19 @@ public class BytecodeRecorderImpl implements BytecodeRecorder {
                             returnValueProxy.put(method.getReturnType(), proxyFactory = new ProxyFactory<>(proxyConfiguration));
                         }
 
+                        String key = PROXY_KEY + COUNT.incrementAndGet();
                         Object proxyInstance = proxyFactory.newInstance(new InvocationHandler() {
                             @Override
                             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                                if (method.getName().equals("__returned$proxy$key")) {
+                                    return key;
+                                }
                                 throw new RuntimeException("You cannot invoke directly on an object returned from the bytecode recorded, you can only pass is back into the recorder as a parameter");
                             }
                         });
+
                         storedMethodCall.returnedProxy = proxyInstance;
+                        storedMethodCall.proxyId = key;
                         return proxyInstance;
                     }
                 });
@@ -242,10 +251,13 @@ public class BytecodeRecorderImpl implements BytecodeRecorder {
                         method.invokeVirtualMethod(ofMethod(StartupContext.class, "putValue", void.class, String.class, Object.class), method.getMethodParam(0), method.load(annotation.value()), callResult);
                         if (call.returnedProxy != null) {
                             returnValueResults.put(call.returnedProxy, callResult);
+                            method.invokeVirtualMethod(ofMethod(StartupContext.class, "putValue", void.class, String.class, Object.class), method.getMethodParam(0), method.load(call.proxyId), callResult);
+
                         }
                         contextResults.remove(annotation.value());
                     } else if (call.returnedProxy != null) {
                         returnValueResults.put(call.returnedProxy, callResult);
+                        method.invokeVirtualMethod(ofMethod(StartupContext.class, "putValue", void.class, String.class, Object.class), method.getMethodParam(0), method.load(call.proxyId), callResult);
                     }
                 }
             } else if (set instanceof NewInstance) {
@@ -316,7 +328,8 @@ public class BytecodeRecorderImpl implements BytecodeRecorder {
         } else if (param instanceof NewInstance) {
             out = ((NewInstance) param).resultHandle;
         } else if (param instanceof ReturnedProxy) {
-            throw new RuntimeException("invalid proxy passed into recorded method " + method);
+            String proxyId = ((ReturnedProxy) param).__returned$proxy$key();
+            out = method.invokeVirtualMethod(ofMethod(StartupContext.class, "getValue", Object.class, String.class), method.getMethodParam(0), method.load(proxyId));
         } else if (param instanceof Class<?>) {
             String name = classProxies.get(param);
             if (name == null) {
@@ -475,7 +488,7 @@ public class BytecodeRecorderImpl implements BytecodeRecorder {
 
 
     public interface ReturnedProxy {
-
+        String __returned$proxy$key();
     }
 
     static final class StoredMethodCall implements BytecodeInstruction {
@@ -483,6 +496,7 @@ public class BytecodeRecorderImpl implements BytecodeRecorder {
         final Method method;
         final Object[] parameters;
         Object returnedProxy;
+        String proxyId;
 
         StoredMethodCall(Class<?> theClass, Method method, Object[] parameters) {
             this.theClass = theClass;

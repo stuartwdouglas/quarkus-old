@@ -35,27 +35,27 @@ class HibernateCdiResourceProcessor {
     @Inject
     List<PersistenceUnitDescriptorBuildItem> descriptors;
 
-    @Inject
-    Capabilities capabilities;
+    @BuildStep
+    void registerBeans(BuildProducer<AdditionalBeanBuildItem> additionalBeans, CombinedIndexBuildItem combinedIndex) {
+        additionalBeans.produce(new AdditionalBeanBuildItem(JPAConfig.class, TransactionEntityManagers.class));
 
-    @Inject
-    BuildProducer<AdditionalBeanBuildItem> additionalBeans;
-
-    @Inject
-    BuildProducer<GeneratedResourceBuildItem> resources;
-
-    @Inject
-    BeanDeployment beanDeployment;
-
-    @Inject
-    CombinedIndexBuildItem combinedIndex;
+        if (descriptors.size() == 1) {
+            // There is only one persistence unit - register CDI beans for EM and EMF if no
+            // producers are defined
+            if (isUserDefinedProducerMissing(combinedIndex.getIndex(), PERSISTENCE_UNIT)) {
+                additionalBeans.produce(new AdditionalBeanBuildItem(DefaultEntityManagerFactoryProducer.class));
+            }
+            if (isUserDefinedProducerMissing(combinedIndex.getIndex(), PERSISTENCE_CONTEXT)) {
+                additionalBeans.produce(new AdditionalBeanBuildItem(DefaultEntityManagerProducer.class));
+            }
+        }
+    }
 
     @BuildStep
     @Record(staticInit = false)
-    public void build(JPADeploymentTemplate template, BeanContainerBuildItem beanContainer) throws Exception {
+    public void build(JPADeploymentTemplate template,
+                      BeanDeployment beanDeployment, BeanContainerBuildItem beanContainer, Capabilities capabilities, BuildProducer<GeneratedResourceBuildItem> resources) throws Exception {
 
-
-        additionalBeans.produce(new AdditionalBeanBuildItem(JPAConfig.class, TransactionEntityManagers.class));
 
         if (capabilities.isCapabilityPresent(Capabilities.CDI_ARC)) {
             resources.produce(new GeneratedResourceBuildItem("META-INF/services/org.jboss.protean.arc.ResourceReferenceProvider",
@@ -72,16 +72,6 @@ class HibernateCdiResourceProcessor {
         }
         template.initDefaultPersistenceUnit(beanContainer.getValue());
 
-        if (descriptors.size() == 1) {
-            // There is only one persistence unit - register CDI beans for EM and EMF if no
-            // producers are defined
-            if (isUserDefinedProducerMissing(combinedIndex.getIndex(), PERSISTENCE_UNIT)) {
-                additionalBeans.produce(new AdditionalBeanBuildItem(DefaultEntityManagerFactoryProducer.class));
-            }
-            if (isUserDefinedProducerMissing(combinedIndex.getIndex(), PERSISTENCE_CONTEXT)) {
-                additionalBeans.produce(new AdditionalBeanBuildItem(DefaultEntityManagerProducer.class));
-            }
-        }
     }
 
     private boolean isUserDefinedProducerMissing(IndexView index, DotName annotationName) {

@@ -1,7 +1,5 @@
 package org.jboss.shamrock.agroal;
 
-import javax.inject.Inject;
-
 import org.jboss.shamrock.agroal.runtime.DataSourceProducer;
 import org.jboss.shamrock.agroal.runtime.DataSourceTemplate;
 import org.jboss.shamrock.annotations.BuildProducer;
@@ -16,18 +14,14 @@ import org.jboss.shamrock.runtime.ConfiguredValue;
 
 class AgroalProcessor {
 
-    @Inject
-    BuildProducer<AdditionalBeanBuildItem> additionalBean;
-
-    @Inject
-    BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
-
-    @Inject
-    BuildConfig config;
+    @BuildStep
+    AdditionalBeanBuildItem addBeans() {
+        return new AdditionalBeanBuildItem(DataSourceProducer.class);
+    }
 
     @BuildStep
     @Record(staticInit = false)
-    public void build(DataSourceTemplate template, BytecodeRecorder bc, BeanContainerBuildItem beanContainer) throws Exception {
+    public void build(DataSourceTemplate template, BytecodeRecorder bc, BeanContainerBuildItem beanContainer, BuildConfig config, BuildProducer<ReflectiveClassBuildItem> reflectiveClass) throws Exception {
         reflectiveClass.produce(new ReflectiveClassBuildItem(false, false,
                 io.agroal.pool.ConnectionHandler[].class.getName(),
                 io.agroal.pool.ConnectionHandler.class.getName(),
@@ -60,7 +54,6 @@ class AgroalProcessor {
 
 
         reflectiveClass.produce(new ReflectiveClassBuildItem(false, false, driver));
-        additionalBean.produce(new AdditionalBeanBuildItem(DataSourceProducer.class));
         template.addDatasource(beanContainer.getValue(), configuredURL.getValue(), bc.classProxy(configuredDriver.getValue()), configuredUsername.getValue(), configuredPassword.getValue(), minSize, maxSize);
 
     }

@@ -17,6 +17,7 @@ import org.jboss.shamrock.deployment.Capabilities;
 import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
 import org.jboss.shamrock.deployment.builditem.BeanArchiveIndexBuildItem;
 import org.jboss.shamrock.deployment.builditem.BeanContainerBuildItem;
+import org.jboss.shamrock.deployment.builditem.InjectionProviderBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
 import org.jboss.shamrock.deployment.recording.BytecodeRecorder;
 import org.jboss.shamrock.runtime.BeanContainer;
@@ -38,10 +39,9 @@ public class WeldAnnotationProcessor {
     @Inject
     List<AdditionalBeanBuildItem> additionalBeans;
 
-
     @Record(staticInit = true)
     @BuildStep(providesCapabilities = Capabilities.CDI_WELD, applicationArchiveMarkers = {"META-INF/beans.xml", "META-INF/services/javax.enterprise.inject.spi.Extension"})
-    public BeanContainerBuildItem build(WeldDeploymentTemplate template, BytecodeRecorder recorder) throws Exception {
+    public BeanContainerBuildItem build(WeldDeploymentTemplate template, BytecodeRecorder recorder, BuildProducer<InjectionProviderBuildItem> injectionProvider) throws Exception {
         IndexView index = beanArchiveIndex.getIndex();
         List<String> additionalBeans = new ArrayList<>();
         for (AdditionalBeanBuildItem i : this.additionalBeans) {
@@ -66,6 +66,7 @@ public class WeldAnnotationProcessor {
         }
         SeContainer weld = template.doBoot(null, init);
         BeanContainer container = template.initBeanContainer(weld);
+        injectionProvider.produce(new InjectionProviderBuildItem());
         template.setupInjection(null, weld);
         return new BeanContainerBuildItem(container);
     }

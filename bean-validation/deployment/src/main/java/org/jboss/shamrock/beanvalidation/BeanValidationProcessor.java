@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.inject.Inject;
 import javax.validation.Constraint;
 import javax.validation.ConstraintValidator;
 
@@ -31,6 +30,7 @@ import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveFieldBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveMethodBuildItem;
 import org.jboss.shamrock.deployment.builditem.SubstrateConfigBuildItem;
+import org.jboss.shamrock.deployment.recording.BeanFactory;
 import org.jboss.shamrock.deployment.recording.BytecodeRecorder;
 import org.jboss.shamrock.runtime.InjectionInstance;
 
@@ -38,25 +38,18 @@ class BeanValidationProcessor {
 
     private static final DotName CONSTRAINT_VALIDATOR = DotName.createSimple(ConstraintValidator.class.getName());
 
-    @Inject
-    BuildProducer<AdditionalBeanBuildItem> additionalBean;
-
-    @Inject
-    BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
-
-    @Inject
-    CombinedIndexBuildItem combinedIndexBuildItem;
-
-    @Inject
-    BuildProducer<ReflectiveMethodBuildItem> reflectiveMethods;
-
-    @Inject
-    BuildProducer<ReflectiveFieldBuildItem> reflectiveFields;
+    @BuildStep
+    AdditionalBeanBuildItem registerBean() {
+        return new AdditionalBeanBuildItem(ValidatorProvider.class);
+    }
 
     @BuildStep
     @Record(staticInit = true)
-    public void build(ValidatorTemplate template, BytecodeRecorder recorder) throws Exception {
-        additionalBean.produce(new AdditionalBeanBuildItem(ValidatorProvider.class));
+    public void build(ValidatorTemplate template, BytecodeRecorder recorder, BeanFactory beanFactory,
+                      BuildProducer<ReflectiveFieldBuildItem> reflectiveFields,
+                      BuildProducer<ReflectiveMethodBuildItem> reflectiveMethods,
+                      CombinedIndexBuildItem combinedIndexBuildItem,
+                      BuildProducer<ReflectiveClassBuildItem> reflectiveClass) throws Exception {
 
         //TODO: this should not rely on the index and implementation being indexed, this stuff should just be hard coded
         reflectiveClass.produce(new ReflectiveClassBuildItem(true, false, Constraint.class.getName()));
@@ -64,7 +57,7 @@ class BeanValidationProcessor {
         Set<String> classesToBeValidated = new HashSet<>();
 
         //the map of validators, first key is constraint (annotation), second is the validator class name, value is the type that is validated
-        Map<DotName, Map<DotName, DotName>> validatorsByConstraint = lookForValidatorsByConstraint();
+        Map<DotName, Map<DotName, DotName>> validatorsByConstraint = lookForValidatorsByConstraint(combinedIndexBuildItem);
 
         Set<DotName> constraintAnnotations = new HashSet<>();
         constraintAnnotations.addAll(validatorsByConstraint.keySet());
@@ -136,7 +129,7 @@ class BeanValidationProcessor {
         for (String c : classesToBeValidated) {
             classes[j++] = recorder.classProxy(c);
         }
-        template.forceInit((InjectionInstance<ValidatorProvider>) recorder.newInstanceFactory(ValidatorProvider.class.getName()), classes);
+        template.forceInit((InjectionInstance<ValidatorProvider>) beanFactory.newInstanceFactory(ValidatorProvider.class.getName()), classes);
     }
 
     @BuildStep
@@ -148,7 +141,7 @@ class BeanValidationProcessor {
     }
 
 
-    private Map<DotName, Map<DotName, DotName>> lookForValidatorsByConstraint() {
+    private Map<DotName, Map<DotName, DotName>> lookForValidatorsByConstraint(CombinedIndexBuildItem combinedIndexBuildItem) {
         Map<DotName, Map<DotName, DotName>> validatorsByConstraint = new HashMap<>();
 
         //handle built in ones

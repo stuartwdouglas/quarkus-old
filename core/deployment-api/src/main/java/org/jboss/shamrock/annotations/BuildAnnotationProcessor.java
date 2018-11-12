@@ -163,6 +163,7 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
                     List<String> methodParamTypes = new ArrayList<>();
                     boolean listReturn = false;
                     boolean bytecodeRecorderRequired = false;
+                    boolean beanFactoryRequired = false;
                     Record recordAnnotation = method.getAnnotation(Record.class);
 
                     //resolve method injection
@@ -170,6 +171,8 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
                         InjectedBuildResource injection = createInjectionResource(i);
                         if (injection.injectionType == InjectionType.TEMPLATE || injection.injectionType == InjectionType.BYTECODE_RECORDER) {
                             bytecodeRecorderRequired = true;
+                        } else if (injection.injectionType == InjectionType.BEAN_FACTORY) {
+                            beanFactoryRequired = true;
                         }
                         methodInjection.add(injection);
 
@@ -183,6 +186,8 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
                         throw new RuntimeException("Cannot inject @Template classes into methods that are not annotated @Record: " + method);
                     } else if (recordAnnotation != null && !bytecodeRecorderRequired) {
                         throw new RuntimeException("@Record method does not inject any template classes " + method);
+                    } else if (beanFactoryRequired && !bytecodeRecorderRequired) {
+                        throw new RuntimeException("Cannot inject bean factory into a non @Record method");
                     }
 
                     //handle the return type
@@ -232,7 +237,7 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
                     }
                     //register parameter injection
                     for (InjectedBuildResource injection : methodInjection) {
-                        if (injection.injectionType != InjectionType.TEMPLATE && injection.injectionType != InjectionType.BYTECODE_RECORDER) {
+                        if (injection.injectionType != InjectionType.TEMPLATE && injection.injectionType != InjectionType.BYTECODE_RECORDER && injection.injectionType != InjectionType.BEAN_FACTORY) {
                             if (injection.consumedTypeName != null) {
                                 mc.invokeVirtualMethod(ofMethod(BuildStepBuilder.class, "consumes", BuildStepBuilder.class, Class.class), builder, mc.loadClass(injection.consumedTypeName));
                             }
@@ -242,6 +247,12 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
                         }
 
                     }
+                    //deal with the instance factory
+                    //TODO: is this a good idea?
+                    if(beanFactoryRequired) {
+                        mc.invokeVirtualMethod(ofMethod(BuildStepBuilder.class, "consumes", BuildStepBuilder.class, Class.class), builder, mc.loadClass("org.jboss.shamrock.deployment.builditem.InjectionFactoryBuildItem"));
+                    }
+
                     //register the production of the return type
                     if (producedType != null) {
                         mc.invokeVirtualMethod(ofMethod(BuildStepBuilder.class, "produces", BuildStepBuilder.class, Class.class), builder, mc.loadClass(producedType));
@@ -264,7 +275,7 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
                             } else if (field.injectionType == InjectionType.LIST) {
                                 ResultHandle val = buildStepMc.invokeVirtualMethod(ofMethod(BuildContext.class, "consumeMulti", List.class, Class.class), buildStepMc.getMethodParam(0), buildStepMc.loadClass(field.consumedTypeName));
                                 buildStepMc.writeInstanceField(FieldDescriptor.of(processorClassName, field.element.getSimpleName().toString(), List.class), p, val);
-                            } else if (field.injectionType == InjectionType.TEMPLATE || field.injectionType == InjectionType.BYTECODE_RECORDER) {
+                            } else if (field.injectionType == InjectionType.TEMPLATE || field.injectionType == InjectionType.BYTECODE_RECORDER || field.injectionType == InjectionType.BEAN_FACTORY) {
                                 throw new RuntimeException("Cannot inject @Template class into a field, only method parameter injection is supported for templates. Field: " + field.element);
                             } else {
                                 ResultHandle val = buildStepMc.newInstance(ofConstructor(BUILD_PRODUCER, Class.class, BuildContext.class), buildStepMc.loadClass(field.producedTypeName), buildStepMc.getMethodParam(0));
@@ -284,6 +295,8 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
                                 val = bytecodeRecorder;
                             } else if (i.injectionType == InjectionType.TEMPLATE) {
                                 val = buildStepMc.invokeInterfaceMethod(ofMethod("org.jboss.shamrock.deployment.recording.BytecodeRecorder", "getRecordingProxy", Object.class, Class.class), bytecodeRecorder, buildStepMc.loadClass(i.consumedTypeName));
+                            } else if (i.injectionType == InjectionType.BEAN_FACTORY) {
+                                val = buildStepMc.newInstance(ofConstructor("org.jboss.shamrock.deployment.recording.BeanFactory", "org.jboss.shamrock.deployment.recording.BytecodeRecorderImpl"), bytecodeRecorder);
                             } else if (i.injectionType == InjectionType.SIMPLE) {
                                 val = buildStepMc.invokeVirtualMethod(ofMethod(BuildContext.class, "consume", SimpleBuildItem.class, Class.class), buildStepMc.getMethodParam(0), buildStepMc.loadClass(i.consumedTypeName));
                             } else if (i.injectionType == InjectionType.LIST) {
@@ -407,6 +420,8 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
                 ft = InjectionType.TEMPLATE;
             } else if (simpleType.equals("org.jboss.shamrock.deployment.recording.BytecodeRecorder")) {
                 ft = InjectionType.BYTECODE_RECORDER;
+            } else if (simpleType.equals("org.jboss.shamrock.deployment.recording.BeanFactory")) {
+                ft = InjectionType.BEAN_FACTORY;
             } else {
                 verifyType(type, SimpleBuildItem.class);
                 ft = InjectionType.SIMPLE;
@@ -427,7 +442,8 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
         LIST,
         PRODUCER,
         TEMPLATE,
-        BYTECODE_RECORDER
+        BYTECODE_RECORDER,
+        BEAN_FACTORY
     }
 
     static class InjectedBuildResource {

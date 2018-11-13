@@ -54,7 +54,8 @@ class HibernateCdiResourceProcessor {
     @BuildStep
     @Record(staticInit = false)
     public void build(JPADeploymentTemplate template,
-                      BeanDeployment beanDeployment, BeanContainerBuildItem beanContainer, Capabilities capabilities, BuildProducer<GeneratedResourceBuildItem> resources) throws Exception {
+                      BeanDeployment beanDeployment, BeanContainerBuildItem beanContainer,
+                      Capabilities capabilities, BuildProducer<GeneratedResourceBuildItem> resources) throws Exception {
 
 
         if (capabilities.isCapabilityPresent(Capabilities.CDI_ARC)) {

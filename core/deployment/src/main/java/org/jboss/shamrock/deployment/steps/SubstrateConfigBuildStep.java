@@ -8,6 +8,7 @@ import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.deployment.builditem.NativeImageSystemPropertyBuildItem;
 import org.jboss.shamrock.deployment.builditem.ProxyDefinitionBuildItem;
 import org.jboss.shamrock.deployment.builditem.ResourceBuildItem;
+import org.jboss.shamrock.deployment.builditem.ResourceBundleBuildItem;
 import org.jboss.shamrock.deployment.builditem.RuntimeInitializedClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.SubstrateConfigBuildItem;
 
@@ -17,7 +18,7 @@ class SubstrateConfigBuildStep {
     @BuildStep
     void build(List<SubstrateConfigBuildItem> substrateConfigBuildItems,
                BuildProducer<ProxyDefinitionBuildItem> proxy,
-               BuildProducer<ResourceBuildItem> resourceBundle,
+               BuildProducer<ResourceBundleBuildItem> resourceBundle,
                BuildProducer<RuntimeInitializedClassBuildItem> runtimeInit,
                BuildProducer<NativeImageSystemPropertyBuildItem> nativeImage) {
         for (SubstrateConfigBuildItem substrateConfigBuildItem : substrateConfigBuildItems) {
@@ -28,7 +29,7 @@ class SubstrateConfigBuildStep {
                 nativeImage.produce(new NativeImageSystemPropertyBuildItem(e.getKey(), e.getValue()));
             }
             for (String i : substrateConfigBuildItem.getResourceBundles()) {
-                resourceBundle.produce(new ResourceBuildItem(i));
+                resourceBundle.produce(new ResourceBundleBuildItem(i));
             }
             for (List<String> i : substrateConfigBuildItem.getProxyDefinitions()) {
                 proxy.produce(new ProxyDefinitionBuildItem(i));

@@ -94,7 +94,6 @@ public class BuildTimeGenerator {
     private static final String[] EMPTY_STRING_ARRAY = new String[0];
 
     private final ClassOutput output;
-    private final DeploymentProcessorInjection injection;
     private final ClassLoader classLoader;
     private final Map<String, List<BiFunction<String, ClassVisitor, ClassVisitor>>> byteCodeTransformers = new HashMap<>();
     private final Set<String> applicationArchiveMarkers;
@@ -110,7 +109,6 @@ public class BuildTimeGenerator {
             setup.setup(setupContext);
         }
         this.output = classOutput;
-        this.injection = new DeploymentProcessorInjection(setupContext.injectionProviders);
         this.classLoader = cl;
         this.applicationArchiveMarkers = new HashSet<>(setupContext.applicationArchiveMarkers);
         this.archiveContextBuilder = contextBuilder;

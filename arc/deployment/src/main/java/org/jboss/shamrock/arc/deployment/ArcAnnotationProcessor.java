@@ -86,6 +86,9 @@ public class ArcAnnotationProcessor {
     @Inject
     BuildProducer<ReflectiveFieldBuildItem> reflectiveFields;
 
+    @Inject
+    List<BeanRegistrarBuildItem> beanRegistrars;
+
 
     @BuildStep(providesCapabilities = Capabilities.CDI_ARC, applicationArchiveMarkers = {"META-INF/beans.xml", "META-INF/services/javax.enterprise.inject.spi.Extension"})
     @Record(staticInit = true)
@@ -190,6 +193,9 @@ public class ArcAnnotationProcessor {
                 }
             }
         });
+        for(BeanRegistrarBuildItem i : beanRegistrars) {
+            builder.addBeanRegistrar(i.getBeanRegistrar());
+        }
         BeanProcessor beanProcessor = builder.build();
         beanProcessor.process();
 

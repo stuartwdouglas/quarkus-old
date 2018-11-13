@@ -1,4 +1,4 @@
-package org.jboss.shamrock.deployment;
+package org.jboss.shamrock.deployment.cdi;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,8 +21,6 @@ public final class BeanDeployment extends SimpleBuildItem {
     // Lite profile
     private final List<BiFunction<AnnotationTarget, Collection<AnnotationInstance>, Collection<AnnotationInstance>>> annotationTransformers = new ArrayList<>();
 
-    private final List<DotName> resourceAnnotations = new ArrayList<>();
-
     // Full profile
     private final List<String> extensions = new ArrayList<>();
 
@@ -38,10 +36,6 @@ public final class BeanDeployment extends SimpleBuildItem {
         extensions.add(extensionClass);
     }
 
-    public void addResourceAnnotation(DotName resourceAnnotation) {
-        resourceAnnotations.add(resourceAnnotation);
-    }
-
     public Map<String, byte[]> getGeneratedBeans() {
         return generatedBeans;
     }
@@ -52,10 +46,6 @@ public final class BeanDeployment extends SimpleBuildItem {
 
     public List<String> getExtensions() {
         return extensions;
-    }
-
-    public List<DotName> getResourceAnnotations() {
-        return resourceAnnotations;
     }
 
 }

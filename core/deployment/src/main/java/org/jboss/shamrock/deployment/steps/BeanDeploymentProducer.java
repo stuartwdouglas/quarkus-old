@@ -1,7 +1,7 @@
 package org.jboss.shamrock.deployment.steps;
 
 import org.jboss.shamrock.annotations.BuildStep;
-import org.jboss.shamrock.deployment.BeanDeployment;
+import org.jboss.shamrock.deployment.cdi.BeanDeployment;
 
 public class BeanDeploymentProducer {
 

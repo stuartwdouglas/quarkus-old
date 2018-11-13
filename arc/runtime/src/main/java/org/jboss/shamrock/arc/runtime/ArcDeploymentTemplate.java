@@ -3,6 +3,8 @@ package org.jboss.shamrock.arc.runtime;
 import java.io.Closeable;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.util.List;
+import java.util.function.Consumer;
 
 import org.jboss.protean.arc.Arc;
 import org.jboss.protean.arc.ArcContainer;
@@ -37,8 +39,8 @@ public class ArcDeploymentTemplate {
         return container;
     }
 
-    public BeanContainer initBeanContainer(ArcContainer container) throws Exception {
-        return new BeanContainer() {
+    public BeanContainer initBeanContainer(ArcContainer container, List<Consumer<BeanContainer>> beanConfigurators) throws Exception {
+        BeanContainer beanContainer = new BeanContainer() {
 
             @Override
             public <T> Factory<T> instanceFactory(Class<T> type, Annotation... qualifiers) {
@@ -54,6 +56,10 @@ public class ArcDeploymentTemplate {
                 };
             }
         };
+        for(Consumer<BeanContainer> i : beanConfigurators) {
+            i.accept(beanContainer);
+        }
+        return beanContainer;
     }
 
     public void setupRequestScope(RuntimeValue<DeploymentInfo> deploymentInfo, ArcContainer arcContainer) {

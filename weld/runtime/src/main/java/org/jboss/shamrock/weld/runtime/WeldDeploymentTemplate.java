@@ -7,8 +7,10 @@ import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.jar.JarFile;
 
 import javax.enterprise.inject.Instance;
@@ -130,8 +132,8 @@ public class WeldDeploymentTemplate {
         });
     }
 
-    public BeanContainer initBeanContainer(SeContainer container) throws Exception {
-        return new BeanContainer() {
+    public BeanContainer initBeanContainer(SeContainer container, List<Consumer<BeanContainer>> beanConfigurators) throws Exception {
+        BeanContainer beanContainer = new BeanContainer() {
 
             @Override
             public <T> Factory<T> instanceFactory(Class<T> type, Annotation... qualifiers) {
@@ -147,6 +149,10 @@ public class WeldDeploymentTemplate {
                 };
             }
         };
+        for(Consumer<BeanContainer> i : beanConfigurators) {
+            i.accept(beanContainer);
+        }
+        return beanContainer;
     }
 
 }

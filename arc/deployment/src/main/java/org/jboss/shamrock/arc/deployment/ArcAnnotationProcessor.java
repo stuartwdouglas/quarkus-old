@@ -38,7 +38,8 @@ import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.Record;
 import org.jboss.shamrock.arc.runtime.ArcDeploymentTemplate;
 import org.jboss.shamrock.arc.runtime.StartupEventRunner;
-import org.jboss.shamrock.deployment.BeanDeployment;
+import org.jboss.shamrock.deployment.cdi.BeanConfiguratorBuildItem;
+import org.jboss.shamrock.deployment.cdi.BeanDeployment;
 import org.jboss.shamrock.deployment.Capabilities;
 import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
 import org.jboss.shamrock.deployment.builditem.BeanArchiveIndexBuildItem;
@@ -50,6 +51,7 @@ import org.jboss.shamrock.deployment.builditem.ReflectiveClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveFieldBuildItem;
 import org.jboss.shamrock.deployment.builditem.ReflectiveMethodBuildItem;
 import org.jboss.shamrock.deployment.builditem.ServiceStartBuildItem;
+import org.jboss.shamrock.deployment.cdi.ResourceAnnotationBuildItem;
 import org.jboss.shamrock.runtime.BeanContainer;
 import org.jboss.shamrock.undertow.DeploymentInfoBuildItem;
 
@@ -89,10 +91,14 @@ public class ArcAnnotationProcessor {
     @Inject
     List<BeanRegistrarBuildItem> beanRegistrars;
 
+    @Inject
+    List<ResourceAnnotationBuildItem> resourceAnnotations;
+
 
     @BuildStep(providesCapabilities = Capabilities.CDI_ARC, applicationArchiveMarkers = {"META-INF/beans.xml", "META-INF/services/javax.enterprise.inject.spi.Extension"})
     @Record(staticInit = true)
-    public BeanContainerBuildItem build(ArcDeploymentTemplate arcTemplate, DeploymentInfoBuildItem deploymentInfo, BuildProducer<InjectionProviderBuildItem> injectionProvider) throws Exception {
+    public BeanContainerBuildItem build(ArcDeploymentTemplate arcTemplate, DeploymentInfoBuildItem deploymentInfo, BuildProducer<InjectionProviderBuildItem> injectionProvider,
+                                        List<BeanConfiguratorBuildItem> beanConfiguratorBuildItems) throws Exception {
 
         List<String> additionalBeans = new ArrayList<>();
         for (AdditionalBeanBuildItem i : this.additionalBeans) {
@@ -141,7 +147,7 @@ public class ArcAnnotationProcessor {
         builder.setIndex(index);
         builder.setAdditionalBeanDefiningAnnotations(additionalBeanDefiningAnnotations);
         builder.setSharedAnnotationLiterals(false);
-        builder.addResourceAnnotations(beanDeployment.getResourceAnnotations());
+        builder.addResourceAnnotations(resourceAnnotations.stream().map(ResourceAnnotationBuildItem::getName).collect(Collectors.toList()));
         builder.setReflectionRegistration(new ReflectionRegistration() {
             @Override
             public void registerMethod(MethodInfo methodInfo) {
@@ -200,7 +206,7 @@ public class ArcAnnotationProcessor {
         beanProcessor.process();
 
         ArcContainer container = arcTemplate.getContainer(null);
-        BeanContainer bc = arcTemplate.initBeanContainer(container);
+        BeanContainer bc = arcTemplate.initBeanContainer(container, beanConfiguratorBuildItems.stream().map(BeanConfiguratorBuildItem::getBeanConfigurator).collect(Collectors.toList()));
         injectionProvider.produce(new InjectionProviderBuildItem());
         arcTemplate.setupInjection(null, container);
         arcTemplate.setupRequestScope(deploymentInfo.getValue(), container);

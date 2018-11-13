@@ -2,6 +2,7 @@ package org.jboss.shamrock.jpa.runtime;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import javax.sql.DataSource;
 
@@ -12,7 +13,6 @@ import org.hibernate.protean.impl.PersistenceUnitsHolder;
 import org.jboss.logging.Logger;
 import org.jboss.shamrock.annotations.runtime.Template;
 import org.jboss.shamrock.runtime.BeanContainer;
-import org.jboss.shamrock.runtime.ContextObject;
 
 /**
  * @author Emmanuel Bernard emmanuel@hibernate.org
@@ -35,35 +35,57 @@ public class JPADeploymentTemplate {
         Hibernate.featureInit();
     }
 
-    public void initializeJpa(BeanContainer beanContainer, boolean jtaEnabled) {
-        beanContainer.instance(JPAConfig.class).setJtaEnabled(jtaEnabled);
+    public Consumer<BeanContainer> initializeJpa(boolean jtaEnabled) {
+        return new Consumer<BeanContainer>() {
+            @Override
+            public void accept(BeanContainer beanContainer) {
+                beanContainer.instance(JPAConfig.class).setJtaEnabled(jtaEnabled);
+            }
+        };
     }
 
-    public void bootstrapPersistenceUnit(BeanContainer beanContainer, String unitName) {
-        beanContainer.instance(JPAConfig.class).bootstrapPersistenceUnit(unitName);
+    public Consumer<BeanContainer> registerPersistenceUnit(String unitName) {
+        return new Consumer<BeanContainer>() {
+            @Override
+            public void accept(BeanContainer beanContainer) {
+                beanContainer.instance(JPAConfig.class).registerPersistenceUnit(unitName);
+            }
+        };
     }
 
-    public void initDefaultPersistenceUnit(BeanContainer beanContainer) {
-        beanContainer.instance(JPAConfig.class).initDefaultPersistenceUnit();
+    public Consumer<BeanContainer> initDefaultPersistenceUnit() {
+        return new Consumer<BeanContainer>() {
+            @Override
+            public void accept(BeanContainer beanContainer) {
+                beanContainer.instance(JPAConfig.class).initDefaultPersistenceUnit();
+            }
+        };
     }
 
-    public void initMetadata(List<ParsedPersistenceXmlDescriptor> parsedPersistenceXmlDescriptors, Scanner scanner, BeanContainer beanContainer) {
-
-        //this initializes the JPA metadata, and also sets the datasource if no connection URL has been set and a DataSource
-        //is available
-        if (beanContainer != null) {
-            BeanContainer.Factory<DataSource> ds = beanContainer.instanceFactory(DataSource.class);
-            if (ds != null) {
-                DataSource dataSource = ds.get();
-                for (ParsedPersistenceXmlDescriptor i : parsedPersistenceXmlDescriptors) {
-                    if (!i.getProperties().containsKey(CONNECTION_URL)) {
-                        i.setJtaDataSource(dataSource);
+    public Consumer<BeanContainer> initMetadata(List<ParsedPersistenceXmlDescriptor> parsedPersistenceXmlDescriptors, Scanner scanner) {
+        return new Consumer<BeanContainer>() {
+            @Override
+            public void accept(BeanContainer beanContainer) {
+                //this initializes the JPA metadata, and also sets the datasource if no connection URL has been set and a DataSource
+                //is available
+                if (beanContainer != null) {
+                    BeanContainer.Factory<DataSource> ds = beanContainer.instanceFactory(DataSource.class);
+                    if (ds != null) {
+                        DataSource dataSource = ds.get();
+                        for (ParsedPersistenceXmlDescriptor i : parsedPersistenceXmlDescriptors) {
+                            if (!i.getProperties().containsKey(CONNECTION_URL)) {
+                                i.setJtaDataSource(dataSource);
+                            }
+                        }
                     }
                 }
-            }
-        }
 
-        PersistenceUnitsHolder.initializeJpa(parsedPersistenceXmlDescriptors, scanner);
+                PersistenceUnitsHolder.initializeJpa(parsedPersistenceXmlDescriptors, scanner);
+            }
+        };
     }
 
+    public void startAllUnits(BeanContainer beanContainer) {
+        beanContainer.instance(JPAConfig.class).startAll();
+    }
 }

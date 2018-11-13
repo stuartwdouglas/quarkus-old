@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.jboss.shamrock.deployment.builditem.BeanArchiveIndexBuildItem;
+import org.jboss.shamrock.deployment.cdi.BeanDeployment;
 
 public class BeanDeploymentInjectionProvider implements InjectionProvider {
 

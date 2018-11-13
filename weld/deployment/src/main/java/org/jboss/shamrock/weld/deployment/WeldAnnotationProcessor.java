@@ -2,6 +2,7 @@ package org.jboss.shamrock.weld.deployment;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.enterprise.inject.se.SeContainer;
 import javax.enterprise.inject.se.SeContainerInitializer;
@@ -12,7 +13,8 @@ import org.jboss.jandex.IndexView;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.Record;
-import org.jboss.shamrock.deployment.BeanDeployment;
+import org.jboss.shamrock.deployment.cdi.BeanConfiguratorBuildItem;
+import org.jboss.shamrock.deployment.cdi.BeanDeployment;
 import org.jboss.shamrock.deployment.Capabilities;
 import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
 import org.jboss.shamrock.deployment.builditem.BeanArchiveIndexBuildItem;
@@ -41,7 +43,7 @@ public class WeldAnnotationProcessor {
 
     @Record(staticInit = true)
     @BuildStep(providesCapabilities = Capabilities.CDI_WELD, applicationArchiveMarkers = {"META-INF/beans.xml", "META-INF/services/javax.enterprise.inject.spi.Extension"})
-    public BeanContainerBuildItem build(WeldDeploymentTemplate template, BytecodeRecorder recorder, BuildProducer<InjectionProviderBuildItem> injectionProvider) throws Exception {
+    public BeanContainerBuildItem build(WeldDeploymentTemplate template, BytecodeRecorder recorder, BuildProducer<InjectionProviderBuildItem> injectionProvider, List<BeanConfiguratorBuildItem> beanConfig) throws Exception {
         IndexView index = beanArchiveIndex.getIndex();
         List<String> additionalBeans = new ArrayList<>();
         for (AdditionalBeanBuildItem i : this.additionalBeans) {
@@ -65,7 +67,7 @@ public class WeldAnnotationProcessor {
             template.addExtension(init, recorder.classProxy(extensionClazz));
         }
         SeContainer weld = template.doBoot(null, init);
-        BeanContainer container = template.initBeanContainer(weld);
+        BeanContainer container = template.initBeanContainer(weld, beanConfig.stream().map(BeanConfiguratorBuildItem::getBeanConfigurator).collect(Collectors.toList()));
         injectionProvider.produce(new InjectionProviderBuildItem());
         template.setupInjection(null, weld);
         return new BeanContainerBuildItem(container);

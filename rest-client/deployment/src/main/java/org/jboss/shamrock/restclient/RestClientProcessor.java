@@ -30,7 +30,7 @@ import org.jboss.resteasy.spi.ResteasyConfiguration;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
 import javax.inject.Inject;
-import org.jboss.shamrock.deployment.BeanDeployment;
+import org.jboss.shamrock.deployment.cdi.BeanDeployment;
 import org.jboss.shamrock.deployment.ShamrockConfig;
 import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
 import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;

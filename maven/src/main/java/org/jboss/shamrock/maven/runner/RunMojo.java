@@ -74,7 +74,7 @@ public class RunMojo extends AbstractMojo {
                     args.add("-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y");
                 }
             }
-            if(jvmArgs != null) {
+            if (jvmArgs != null) {
                 args.add(jvmArgs);
             }
 
@@ -149,6 +149,7 @@ public class RunMojo extends AbstractMojo {
 
             args.add("-Dshamrock.runner.classes=" + outputDirectory.getAbsolutePath());
             args.add("-Dshamrock.runner.sources=" + sourceDir.getAbsolutePath());
+            args.add("-Djava.util.logging.manager=org.jboss.logmanager.LogManager");
             args.add("-jar");
             args.add(tempFile.getAbsolutePath());
             args.add(outputDirectory.getAbsolutePath());

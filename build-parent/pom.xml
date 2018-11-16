@@ -130,6 +130,7 @@
       <debezium.version>0.8.3.Final</debezium.version>
       <zookeeper.version>3.4.10</zookeeper.version>
       <scala.version>2.12.2</scala.version>
+      <camel.version>3.0.0-SNAPSHOT</camel.version>
    </properties>
 
    <dependencyManagement>
@@ -170,6 +171,81 @@
              <version>${project.version}</version>
          </dependency>
 
+         <!-- camel -->
+         <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-core</artifactId>
+            <version>${camel.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-headersmap</artifactId>
+            <version>${camel.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-salesforce</artifactId>
+            <version>${camel.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-netty4-http</artifactId>
+            <version>${camel.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-infinispan</artifactId>
+            <version>${camel.version}</version>
+            <exclusions>
+               <exclusion>
+                  <groupId>org.infinispan</groupId>
+                  <artifactId>infinispan-core</artifactId>
+               </exclusion>
+            </exclusions>
+         </dependency>
+
+
+         <dependency>
+            <groupId>org.jboss.shamrock</groupId>
+            <artifactId>shamrock-camel-core-deployment</artifactId>
+            <version>${project.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.jboss.shamrock</groupId>
+            <artifactId>shamrock-camel-core-runtime</artifactId>
+            <version>${project.version}</version>
+         </dependency>
+
+         <dependency>
+            <groupId>org.jboss.shamrock</groupId>
+            <artifactId>shamrock-camel-salesforce-deployment</artifactId>
+            <version>${project.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.jboss.shamrock</groupId>
+            <artifactId>shamrock-camel-salesforce-runtime</artifactId>
+            <version>${project.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.jboss.shamrock</groupId>
+            <artifactId>shamrock-camel-netty4-http-deployment</artifactId>
+            <version>${project.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.jboss.shamrock</groupId>
+            <artifactId>shamrock-camel-netty4-http-runtime</artifactId>
+            <version>${project.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.jboss.shamrock</groupId>
+            <artifactId>shamrock-camel-infinispan-deployment</artifactId>
+            <version>${project.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.jboss.shamrock</groupId>
+            <artifactId>shamrock-camel-infinispan-runtime</artifactId>
+            <version>${project.version}</version>
+         </dependency>
          <dependency>
              <groupId>org.jboss.shamrock</groupId>
              <artifactId>shamrock-devtools-common</artifactId>

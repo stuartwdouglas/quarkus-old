@@ -81,6 +81,9 @@
 
         <!-- Caching -->
         <module>caffeine</module>
+
+        <!-- Camel -->
+        <module>camel</module>
     </modules>
 
 </project>

@@ -95,7 +95,7 @@ public class ArcAnnotationProcessor {
 
 
     @BuildStep(providesCapabilities = Capabilities.CDI_ARC, applicationArchiveMarkers = {"META-INF/beans.xml", "META-INF/services/javax.enterprise.inject.spi.Extension"})
-    @Record(STATIC_INIT)
+    @Record(value = STATIC_INIT, name = "Arc")
     public BeanContainerBuildItem build(ArcDeploymentTemplate arcTemplate, BuildProducer<ServletExtensionBuildItem> extensions, BuildProducer<InjectionProviderBuildItem> injectionProvider,
                                         List<BeanContainerListenerBuildItem> beanContainerListenerBuildItems,
                                         List<GeneratedBeanBuildItem> generatedBeans,
@@ -214,7 +214,7 @@ public class ArcAnnotationProcessor {
     }
 
     @BuildStep
-    @Record(RUNTIME_INIT)
+    @Record(value = RUNTIME_INIT, name = "CDI Start Event")
     void startupEvent(ArcDeploymentTemplate template, List<ServiceStartBuildItem> startList, BeanContainerBuildItem beanContainer) {
         template.fireStartupEvent(beanContainer.getValue());
     }

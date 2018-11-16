@@ -53,6 +53,8 @@ import org.jboss.shamrock.jpa.runtime.TransactionEntityManagers;
  */
 public final class HibernateResourceProcessor {
 
+    static final String HIBERNATE = "Hibernate";
+
     private static final DotName PERSISTENCE_CONTEXT = DotName.createSimple(PersistenceContext.class.getName());
     private static final DotName PERSISTENCE_UNIT = DotName.createSimple(PersistenceUnit.class.getName());
     private static final DotName PRODUCES = DotName.createSimple(Produces.class.getName());
@@ -79,7 +81,7 @@ public final class HibernateResourceProcessor {
 
 
     @BuildStep
-    @Record(STATIC_INIT)
+    @Record(value = STATIC_INIT, name = HIBERNATE)
     public BeanContainerListenerBuildItem build(RecorderContext recorder, JPADeploymentTemplate template,
                                                 List<PersistenceUnitDescriptorBuildItem> descItems, CombinedIndexBuildItem index,
                                                 BuildProducer<BytecodeTransformerBuildItem> transformers,
@@ -140,7 +142,7 @@ public final class HibernateResourceProcessor {
     }
 
     @BuildStep
-    @Record(STATIC_INIT)
+    @Record(value = STATIC_INIT, name = HIBERNATE)
     public void build(JPADeploymentTemplate template,
                       Capabilities capabilities, BuildProducer<BeanContainerListenerBuildItem> buildProducer,
                       List<PersistenceUnitDescriptorBuildItem> descriptors) throws Exception {
@@ -154,7 +156,7 @@ public final class HibernateResourceProcessor {
     }
 
     @BuildStep
-    @Record(RUNTIME_INIT)
+    @Record(value = RUNTIME_INIT, name = HIBERNATE)
     public void startPus(JPADeploymentTemplate template, BeanContainerBuildItem beanContainer) throws Exception {
         template.startAllUnits(beanContainer.getValue());
     }

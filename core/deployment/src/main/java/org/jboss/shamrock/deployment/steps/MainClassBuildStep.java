@@ -83,6 +83,7 @@ class MainClassBuildStep {
                 catchBlock.invokeInterfaceMethod(ofMethod(StartupTask.class, "deploy", void.class, StartupContext.class), dup, startupContext);
             }
         }
+        catchBlock.invokeVirtualMethod(ofMethod(StartupContext.class, "printTiming", void.class), startupContext);
         catchBlock.invokeStaticMethod(ofMethod(Timing.class, "printStartupTime", void.class));
         mv.returnValue(null);
 

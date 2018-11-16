@@ -51,7 +51,7 @@ public class OpenApiProcessor {
     }
 
     @BuildStep
-    @Record(STATIC_INIT)
+    @Record(value = STATIC_INIT, name = "OpenAPI")
     public BeanContainerListenerBuildItem build(OpenApiDeploymentTemplate template,
                                                 ApplicationArchivesBuildItem archivesBuildItem,
                                                 CombinedIndexBuildItem combinedIndexBuildItem) throws Exception {

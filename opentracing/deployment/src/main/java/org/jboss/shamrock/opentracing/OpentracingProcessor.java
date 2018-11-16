@@ -36,7 +36,7 @@ public class OpentracingProcessor {
     }
 
     @BuildStep
-    @Record(ExecutionTime.STATIC_INIT)
+    @Record(value = ExecutionTime.STATIC_INIT, name = "Opentracing")
     void setupFilter(BuildProducer<JaxrsProviderBuildItem> providers,
                      BuildProducer<FilterBuildItem> filterProducer,
                      TracingDeploymentTemplate tracing) {

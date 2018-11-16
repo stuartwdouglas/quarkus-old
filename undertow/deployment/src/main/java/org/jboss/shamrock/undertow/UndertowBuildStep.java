@@ -104,7 +104,7 @@ public class UndertowBuildStep {
 
 
     @BuildStep
-    @Record(RUNTIME_INIT)
+    @Record(value = RUNTIME_INIT, name = "Undertow")
     public ServiceStartBuildItem boot(UndertowDeploymentTemplate template, ServletHandlerBuildItem servletHandlerBuildItem, List<HttpHandlerWrapperBuildItem> wrappers) throws Exception {
         template.startUndertow(null, servletHandlerBuildItem.getHandler(), new ConfiguredValue("http.port", "8080"), new ConfiguredValue("http.host", "localhost"), new ConfiguredValue("http.io-threads", ""), new ConfiguredValue("http.worker-threads", ""), wrappers.stream().map(HttpHandlerWrapperBuildItem::getValue).collect(Collectors.toList()));
         return new ServiceStartBuildItem("undertow");
@@ -121,7 +121,7 @@ public class UndertowBuildStep {
     }
 
 
-    @Record(STATIC_INIT)
+    @Record(value = STATIC_INIT, name = "Undertow")
     @BuildStep
     public ServletHandlerBuildItem build(ApplicationArchivesBuildItem applicationArchivesBuildItem,
                                          List<ServletBuildItem> servlets,

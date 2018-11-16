@@ -46,7 +46,7 @@ class BeanValidationProcessor {
     }
 
     @BuildStep
-    @Record(STATIC_INIT)
+    @Record(value = STATIC_INIT, name = "Validator")
     public void build(ValidatorTemplate template, RecorderContext recorder, InjectionFactoryBuildItem factory,
                       BuildProducer<ReflectiveFieldBuildItem> reflectiveFields,
                       BuildProducer<ReflectiveMethodBuildItem> reflectiveMethods,

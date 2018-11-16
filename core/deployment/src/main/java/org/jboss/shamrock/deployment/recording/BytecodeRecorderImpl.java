@@ -60,14 +60,16 @@ public class BytecodeRecorderImpl implements RecorderContext {
     private final IdentityHashMap<Class<?>, String> classProxies = new IdentityHashMap<>();
     private final Map<Class<?>, SubstitutionHolder> substitutions = new HashMap<>();
     private final Map<Class<?>, NonDefaultConstructorHolder> nonDefaulConstructors = new HashMap<>();
+    private final String name;
 
-    public BytecodeRecorderImpl(ClassLoader classLoader, boolean staticInit) {
+    public BytecodeRecorderImpl(ClassLoader classLoader, boolean staticInit, String name) {
         this.classLoader = classLoader;
         this.staticInit = staticInit;
+        this.name = name;
     }
 
-    public BytecodeRecorderImpl(boolean staticInit) {
-        this(Thread.currentThread().getContextClassLoader(), staticInit);
+    public BytecodeRecorderImpl(boolean staticInit, String name) {
+        this(Thread.currentThread().getContextClassLoader(), staticInit, name);
     }
 
     public boolean isEmpty() {
@@ -197,10 +199,12 @@ public class BytecodeRecorderImpl implements RecorderContext {
     public void writeBytecode(ClassOutput classOutput, String className) {
         ClassCreator file = ClassCreator.builder().classOutput(ClassOutput.gizmoAdaptor(classOutput, true)).className(className).superClass(Object.class).interfaces(StartupTask.class).build();
         MethodCreator method = file.getMethodCreator("deploy", void.class, StartupContext.class);
+
+        ResultHandle time = method.invokeStaticMethod(ofMethod(System.class, "currentTimeMillis", long.class));
+
         //now create instances of all the classes we invoke on and store them in variables as well
         Map<Class, ResultHandle> classInstanceVariables = new HashMap<>();
         Map<Object, ResultHandle> returnValueResults = new IdentityHashMap<>();
-        Map<String, ResultHandle> contextResults = new HashMap<>();
         for (BytecodeInstruction set : this.methodRecorder.storedMethodCalls) {
             if (set instanceof StoredMethodCall) {
                 StoredMethodCall call = (StoredMethodCall) set;
@@ -248,6 +252,9 @@ public class BytecodeRecorderImpl implements RecorderContext {
                 throw new RuntimeException("unkown type " + set);
             }
         }
+
+        ResultHandle end = method.invokeStaticMethod(ofMethod(System.class, "currentTimeMillis", long.class));
+        method.invokeVirtualMethod(ofMethod(StartupContext.class, "addTiming", void.class, String.class, long.class, long.class), method.getMethodParam(0), method.load(name), time, end);
 
         method.returnValue(null);
         file.close();

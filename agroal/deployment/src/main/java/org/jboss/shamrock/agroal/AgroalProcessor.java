@@ -22,7 +22,7 @@ class AgroalProcessor {
         return new AdditionalBeanBuildItem(DataSourceProducer.class);
     }
 
-    @Record(STATIC_INIT)
+    @Record(value = STATIC_INIT, name = "Agroal")
     @BuildStep
     BeanContainerListenerBuildItem build(BuildConfig config,
                                          BuildProducer<ReflectiveClassBuildItem> reflectiveClass, DataSourceTemplate template, RecorderContext bc) throws Exception {

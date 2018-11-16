@@ -35,7 +35,7 @@ public class WebsocketBuildStep {
 
 
     @BuildStep
-    @Record(ExecutionTime.STATIC_INIT)
+    @Record(value = ExecutionTime.STATIC_INIT, name = "Websockets")
     public ServletContextAttributeBuildItem deploy(final CombinedIndexBuildItem indexBuildItem,
                                                    WebsocketTemplate template, BuildProducer<ReflectiveClassBuildItem> reflection) throws Exception {
 

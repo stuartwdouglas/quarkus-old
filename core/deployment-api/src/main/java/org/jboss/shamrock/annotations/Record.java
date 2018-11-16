@@ -25,4 +25,6 @@ public @interface Record {
 
     ExecutionTime value();
 
+    String name() default "Other";
+
 }

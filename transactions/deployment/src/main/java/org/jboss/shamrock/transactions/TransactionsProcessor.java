@@ -42,7 +42,7 @@ class TransactionsProcessor {
     BuildProducer<RuntimeInitializedClassBuildItem> runtimeInit;
 
     @BuildStep(providesCapabilities = Capabilities.TRANSACTIONS)
-    @Record(STATIC_INIT)
+    @Record(value = STATIC_INIT, name = "Transactions")
     public void build(TransactionTemplate tt) throws Exception {
         additionalBeans.produce(new AdditionalBeanBuildItem(TransactionProducers.class));
         runtimeInit.produce(new RuntimeInitializedClassBuildItem("com.arjuna.ats.internal.jta.resources.arjunacore.CommitMarkableResourceRecord"));

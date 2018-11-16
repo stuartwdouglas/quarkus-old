@@ -61,7 +61,7 @@ public class MetricsProcessor {
     }
 
     @BuildStep
-    @Record(STATIC_INIT)
+    @Record(value = STATIC_INIT, name = "Metrics")
     public void build(BeanContainerBuildItem beanContainerBuildItem,
                       MetricsDeploymentTemplate metrics,
                       BuildProducer<ReflectiveClassBuildItem> reflectiveClasses,
@@ -99,7 +99,7 @@ public class MetricsProcessor {
     }
 
     @BuildStep
-    @Record(RUNTIME_INIT)
+    @Record(value = RUNTIME_INIT, name = "Metrics")
     void register(MetricsDeploymentTemplate metrics) {
         metrics.registerBaseMetrics();
         metrics.registerVendorMetrics();

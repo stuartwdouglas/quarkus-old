@@ -95,7 +95,7 @@ public class BytecodeRecorderTestCase {
     void runTest(Consumer<BytecodeRecorderImpl> generator, Object... expected) throws Exception {
         TestTemplate.RESULT.clear();
         TestClassLoader tcl = new TestClassLoader(getClass().getClassLoader());
-        BytecodeRecorderImpl recorder = new BytecodeRecorderImpl(tcl, false);
+        BytecodeRecorderImpl recorder = new BytecodeRecorderImpl(tcl, false, "Test");
         generator.accept(recorder);
         recorder.writeBytecode(new TestClassOutput(tcl), TEST_CLASS);
 

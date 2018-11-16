@@ -264,7 +264,7 @@ public class JaxrsScanningProcessor {
     }
 
 
-    @Record(STATIC_INIT)
+    @Record(value = STATIC_INIT, name = "JAX-RS")
     @BuildStep
     void integrate(JaxrsTemplate template, BeanContainerBuildItem beanContainerBuildItem) {
         template.setupIntegration(beanContainerBuildItem.getValue());

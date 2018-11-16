@@ -41,7 +41,7 @@ public class WeldAnnotationProcessor {
     @Inject
     List<AdditionalBeanBuildItem> additionalBeans;
 
-    @Record(STATIC_INIT)
+    @Record(value = STATIC_INIT, name = "Weld")
     @BuildStep(providesCapabilities = Capabilities.CDI_WELD, applicationArchiveMarkers = {"META-INF/beans.xml", "META-INF/services/javax.enterprise.inject.spi.Extension"})
     public BeanContainerBuildItem build(WeldDeploymentTemplate template, RecorderContext recorder,
                                         BuildProducer<InjectionProviderBuildItem> injectionProvider,

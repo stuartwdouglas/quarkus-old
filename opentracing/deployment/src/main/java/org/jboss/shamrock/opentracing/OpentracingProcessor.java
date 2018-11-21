@@ -41,7 +41,6 @@ public class OpentracingProcessor {
                      BuildProducer<FilterBuildItem> filterProducer,
                      TracingDeploymentTemplate tracing) {
 
-        //TODO: this needs to be a BuildItem so that more than one can be registered
         providers.produce(new JaxrsProviderBuildItem(ShamrockTracingDynamicFeature.class.getName()));
 
         FilterBuildItem filterInfo = new FilterBuildItem("tracingFilter", SpanFinishingFilter.class.getName());

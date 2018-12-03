@@ -51,6 +51,7 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Priorities;
+import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Configuration;
 import javax.ws.rs.core.MediaType;
@@ -66,6 +67,7 @@ import org.eclipse.microprofile.rest.client.ext.ResponseExceptionMapper;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.jboss.resteasy.client.jaxrs.internal.proxy.ResteasyClientProxy;
 import org.jboss.resteasy.spi.ResteasyUriBuilder;
 
 
@@ -239,6 +241,9 @@ class RestClientBuilderImpl implements RestClientBuilder {
         return (T) Proxy.newProxyInstance(classLoader, interfaces, new InvocationHandler() {
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                if(method.getName().equals("getClient") && method.getParameterTypes().length == 0) {
+                    return ((ResteasyClientProxy)actualClient).as(Client.class);
+                }
                 return method.invoke(actualClient, args);
             }
         });

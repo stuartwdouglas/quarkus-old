@@ -21,6 +21,8 @@ import static org.junit.Assert.assertNotNull;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
 import javax.ws.rs.client.Client;
 
 import org.eclipse.microprofile.config.ConfigProvider;
@@ -40,7 +42,11 @@ import org.junit.runner.RunWith;
  * @author Martin Kouba
  */
 @RunWith(ShamrockUnitTest.class)
+@Dependent
 public class RestClientProxyTest {
+
+    @Inject
+    Counter counter;
 
     @Deployment
     public static JavaArchive createTestArchive() {
@@ -50,16 +56,14 @@ public class RestClientProxyTest {
 
     private static URL baseUrl() throws MalformedURLException {
         return new URL("http://" + ConfigProvider.getConfig()
-                .getValue("shamrock.http.host", String.class) + ":"
+                .getOptionalValue("shamrock.http.host", String.class).orElse("localhost") + ":"
                 + ConfigProvider.getConfig()
-                        .getValue("shamrock.http.port", String.class));
+                        .getOptionalValue("shamrock.http.port", String.class).orElse("8080"));
     }
 
     @Test
     public void testGetClient() throws InterruptedException, IllegalStateException, RestClientDefinitionException, MalformedURLException {
-        Counter counter = Arc.container()
-                .instance(Counter.class)
-                .get();
+
         counter.reset(1);
 
         HelloClient helloClient = RestClientBuilder.newBuilder()

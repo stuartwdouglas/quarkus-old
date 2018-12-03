@@ -47,7 +47,12 @@
            <artifactId>shamrock-arc-deployment</artifactId>
            <scope>test</scope>
         </dependency>
-        
+
+        <dependency>
+            <groupId>org.jboss.shamrock</groupId>
+            <artifactId>shamrock-jaxrs-deployment</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 

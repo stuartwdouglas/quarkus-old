@@ -37,6 +37,17 @@
             <groupId>org.jboss.shamrock</groupId>
             <artifactId>shamrock-rest-client-runtime</artifactId>
         </dependency>
+        
+        <dependency>
+           <groupId>org.jboss.shamrock</groupId>
+           <artifactId>shamrock-junit</artifactId>
+        </dependency>
+        <dependency>
+           <groupId>org.jboss.shamrock</groupId>
+           <artifactId>shamrock-arc-deployment</artifactId>
+           <scope>test</scope>
+        </dependency>
+        
     </dependencies>
 
 

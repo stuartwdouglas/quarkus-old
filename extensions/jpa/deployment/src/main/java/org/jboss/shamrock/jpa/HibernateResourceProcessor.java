@@ -16,6 +16,21 @@
 
 package org.jboss.shamrock.jpa;
 
+import static org.jboss.shamrock.annotations.ExecutionTime.RUNTIME_INIT;
+import static org.jboss.shamrock.annotations.ExecutionTime.STATIC_INIT;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import javax.enterprise.inject.Produces;
+import javax.persistence.PersistenceContext;
+import javax.persistence.PersistenceUnit;
+import javax.persistence.spi.PersistenceUnitTransactionType;
+
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.hibernate.boot.archive.scan.spi.ClassDescriptor;
 import org.hibernate.cfg.AvailableSettings;
@@ -26,8 +41,12 @@ import org.hibernate.jpa.boot.internal.ParsedPersistenceXmlDescriptor;
 import org.hibernate.jpa.boot.internal.PersistenceXmlParser;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
+import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.CompositeIndex;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
+import org.jboss.jandex.Indexer;
+import org.jboss.logging.Logger;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.Record;
@@ -38,9 +57,13 @@ import org.jboss.shamrock.arc.deployment.ResourceAnnotationBuildItem;
 import org.jboss.shamrock.deployment.Capabilities;
 import org.jboss.shamrock.deployment.builditem.ApplicationArchivesBuildItem;
 import org.jboss.shamrock.deployment.builditem.ArchiveRootBuildItem;
+import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
+import org.jboss.shamrock.deployment.builditem.ApplicationIndexBuildItem;
+import org.jboss.shamrock.deployment.builditem.BeanContainerBuildItem;
 import org.jboss.shamrock.deployment.builditem.BytecodeTransformerBuildItem;
 import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
 import org.jboss.shamrock.deployment.builditem.FeatureBuildItem;
+import org.jboss.shamrock.deployment.builditem.GeneratedClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.GeneratedResourceBuildItem;
 import org.jboss.shamrock.deployment.builditem.HotDeploymentConfigFileBuildItem;
 import org.jboss.shamrock.deployment.builditem.substrate.ReflectiveClassBuildItem;
@@ -89,6 +112,9 @@ public final class HibernateResourceProcessor {
     private static final DotName PERSISTENCE_CONTEXT = DotName.createSimple(PersistenceContext.class.getName());
     private static final DotName PERSISTENCE_UNIT = DotName.createSimple(PersistenceUnit.class.getName());
     private static final DotName PRODUCES = DotName.createSimple(Produces.class.getName());
+    private static final DotName JAVA_LANG_OBJECT = DotName.createSimple(Object.class.getName());
+
+    private static final Logger log = Logger.getLogger("org.jboss.shamrock.arc.deployment.processor");
 
     /**
      * TODO why document this, is it exposed
@@ -160,16 +186,28 @@ public final class HibernateResourceProcessor {
     @BuildStep
     @Record(STATIC_INIT)
     public BeanContainerListenerBuildItem build(RecorderContext recorder, JPADeploymentTemplate template,
-                                                List<PersistenceUnitDescriptorBuildItem> descItems, CombinedIndexBuildItem index,
+                                                List<PersistenceUnitDescriptorBuildItem> descItems, 
+                                                List<AdditionalJpaModelBuildItem> additionalJpaModelBuildItems,
+                                                CombinedIndexBuildItem index,
+                                                ApplicationIndexBuildItem applicationIndex,
                                                 BuildProducer<BytecodeTransformerBuildItem> transformers,
                                                 BuildProducer<ReflectiveClassBuildItem> reflectiveClass,
-                                                BuildProducer<FeatureBuildItem> feature) throws Exception {
+                                                BuildProducer<FeatureBuildItem> feature,
+                                                BuildProducer<GeneratedClassBuildItem> additionalClasses) throws Exception {
 
         feature.produce(new FeatureBuildItem(FeatureBuildItem.JPA));
 
         List<ParsedPersistenceXmlDescriptor> descriptors = descItems.stream().map(PersistenceUnitDescriptorBuildItem::getDescriptor).collect(Collectors.toList());
 
-        JpaJandexScavenger scavenger = new JpaJandexScavenger(reflectiveClass, descriptors, index.getIndex());
+        // build a composite index with additional jpa model classes
+        Indexer indexer = new Indexer();
+        Set<DotName> additionalIndex = new HashSet<>();
+        for(AdditionalJpaModelBuildItem jpaModel : additionalJpaModelBuildItems) {
+            indexModelClass(jpaModel.getClassName(), indexer, index.getIndex(), additionalIndex);
+        }
+        CompositeIndex compositeIndex = CompositeIndex.create(index.getIndex(), indexer.complete());
+        
+        JpaJandexScavenger scavenger = new JpaJandexScavenger(reflectiveClass, descriptors, compositeIndex, template);
         final KnownDomainObjects domainObjects = scavenger.discoverModelAndRegisterForReflection();
 
         for (String className : domainObjects.getClassNames()) {
@@ -179,7 +217,7 @@ public final class HibernateResourceProcessor {
         template.callHibernateFeatureInit();
 
         //Modify the bytecode of all entities to enable lazy-loading, dirty checking, etc..
-        enhanceEntities(domainObjects, transformers);
+        enhanceEntities(domainObjects, transformers, additionalJpaModelBuildItems, additionalClasses);
 
         //set up the scanner, as this scanning has already been done we need to just tell it about the classes we
         //have discovered. This scanner is bytecode serializable and is passed directly into the template
@@ -196,6 +234,44 @@ public final class HibernateResourceProcessor {
         return new BeanContainerListenerBuildItem(template.initMetadata(descriptors, scanner));
     }
 
+    // FIXME: this needs to move to a library
+    private void indexModelClass(String beanClass, Indexer indexer, IndexView shamrockIndex, Set<DotName> additionalIndex) {
+        DotName beanClassName = DotName.createSimple(beanClass);
+        if (additionalIndex.contains(beanClassName)) {
+            return;
+        }
+        ClassInfo beanInfo = shamrockIndex.getClassByName(beanClassName);
+        if (beanInfo == null) {
+            log.debugf("Index model class: %s", beanClass);
+            try (InputStream stream = HibernateResourceProcessor.class.getClassLoader().getResourceAsStream(beanClass.replace('.', '/') + ".class")) {
+                beanInfo = indexer.index(stream);
+                additionalIndex.add(beanInfo.name());
+            } catch (IOException e) {
+                throw new IllegalStateException("Failed to index: " + beanClass);
+            }
+        } else {
+            // The class could be indexed by shamrock - we still need to distinguish framework classes
+            additionalIndex.add(beanClassName);
+        }
+        for (DotName annotationName : beanInfo.annotations().keySet()) {
+            if (!additionalIndex.contains(annotationName) && shamrockIndex.getClassByName(annotationName) == null) {
+                try (InputStream annotationStream = HibernateResourceProcessor.class.getClassLoader()
+                        .getResourceAsStream(annotationName.toString().replace('.', '/') + ".class")) {
+                    log.debugf("Index annotation: %s", annotationName);
+                    indexer.index(annotationStream);
+                    additionalIndex.add(annotationName);
+                } catch (IOException e) {
+                    throw new IllegalStateException("Failed to index: " + beanClass);
+                }
+            }
+        }
+        if (!beanInfo.superName().equals(JAVA_LANG_OBJECT)) {
+            indexModelClass(beanInfo.superName().toString(), indexer, shamrockIndex, additionalIndex);
+        }
+
+    }
+
+    
     @BuildStep
     @Record(STATIC_INIT)
     public void build(JPADeploymentTemplate template,
@@ -323,18 +399,34 @@ public final class HibernateResourceProcessor {
         throw new ConfigurationError(error);
     }
 
-    private void enhanceEntities(final KnownDomainObjects domainObjects, BuildProducer<BytecodeTransformerBuildItem> transformers) {
+    private void enhanceEntities(final KnownDomainObjects domainObjects, BuildProducer<BytecodeTransformerBuildItem> transformers, 
+                                 List<AdditionalJpaModelBuildItem> additionalJpaModelBuildItems, BuildProducer<GeneratedClassBuildItem> additionalClasses) {
         HibernateEntityEnhancer hibernateEntityEnhancer = new HibernateEntityEnhancer();
         for (String i : domainObjects.getClassNames()) {
             transformers.produce(new BytecodeTransformerBuildItem(i, hibernateEntityEnhancer));
+            System.err.println("Hibernate transformer for "+i);
         }
-    }
+        for (AdditionalJpaModelBuildItem additionalJpaModel : additionalJpaModelBuildItems) {
+            String className = additionalJpaModel.getClassName();
+            System.err.println("Hibernate additional transformer for "+className);
+            try (InputStream stream = HibernateResourceProcessor.class.getClassLoader().getResourceAsStream(className.replace('.', '/') + ".class")) {
+                byte[] bytes = read(stream);
+                byte[] enhanced = hibernateEntityEnhancer.enhance(className, bytes);
+                additionalClasses.produce(new GeneratedClassBuildItem(true, className, enhanced != null ? enhanced : bytes));
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to read Model class", e);
+            }
+        }
 
-    private static List<ParsedPersistenceXmlDescriptor> loadOriginalXMLParsedDescriptors() {
-        // Enforce the persistence.xml configuration to be interpreted literally without
-        // allowing runtime overrides;
-        // (check for the runtime provided properties to be empty as well)
-        Map<Object, Object> configurationOverrides = Collections.emptyMap();
-        return PersistenceXmlParser.locatePersistenceUnits(configurationOverrides);
+    }
+    
+    private byte[] read(InputStream is) throws IOException {
+        ByteArrayOutputStream os = new ByteArrayOutputStream(); 
+        byte[] buffer = new byte[4096];
+        int len;
+        while((len = is.read(buffer)) != -1) {
+            os.write(buffer, 0, len);
+        }
+        return os.toByteArray();
     }
 }

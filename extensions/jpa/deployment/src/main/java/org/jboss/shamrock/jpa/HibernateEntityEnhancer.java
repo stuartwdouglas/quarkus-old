@@ -16,6 +16,9 @@
 
 package org.jboss.shamrock.jpa;
 
+import java.net.URLClassLoader;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.function.BiFunction;
 
 import org.hibernate.bytecode.enhance.spi.DefaultEnhancementContext;
@@ -47,6 +50,8 @@ public final class HibernateEntityEnhancer implements BiFunction<String, ClassVi
         DefaultEnhancementContext enhancementContext = new DefaultEnhancementContext() {
             @Override
             public ClassLoader getLoadingClassLoader() {
+                URLClassLoader cl = (URLClassLoader) Thread.currentThread().getContextClassLoader();
+                System.err.println("Using class loader: "+Arrays.toString(cl.getURLs()));
                 return Thread.currentThread().getContextClassLoader();
             }
 
@@ -69,7 +74,7 @@ public final class HibernateEntityEnhancer implements BiFunction<String, ClassVi
         private final ClassVisitor outputClassVisitor;
 
         public HibernateEnhancingClassVisitor(String className, ClassVisitor outputClassVisitor) {
-            super(Opcodes.ASM6, new ClassWriter(0));
+            super(Opcodes.ASM6, new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS));
             this.className = className;
             this.outputClassVisitor = outputClassVisitor;
         }
@@ -81,6 +86,7 @@ public final class HibernateEntityEnhancer implements BiFunction<String, ClassVi
             //We need to convert the nice Visitor chain into a plain byte array to adapt to the Hibernate ORM
             //enhancement API:
             final byte[] inputBytes = writer.toByteArray();
+            System.err.println("Enhancing: "+className);
             final byte[] transformedBytes = hibernateEnhancement(className, inputBytes);
             //Then re-convert the transformed bytecode to not interrupt the visitor chain:
             ClassReader cr = new ClassReader(transformedBytes);
@@ -92,6 +98,10 @@ public final class HibernateEntityEnhancer implements BiFunction<String, ClassVi
     private byte[] hibernateEnhancement(final String className, final byte[] originalBytes) {
         final byte[] enhanced = enhancer.enhance(className, originalBytes);
         return enhanced == null ? originalBytes : enhanced;
+    }
+
+    public byte[] enhance(String className, byte[] bytes) {
+        return enhancer.enhance(className, bytes);
     }
 
 }

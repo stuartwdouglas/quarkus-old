@@ -32,6 +32,7 @@ import org.hibernate.jpa.boot.internal.ParsedPersistenceXmlDescriptor;
 import org.hibernate.jpa.boot.spi.PersistenceUnitDescriptor;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
+import org.jboss.jandex.AnnotationTarget.Kind;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.ClassType;
 import org.jboss.jandex.DotName;
@@ -59,6 +60,8 @@ final class JpaJandexScavenger {
     private static final DotName EMBEDDABLE = DotName.createSimple(Embeddable.class.getName());
     private static final DotName EMBEDDED = DotName.createSimple(Embedded.class.getName());
     private static final DotName MAPPED_SUPERCLASS = DotName.createSimple(MappedSuperclass.class.getName());
+    private static final DotName PATH = DotName.createSimple("javax.ws.rs.Path");
+    private static final DotName NOT_REALLY_JPA = DotName.createSimple("org.jboss.shamrock.magic.runtime.NotReallyJpa");
 
     private static final DotName ENUM = DotName.createSimple(Enum.class.getName());
     private static final Logger log = Logger.getLogger("org.jboss.shamrock.jpa");
@@ -85,6 +88,7 @@ final class JpaJandexScavenger {
         enlistJPAModelClasses(EMBEDDABLE, collector, index);
         enlistJPAModelClasses(MAPPED_SUPERCLASS, collector, index);
         enlistReturnType(collector, index);
+        enlistControllerClasses(PATH, collector, index);
 
         for (PersistenceUnitDescriptor pud : descriptors) {
             enlistExplicitClasses(pud.getManagedClassNames(), collector, index);
@@ -141,11 +145,40 @@ final class JpaJandexScavenger {
         Collection<AnnotationInstance> jpaAnnotations = index.getAnnotations(dotName);
         if (jpaAnnotations != null && jpaAnnotations.size() > 0) {
             for (AnnotationInstance annotation : jpaAnnotations) {
-                DotName targetDotName = annotation.target().asClass().name();
+                ClassInfo klass = annotation.target().asClass();
+                if(hasAnnotation(NOT_REALLY_JPA, klass)) {
+                    System.err.println("Skipping Non-JPA class: "+klass);
+                    continue;
+                }
+                DotName targetDotName = klass.name();
                 addClassHierarchyToReflectiveList(collector, index, targetDotName);
+                System.err.println("Adding for JPA enhancement: "+targetDotName);
                 collector.addEntity(targetDotName.toString());
             }
         }
+    }
+
+    private static void enlistControllerClasses(DotName dotName, DomainObjectSet collector, IndexView index) {
+        // FIXME: in the end only enhance users of the model classes
+        Collection<AnnotationInstance> jpaAnnotations = index.getAnnotations(dotName);
+        if (jpaAnnotations != null && jpaAnnotations.size() > 0) {
+            for (AnnotationInstance annotation : jpaAnnotations) {
+                if(annotation.target().kind() != Kind.CLASS)
+                    continue;
+                ClassInfo klass = annotation.target().asClass();
+                DotName targetDotName = klass.name();
+                System.err.println("Adding controller for JPA enhancement: "+targetDotName);
+                collector.addEntity(targetDotName.toString());
+            }
+        }
+    }
+
+    private static boolean hasAnnotation(DotName annotation, ClassInfo klass) {
+        for (AnnotationInstance classAnnotation : klass.classAnnotations()) {
+            if(classAnnotation.name().equals(annotation))
+                return true;
+        }
+        return false;
     }
 
     /**

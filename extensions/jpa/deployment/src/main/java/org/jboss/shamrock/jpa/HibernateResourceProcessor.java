@@ -84,7 +84,6 @@ import org.jboss.shamrock.jpa.runtime.TransactionEntityManagers;
  */
 public final class HibernateResourceProcessor {
 
-    private static final DotName DOTNAME_MODEL = DotName.createSimple("org.jboss.shamrock.Model");
     private static final DotName PERSISTENCE_CONTEXT = DotName.createSimple(PersistenceContext.class.getName());
     private static final DotName PERSISTENCE_UNIT = DotName.createSimple(PersistenceUnit.class.getName());
     private static final DotName PRODUCES = DotName.createSimple(Produces.class.getName());

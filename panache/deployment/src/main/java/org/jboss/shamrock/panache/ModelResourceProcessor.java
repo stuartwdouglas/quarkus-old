@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package org.jboss.shamrock.magic;
+package org.jboss.shamrock.panache;
 
 import java.util.Arrays;
 import java.util.List;
 
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
+import org.jboss.panache.Model;
+import org.jboss.panache.PgPoolProducer;
+import org.jboss.panache.RxModel;
 import org.jboss.protean.gizmo.AssignableResultHandle;
 import org.jboss.protean.gizmo.BranchResult;
 import org.jboss.protean.gizmo.ClassCreator;
@@ -35,9 +38,6 @@ import org.jboss.shamrock.deployment.builditem.BytecodeTransformerBuildItem;
 import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
 import org.jboss.shamrock.deployment.builditem.GeneratedClassBuildItem;
 import org.jboss.shamrock.jpa.AdditionalJpaModelBuildItem;
-import org.jboss.shamrock.magic.runtime.Model;
-import org.jboss.shamrock.magic.runtime.PgPoolProducer;
-import org.jboss.shamrock.magic.runtime.RxModel;
 
 import io.reactiverse.reactivex.pgclient.Row;
 import io.reactiverse.reactivex.pgclient.Tuple;
@@ -99,7 +99,7 @@ public final class ModelResourceProcessor {
         ClassCreator modelClass = ClassCreator.builder().className(modelInfoClassName)
             .classOutput(new ProcessorClassOutput(generatedClasses))
             .interfaces(RxModel.RxModelInfo.class)
-            .signature("Ljava/lang/Object;Lorg/jboss/shamrock/magic/runtime/RxModel$RxModelInfo<"+modelSignature+">;")
+            .signature("Ljava/lang/Object;Lorg/jboss/panache/RxModel$RxModelInfo<"+modelSignature+">;")
             .build();
         
         // no arg constructor is auto-created by gizmo

@@ -1,4 +1,4 @@
-package org.jboss.shamrock.magic;
+package org.jboss.shamrock.panache;
 
 import java.util.function.BiFunction;
 
@@ -43,7 +43,7 @@ public class RxModelEnhancer implements BiFunction<String, ClassVisitor, ClassVi
                 mv.visitCode();
                 mv.visitIntInsn(Opcodes.ALOAD, 0);
                 mv.visitMethodInsn(Opcodes.INVOKESPECIAL, 
-                                   "org/jboss/shamrock/magic/runtime/RxModel", 
+                                   "org/jboss/panache/RxModel", 
                                    "<init>", 
                                    "()V", false);
                 mv.visitInsn(Opcodes.RETURN);
@@ -74,8 +74,8 @@ public class RxModelEnhancer implements BiFunction<String, ClassVisitor, ClassVi
             // getModelInfo
             mv = super.visitMethod(Opcodes.ACC_PROTECTED | Opcodes.ACC_SYNTHETIC, 
                                                  "getModelInfo", 
-                                                 "()Lorg/jboss/shamrock/magic/runtime/RxModel$RxModelInfo;", 
-                                                 "()Lorg/jboss/shamrock/magic/runtime/RxModel$RxModelInfo<+Lorg/jboss/shamrock/magic/runtime/RxModel;>;", 
+                                                 "()Lorg/jboss/panache/RxModel$RxModelInfo;", 
+                                                 "()Lorg/jboss/panache/RxModel$RxModelInfo<+Lorg/jboss/panache/RxModel;>;", 
                                                  null);
             mv.visitCode();
             mv.visitFieldInsn(Opcodes.GETSTATIC, thisName.replace('.', '/'), fieldName, modelDesc);
@@ -87,16 +87,16 @@ public class RxModelEnhancer implements BiFunction<String, ClassVisitor, ClassVi
             mv = super.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_SYNTHETIC, 
                                                  "findById", 
                                                  "(Ljava/lang/Integer;)Lio/reactivex/Maybe;", 
-                                                 "(Ljava/lang/Integer;)Lio/reactivex/Maybe<Lorg/jboss/shamrock/magic/runtime/Model;>;", 
+                                                 "(Ljava/lang/Integer;)Lio/reactivex/Maybe<Lorg/jboss/panache/Model;>;", 
                                                  null);
             mv.visitParameter("id", 0);
             mv.visitCode();
             mv.visitFieldInsn(Opcodes.GETSTATIC, thisName.replace('.', '/'), fieldName, modelDesc);
             mv.visitIntInsn(Opcodes.ALOAD, 0);
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, 
-                               "org/jboss/shamrock/magic/runtime/RxModel", 
+                               "org/jboss/panache/RxModel", 
                                "findById", 
-                               "(Lorg/jboss/shamrock/magic/runtime/RxModel$RxModelInfo;Ljava/lang/Integer;)Lio/reactivex/Maybe;", false);
+                               "(Lorg/jboss/panache/RxModel$RxModelInfo;Ljava/lang/Integer;)Lio/reactivex/Maybe;", false);
             mv.visitInsn(Opcodes.ARETURN);
             mv.visitMaxs(0, 0);
             mv.visitEnd();
@@ -105,14 +105,14 @@ public class RxModelEnhancer implements BiFunction<String, ClassVisitor, ClassVi
             mv = super.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_SYNTHETIC, 
                                                  "findAll", 
                                                  "()Lio/reactivex/Observable;", 
-                                                 "()Lio/reactivex/Observable<Lorg/jboss/shamrock/magic/runtime/RxModel;>;", 
+                                                 "()Lio/reactivex/Observable<Lorg/jboss/panache/RxModel;>;", 
                                                  null);
             mv.visitCode();
             mv.visitFieldInsn(Opcodes.GETSTATIC, thisName.replace('.', '/'), fieldName, modelDesc);
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, 
-                               "org/jboss/shamrock/magic/runtime/RxModel", 
+                               "org/jboss/panache/RxModel", 
                                "findAll", 
-                               "(Lorg/jboss/shamrock/magic/runtime/RxModel$RxModelInfo;)Lio/reactivex/Observable;", false);
+                               "(Lorg/jboss/panache/RxModel$RxModelInfo;)Lio/reactivex/Observable;", false);
             mv.visitInsn(Opcodes.ARETURN);
             mv.visitMaxs(0, 0);
             mv.visitEnd();

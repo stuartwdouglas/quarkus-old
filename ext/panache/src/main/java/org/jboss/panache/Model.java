@@ -1,4 +1,4 @@
-package org.jboss.shamrock.magic.runtime;
+package org.jboss.panache;
 
 import java.util.List;
 

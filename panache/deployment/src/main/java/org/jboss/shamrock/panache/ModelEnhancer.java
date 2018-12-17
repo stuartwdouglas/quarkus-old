@@ -1,4 +1,4 @@
-package org.jboss.shamrock.magic;
+package org.jboss.shamrock.panache;
 
 import java.lang.reflect.Field;
 import java.util.function.BiFunction;
@@ -34,17 +34,17 @@ public class ModelEnhancer implements BiFunction<String, ClassVisitor, ClassVisi
         public void visitEnd() {
             MethodVisitor mv = super.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_SYNTHETIC, 
                                                  "findById", 
-                                                 "(Ljava/lang/Integer;)Lorg/jboss/shamrock/magic/runtime/Model;", 
-                                                 "<T:Lorg/jboss/shamrock/magic/runtime/Model;>(Ljava/lang/Integer;)TT;", 
+                                                 "(Ljava/lang/Integer;)Lorg/jboss/panache/Model;", 
+                                                 "<T:Lorg/jboss/panache/Model;>(Ljava/lang/Integer;)TT;", 
                                                  null);
             mv.visitParameter("id", 0);
             mv.visitCode();
             mv.visitLdcInsn(thisClass);
             mv.visitIntInsn(Opcodes.ALOAD, 0);
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, 
-                               "org/jboss/shamrock/magic/runtime/Model", 
+                               "org/jboss/panache/Model", 
                                "findById", 
-                               "(Ljava/lang/Class;Ljava/lang/Integer;)Lorg/jboss/shamrock/magic/runtime/Model;", false);
+                               "(Ljava/lang/Class;Ljava/lang/Integer;)Lorg/jboss/panache/Model;", false);
             mv.visitInsn(Opcodes.ARETURN);
             mv.visitMaxs(0, 0);
             mv.visitEnd();
@@ -52,12 +52,12 @@ public class ModelEnhancer implements BiFunction<String, ClassVisitor, ClassVisi
             mv = super.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_SYNTHETIC, 
                                                  "findAll", 
                                                  "()Ljava/util/List;", 
-                                                 "<T:Lorg/jboss/shamrock/magic/runtime/Model;>()Ljava/util/List<TT;>;", 
+                                                 "<T:Lorg/jboss/panache/Model;>()Ljava/util/List<TT;>;", 
                                                  null);
             mv.visitCode();
             mv.visitLdcInsn(thisClass);
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, 
-                               "org/jboss/shamrock/magic/runtime/Model", 
+                               "org/jboss/panache/Model", 
                                "findAll", 
                                "(Ljava/lang/Class;)Ljava/util/List;", false);
             mv.visitInsn(Opcodes.ARETURN);

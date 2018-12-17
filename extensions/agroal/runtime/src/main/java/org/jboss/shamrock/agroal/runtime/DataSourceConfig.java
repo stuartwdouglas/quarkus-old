@@ -25,7 +25,7 @@ import org.jboss.shamrock.runtime.ConfigGroup;
 public class DataSourceConfig {
 
     /**
-     * The datasource driver class name
+     * The datasource driver class name. Use "disabled" to disable agroal.
      */
     @ConfigProperty(name = "driver")
     public String driver;

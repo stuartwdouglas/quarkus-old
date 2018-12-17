@@ -8,9 +8,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>shamrock-magic</artifactId>
+        <artifactId>shamrock-panache</artifactId>
         <groupId>org.jboss.shamrock</groupId>
         <version>1.0.0.Alpha1-SNAPSHOT</version>
+        <relativePath>../</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -19,7 +20,7 @@
         <version.vertx>3.5.4</version.vertx>
     </properties>
 
-    <artifactId>shamrock-magic-runtime</artifactId>
+    <artifactId>shamrock-panache-runtime</artifactId>
 
     <dependencies>
         <dependency>
@@ -32,23 +33,16 @@
         </dependency>
         <dependency>
             <groupId>org.jboss.shamrock</groupId>
+            <artifactId>shamrock-jpa-runtime</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.shamrock</groupId>
             <artifactId>shamrock-arc-runtime</artifactId>
-            <scope>compile</scope>
-            <optional>true</optional>
         </dependency>
+
         <dependency>
-            <groupId>javax.persistence</groupId>
-            <artifactId>javax.persistence-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.reactiverse</groupId>
-            <artifactId>reactive-pg-client</artifactId>
-            <version>${version.reactive-pg-client}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-rx-java2</artifactId>
-            <version>${version.vertx}</version>
+            <groupId>org.jboss.panache</groupId>
+            <artifactId>panache</artifactId>
         </dependency>
     </dependencies>
 

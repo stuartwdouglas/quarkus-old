@@ -64,6 +64,10 @@ class AgroalProcessor {
             log.warn("Agroal extension was included in build however no data source has been defined");
             return null;
         }
+        if ("disabled".equals(dataSourceConfig.get().driver)) {
+            log.warn("Agroal extension was included in build but disabled with the shamrock.datasource.driver property");
+            return null;
+        }
 
         reflectiveClass.produce(new ReflectiveClassBuildItem(false, false, dataSourceConfig.get().driver));
         return new BeanContainerListenerBuildItem(template.addDatasource(dataSourceConfig.get()));

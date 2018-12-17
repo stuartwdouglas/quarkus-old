@@ -50,14 +50,13 @@ public final class HibernateEntityEnhancer implements BiFunction<String, ClassVi
         DefaultEnhancementContext enhancementContext = new DefaultEnhancementContext() {
             @Override
             public ClassLoader getLoadingClassLoader() {
-                URLClassLoader cl = (URLClassLoader) Thread.currentThread().getContextClassLoader();
-                System.err.println("Using class loader: "+Arrays.toString(cl.getURLs()));
                 return Thread.currentThread().getContextClassLoader();
             }
 
             @Override
-            public boolean doExtendedEnhancement(UnloadedClass classDescriptor) {
-                return true;
+            public boolean doDirtyCheckingInline(UnloadedClass classDescriptor) {
+                // perhaps only for subtypes of Model/RxModel?
+                return false;
             }
         };
         this.enhancer = provider.getEnhancer(enhancementContext);

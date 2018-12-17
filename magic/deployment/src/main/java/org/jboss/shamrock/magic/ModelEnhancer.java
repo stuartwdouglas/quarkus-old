@@ -24,15 +24,6 @@ public class ModelEnhancer implements BiFunction<String, ClassVisitor, ClassVisi
             thisClass = Type.getType("L"+className.replace('.', '/')+";");
         }
 
-        /*
-          public static <T extends Model> T findById(Integer id){
-            return (T) Model.findById(Fruit.class, id);
-          }
-          access: 9, name: findAll, descriptor: ()Ljava/util/List;, 
-           signature: <T:Lorg/jboss/shamrock/magic/runtime/Model;>()Ljava/util/List<TT;>;, exceptions: null
-
-         */
-        
         @Override
         public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
             // FIXME: do not add method if already present 
@@ -46,14 +37,6 @@ public class ModelEnhancer implements BiFunction<String, ClassVisitor, ClassVisi
                                                  "(Ljava/lang/Integer;)Lorg/jboss/shamrock/magic/runtime/Model;", 
                                                  "<T:Lorg/jboss/shamrock/magic/runtime/Model;>(Ljava/lang/Integer;)TT;", 
                                                  null);
-            try {
-                Class<?> klass = Class.forName("org.objectweb.asm.MethodWriter");
-                Field field = klass.getDeclaredField("compute");
-                field.setAccessible(true);
-                System.err.println("Method visitor compute: "+field.get(mv));
-            }catch(Exception x) {
-                x.printStackTrace();
-            }
             mv.visitParameter("id", 0);
             mv.visitCode();
             mv.visitLdcInsn(thisClass);

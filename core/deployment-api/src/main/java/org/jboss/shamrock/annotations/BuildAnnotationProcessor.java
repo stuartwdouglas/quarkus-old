@@ -157,7 +157,6 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
 
         //process each class individually, we only create a single instance of each even if it has multiple steps
         for (TypeElement processor : processorClasses) {
-            System.err.println("Found processor class: "+processor);
             List<InjectedBuildResource> fieldList = new ArrayList<>();
             List<VariableElement> configuredFields = new ArrayList<>();
             //resolve field injection

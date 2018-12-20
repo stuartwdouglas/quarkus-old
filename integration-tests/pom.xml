@@ -47,5 +47,6 @@
         <module>jpa-mariadb</module>
         <module>jpa-h2</module>
         <module>vertx</module>
+        <module>panache</module>
     </modules>
 </project>

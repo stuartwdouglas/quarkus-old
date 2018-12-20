@@ -47,5 +47,6 @@
         <module>jpa-h2</module>
         <module>vertx</module>
         <module>spring-di</module>
+        <module>panache</module>
     </modules>
 </project>

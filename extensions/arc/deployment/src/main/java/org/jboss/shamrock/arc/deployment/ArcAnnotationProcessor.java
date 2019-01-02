@@ -16,8 +16,8 @@
 
 package org.jboss.shamrock.arc.deployment;
 
-import static org.jboss.shamrock.annotations.ExecutionTime.RUNTIME_INIT;
-import static org.jboss.shamrock.annotations.ExecutionTime.STATIC_INIT;
+import static org.jboss.shamrock.deployment.annotations.ExecutionTime.RUNTIME_INIT;
+import static org.jboss.shamrock.deployment.annotations.ExecutionTime.STATIC_INIT;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -46,9 +46,9 @@ import org.jboss.protean.arc.processor.BeanProcessor;
 import org.jboss.protean.arc.processor.BeanProcessor.Builder;
 import org.jboss.protean.arc.processor.ReflectionRegistration;
 import org.jboss.protean.arc.processor.ResourceOutput;
-import org.jboss.shamrock.annotations.BuildProducer;
-import org.jboss.shamrock.annotations.BuildStep;
-import org.jboss.shamrock.annotations.Record;
+import org.jboss.shamrock.deployment.annotations.BuildProducer;
+import org.jboss.shamrock.deployment.annotations.BuildStep;
+import org.jboss.shamrock.deployment.annotations.Record;
 import org.jboss.shamrock.arc.runtime.ArcDeploymentTemplate;
 import org.jboss.shamrock.arc.runtime.LifecycleEventRunner;
 import org.jboss.shamrock.deployment.Capabilities;

@@ -28,6 +28,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -86,6 +87,7 @@ public class AugmentPhase implements AppCreationPhase, AugmentOutcome, RunnerJar
 
     private static final String DEFAULT_MAIN_CLASS = "org.jboss.shamrock.runner.GeneratedMain";
     private static final String DEPENDENCIES_RUNTIME = "dependencies.runtime";
+    private static final String FILENAME_STEP_CLASSES = "META-INF/shamrock-build-steps.list";
     private static final String PROVIDED = "provided";
 
     private static final Logger log = Logger.getLogger(AugmentPhase.class);
@@ -276,11 +278,11 @@ public class AugmentPhase implements AppCreationPhase, AugmentOutcome, RunnerJar
                     if (!appDep.getScope().equals(PROVIDED) && zip.getEntry("META-INF/services/org.jboss.shamrock.deployment.ShamrockSetup") != null) {
                         problems.add("Artifact " + appDep + " is a deployment artifact, however it does not have scope required. This will result in unnecessary jars being included in the final image");
                     }
-                    ZipEntry deps = zip.getEntry(DEPENDENCIES_RUNTIME);
-                    if (deps != null) {
+                    ZipEntry entry = zip.getEntry(DEPENDENCIES_RUNTIME);
+                    if (entry != null) {
                         whitelist.add(getDependencyConflictId(appDep.getArtifact()));
-                        try (InputStream in = zip.getInputStream(deps)) {
-                            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+                        try (InputStream in = zip.getInputStream(entry)) {
+                            BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
                             String line;
                             while ((line = reader.readLine()) != null) {
                                 String[] parts = line.trim().split(":");
@@ -300,7 +302,6 @@ public class AugmentPhase implements AppCreationPhase, AugmentOutcome, RunnerJar
                             }
                         }
                     }
-
                 }
             }
             if (!problems.isEmpty()) {

@@ -16,7 +16,7 @@
 
 package org.jboss.shamrock.agroal.runtime;
 
-import org.jboss.shamrock.runtime.Template;
+import org.jboss.shamrock.runtime.annotations.Template;
 import org.jboss.shamrock.runtime.cdi.BeanContainer;
 import org.jboss.shamrock.runtime.cdi.BeanContainerListener;
 

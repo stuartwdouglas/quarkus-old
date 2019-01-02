@@ -19,7 +19,7 @@ package org.jboss.shamrock.agroal.runtime;
 import java.util.Optional;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.shamrock.runtime.ConfigGroup;
+import org.jboss.shamrock.annotations.ConfigGroup;
 
 @ConfigGroup
 public class DataSourceConfig {

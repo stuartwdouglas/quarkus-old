@@ -19,7 +19,7 @@ package org.jboss.shamrock.jaxrs.runtime.graal;
 import java.util.List;
 import java.util.function.Function;
 
-import org.jboss.shamrock.runtime.Template;
+import org.jboss.shamrock.runtime.annotations.Template;
 import org.jboss.shamrock.runtime.cdi.BeanContainer;
 
 /**

@@ -16,8 +16,8 @@
 
 package org.jboss.shamrock.deployment.logging;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.shamrock.runtime.ConfigGroup;
+import org.jboss.shamrock.runtime.annotations.ConfigGroup;
+import org.jboss.shamrock.runtime.annotations.ConfigItem;
 
 @ConfigGroup
 public class CategoryConfig {
@@ -25,12 +25,12 @@ public class CategoryConfig {
     /**
      * The minimum level that this category can be set to
      */
-    @ConfigProperty(name = "min-level", defaultValue = "inherit")
+    @ConfigItem(defaultValue = "inherit")
     String minLevel;
 
     /**
      * The log level level for this category
      */
-    @ConfigProperty(name = "level", defaultValue = "inherit")
+    @ConfigItem(defaultValue = "inherit")
     String level;
 }

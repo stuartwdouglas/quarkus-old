@@ -70,18 +70,18 @@ public class RuntimeRunner implements Runnable, Closeable {
                 builder.addAdditionalApplicationArchive(i);
             }
             builder.addFinal(BytecodeTransformerBuildItem.class)
-                    .addFinal(MainClassBuildItem.class);
+                .addFinal(MainClassBuildItem.class);
 
             BuildResult result = builder.build().run();
             List<BytecodeTransformerBuildItem> bytecodeTransformerBuildItems = result.consumeMulti(BytecodeTransformerBuildItem.class);
-            if (!bytecodeTransformerBuildItems.isEmpty()) {
+            if (! bytecodeTransformerBuildItems.isEmpty()) {
                 Map<String, List<BiFunction<String, ClassVisitor, ClassVisitor>>> functions = new HashMap<>();
                 for (BytecodeTransformerBuildItem i : bytecodeTransformerBuildItems) {
                     functions.computeIfAbsent(i.getClassToTransform(), (f) -> new ArrayList<>()).add(i.getVisitorFunction());
                 }
 
                 loader.setTransformers(functions);
-                if (!functions.isEmpty()) {
+                if (! functions.isEmpty()) {
                     //transformation can be slow, and classes that are transformed are generally always loaded on startup
                     //to speed this along we eagerly load the classes in parallel
                     //TODO: do we need this? apparently there have been big perf fixes
@@ -100,10 +100,8 @@ public class RuntimeRunner implements Runnable, Closeable {
                         });
                     }
                     executorService.shutdown();
-
                 }
             }
-
 
             final Application application;
             // todo - I guess this class name should come from a build item?
@@ -123,7 +121,8 @@ public class RuntimeRunner implements Runnable, Closeable {
                     application.stop();
                 }
             };
-
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

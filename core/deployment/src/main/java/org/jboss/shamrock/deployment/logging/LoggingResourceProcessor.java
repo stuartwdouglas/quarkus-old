@@ -21,15 +21,13 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.ErrorManager;
 import java.util.logging.Formatter;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 
-import javax.inject.Inject;
-
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.graalvm.nativeimage.ImageInfo;
 import org.jboss.logmanager.EmbeddedConfigurator;
 import org.jboss.logmanager.formatters.ColorPatternFormatter;
@@ -40,18 +38,18 @@ import org.jboss.protean.gizmo.AssignableResultHandle;
 import org.jboss.protean.gizmo.BranchResult;
 import org.jboss.protean.gizmo.BytecodeCreator;
 import org.jboss.protean.gizmo.ClassCreator;
-import org.jboss.protean.gizmo.ClassOutput;
 import org.jboss.protean.gizmo.FieldDescriptor;
 import org.jboss.protean.gizmo.MethodCreator;
 import org.jboss.protean.gizmo.MethodDescriptor;
 import org.jboss.protean.gizmo.ResultHandle;
-import org.jboss.shamrock.annotations.BuildProducer;
-import org.jboss.shamrock.annotations.BuildStep;
+import org.jboss.shamrock.deployment.annotations.BuildStep;
 import org.jboss.shamrock.deployment.builditem.GeneratedClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.GeneratedResourceBuildItem;
 import org.jboss.shamrock.deployment.builditem.SystemPropertyBuildItem;
 import org.jboss.shamrock.deployment.builditem.substrate.RuntimeInitializedClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.substrate.SubstrateSystemPropertyBuildItem;
+import org.jboss.shamrock.runtime.annotations.ConfigGroup;
+import org.jboss.shamrock.runtime.annotations.ConfigItem;
 import org.objectweb.asm.Opcodes;
 
 /**
@@ -60,47 +58,50 @@ public final class LoggingResourceProcessor {
 
     private static final String GENERATED_CONFIGURATOR = "org/jboss/logmanager/GeneratedConfigurator";
 
-    @Inject
-    BuildProducer<GeneratedClassBuildItem> generatedClass;
+    @ConfigGroup
+    static final class Config {
+        /**
+         * The log category config
+         */
+        @ConfigItem(name = "category")
+        Map<String, CategoryConfig> categories;
 
-    @Inject
-    BuildProducer<SubstrateSystemPropertyBuildItem> systemProp;
+        /**
+         * The default log level
+         */
+        @ConfigItem
+        Optional<String> level;
 
-    @Inject
-    BuildProducer<RuntimeInitializedClassBuildItem> runtimeInit;
+        /**
+         * The default minimum log level
+         */
+        @ConfigItem(defaultValue = "INFO")
+        String minLevel;
 
-    @Inject
-    BuildProducer<GeneratedResourceBuildItem> generatedResource;
+        /**
+         * Console logging config
+         */
+        ConsoleConfig console;
 
-    /**
-     * The log category config
-     */
-    @ConfigProperty(name = "shamrock.log.category")
-    Map<String, CategoryConfig> categories;
-
-    /**
-     * The default log level
-     */
-    @ConfigProperty(name = "shamrock.log.level")
-    Optional<String> level;
-
-    /**
-     * The default minimum log level
-     */
-    @ConfigProperty(name = "shamrock.log.min-level",  defaultValue = "INFO")
-    String rootMinLevel;
-
-    /**
-     * Console logging config
-     */
-    @ConfigProperty(name = "shamrock.log.console")
-    ConsoleConfig console;
+        /**
+         * File logging config
+         */
+        FileConfig file;
+    }
 
     /**
-     * File logging config
+     * Logging-related configuration.
      */
-    @ConfigProperty(name = "shamrock.log.file")
-    FileConfig file;
+    @ConfigItem
+    Config log;
+
+    Consumer<GeneratedClassBuildItem> generatedClass;
+
+    Consumer<SubstrateSystemPropertyBuildItem> systemProp;
+
+    Consumer<RuntimeInitializedClassBuildItem> runtimeInit;
+
+    Consumer<GeneratedResourceBuildItem> generatedResource;
 
     @BuildStep
     SystemPropertyBuildItem setpProperty() {
@@ -122,26 +123,26 @@ public final class LoggingResourceProcessor {
         final MethodCreator minimumLevelOf;
         final MethodCreator levelOf;
         final MethodCreator handlersOf;
-        try (ClassCreator cc = new ClassCreator(new ProcessorClassOutput(generatedClass), GENERATED_CONFIGURATOR, null, "java/lang/Object", "org/jboss/logmanager/EmbeddedConfigurator")) {
+        try (ClassCreator cc = new ClassCreator((name, data) -> generatedClass.accept(new GeneratedClassBuildItem(false, name, data)), GENERATED_CONFIGURATOR, null, "java/lang/Object", "org/jboss/logmanager/EmbeddedConfigurator")) {
             // TODO set source file
             final MethodCreator ctor = cc.getMethodCreator("<init>", void.class);
             ctor.setModifiers(Opcodes.ACC_PUBLIC);
             ctor.invokeSpecialMethod(MethodDescriptor.ofConstructor(Object.class), ctor.getThis());
             ctor.returnValue(null);
-            rootLevel = level.orElse(rootMinLevel);
+            rootLevel = log.level.orElse(log.minLevel);
 
-            consoleEnable = this.console.enable;
-            consoleFormat = console.format;
-            consoleLevel = console.level;
-            consoleColor = console.color;
+            consoleEnable = log.console.enable;
+            consoleFormat = log.console.format;
+            consoleLevel = log.console.level;
+            consoleColor = log.console.color;
             if (consoleColor) {
-                runtimeInit.produce(new RuntimeInitializedClassBuildItem("org.jboss.logmanager.formatters.TrueColorHolder"));
+                runtimeInit.accept(new RuntimeInitializedClassBuildItem("org.jboss.logmanager.formatters.TrueColorHolder"));
             }
 
-            fileEnable = file.enable;
-            fileFormat = file.format;
-            fileLevel = file.level;
-            filePath = file.path;
+            fileEnable = log.file.enable;
+            fileFormat = log.file.format;
+            fileLevel = log.file.level;
+            filePath = log.file.path;
 
             minimumLevelOf = cc.getMethodCreator("getMinimumLevelOf", Level.class, String.class);
             minimumLevelOf.setModifiers(Opcodes.ACC_PUBLIC);
@@ -292,9 +293,9 @@ public final class LoggingResourceProcessor {
 
             // levels do not have the option of being reconfigured at run time
             BytecodeCreator levelOfBc = ifNotRootLogger(levelOf, b -> getLevelFor(b, rootLevel));
-            BytecodeCreator minLevelOfBc = ifNotRootLogger(minimumLevelOf, b -> getLevelFor(b, rootMinLevel));
+            BytecodeCreator minLevelOfBc = ifNotRootLogger(minimumLevelOf, b -> getLevelFor(b, log.minLevel));
 
-            for (Map.Entry<String, CategoryConfig> category : categories.entrySet()) {
+            for (Map.Entry<String, CategoryConfig> category : log.categories.entrySet()) {
                 // configure category
 
                 levelOfBc = ifNotLogger(levelOfBc, category.getKey(), b -> getLevelFor(b, category.getValue().level));
@@ -307,10 +308,10 @@ public final class LoggingResourceProcessor {
             minLevelOfBc.returnValue(levelOfBc.loadNull());
         }
 
-        generatedResource.produce(new GeneratedResourceBuildItem("META-INF/services/org.jboss.logmanager.EmbeddedConfigurator", GENERATED_CONFIGURATOR.replace('/', '.').getBytes(StandardCharsets.UTF_8)));
+        generatedResource.accept(new GeneratedResourceBuildItem("META-INF/services/org.jboss.logmanager.EmbeddedConfigurator", GENERATED_CONFIGURATOR.replace('/', '.').getBytes(StandardCharsets.UTF_8)));
 
         // now inject the system property setter
-        systemProp.produce(new SubstrateSystemPropertyBuildItem("java.util.logging.manager", "org.jboss.logmanager.LogManager"));
+        systemProp.accept(new SubstrateSystemPropertyBuildItem("java.util.logging.manager", "org.jboss.logmanager.LogManager"));
     }
 
     private BytecodeCreator ifRootLogger(BytecodeCreator orig, Function<BytecodeCreator, ResultHandle> returnIfNotRoot) {
@@ -381,19 +382,4 @@ public final class LoggingResourceProcessor {
                 );
         }
     }
-
-    static final class ProcessorClassOutput implements ClassOutput {
-        private final BuildProducer<GeneratedClassBuildItem> producer;
-
-        ProcessorClassOutput(BuildProducer<GeneratedClassBuildItem> producer) {
-            this.producer = producer;
-        }
-
-        @Override
-        public void write(final String name, final byte[] data) {
-            producer.produce(new GeneratedClassBuildItem(false, name, data));
-        }
-
-    }
-
 }

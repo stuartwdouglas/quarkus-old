@@ -16,8 +16,8 @@
 
 package org.jboss.shamrock.deployment.logging;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.shamrock.runtime.ConfigGroup;
+import org.jboss.shamrock.runtime.annotations.ConfigGroup;
+import org.jboss.shamrock.runtime.annotations.ConfigItem;
 
 @ConfigGroup
 public class ConsoleConfig {
@@ -25,25 +25,25 @@ public class ConsoleConfig {
     /**
      * If console logging should be enabled
      */
-    @ConfigProperty(name = "enable", defaultValue = "true")
+    @ConfigItem(defaultValue = "true")
     boolean enable;
 
     /**
      * The log format
      */
-    @ConfigProperty(name = "format", defaultValue = "%d{yyyy-MM-dd HH:mm:ss,SSS} %h %N[%i] %-5p [%c{1.}] (%t) %s%e%n")
+    @ConfigItem(defaultValue = "%d{yyyy-MM-dd HH:mm:ss,SSS} %h %N[%i] %-5p [%c{1.}] (%t) %s%e%n")
     String format;
 
     /**
      * The console log level
      */
-    @ConfigProperty(name = "level", defaultValue = "INFO")
+    @ConfigItem(defaultValue = "INFO")
     String level;
 
     /**
      * If the console logging should be in color
      */
-    @ConfigProperty(name = "color", defaultValue = "true")
+    @ConfigItem(defaultValue = "true")
     boolean color;
 
 }

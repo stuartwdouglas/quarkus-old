@@ -20,7 +20,7 @@ import java.lang.reflect.Field;
 import java.util.Properties;
 
 import org.jboss.logging.Logger;
-import org.jboss.shamrock.runtime.Template;
+import org.jboss.shamrock.runtime.annotations.Template;
 
 import com.arjuna.ats.arjuna.common.CoreEnvironmentBeanException;
 import com.arjuna.ats.arjuna.common.arjPropertyManager;

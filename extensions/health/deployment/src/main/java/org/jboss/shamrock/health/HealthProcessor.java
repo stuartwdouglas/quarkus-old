@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.shamrock.annotations.BuildStep;
+import org.jboss.shamrock.deployment.annotations.BuildStep;
 import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
 import org.jboss.shamrock.health.runtime.HealthServlet;
 import org.jboss.shamrock.undertow.ServletBuildItem;

@@ -1,7 +1,7 @@
 package org.jboss.shamrock.jpa;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.shamrock.runtime.ConfigGroup;
+import org.jboss.shamrock.runtime.annotations.ConfigGroup;
 
 import java.util.Optional;
 

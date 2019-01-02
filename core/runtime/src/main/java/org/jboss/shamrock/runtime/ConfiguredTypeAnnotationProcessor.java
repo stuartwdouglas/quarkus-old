@@ -50,7 +50,7 @@ public class ConfiguredTypeAnnotationProcessor extends AbstractProcessor {
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
-        return Collections.singleton(ConfigGroup.class.getName());
+        return Collections.singleton("org.jboss.shamrock.runtime.annotations.ConfigGroup");
     }
 
     @Override
@@ -69,7 +69,7 @@ public class ConfiguredTypeAnnotationProcessor extends AbstractProcessor {
     public void doProcess(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         //create a set of classes, and map this to the build step methods
         for (TypeElement annotation : annotations) {
-            if (annotation.getQualifiedName().toString().equals(ConfigGroup.class.getName())) {
+            if (annotation.getQualifiedName().toString().equals("org.jboss.shamrock.runtime.annotations.ConfigGroup")) {
                 for (TypeElement i : typesIn(roundEnv.getElementsAnnotatedWith(annotation))) {
                     Properties properties = new Properties();
                     for (VariableElement field : fieldsIn(i.getEnclosedElements())) {

@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.jboss.shamrock.runtime.Template;
+import org.jboss.shamrock.runtime.annotations.Template;
 import org.jboss.shamrock.runtime.cdi.BeanContainer;
 import org.jboss.shamrock.scheduler.api.Scheduled;
 import org.jboss.shamrock.scheduler.runtime.ScheduledLiteral.Builder;

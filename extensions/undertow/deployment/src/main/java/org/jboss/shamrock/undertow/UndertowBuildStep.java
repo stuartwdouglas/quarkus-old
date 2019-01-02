@@ -19,8 +19,8 @@ package org.jboss.shamrock.undertow;
 import static io.undertow.servlet.api.SecurityInfo.EmptyRoleSemantic.DENY;
 import static io.undertow.servlet.api.SecurityInfo.EmptyRoleSemantic.PERMIT;
 import static javax.servlet.DispatcherType.REQUEST;
-import static org.jboss.shamrock.annotations.ExecutionTime.RUNTIME_INIT;
-import static org.jboss.shamrock.annotations.ExecutionTime.STATIC_INIT;
+import static org.jboss.shamrock.deployment.annotations.ExecutionTime.RUNTIME_INIT;
+import static org.jboss.shamrock.deployment.annotations.ExecutionTime.STATIC_INIT;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -86,9 +86,8 @@ import org.jboss.metadata.web.spec.ServletSecurityMetaData;
 import org.jboss.metadata.web.spec.ServletsMetaData;
 import org.jboss.metadata.web.spec.TransportGuaranteeType;
 import org.jboss.metadata.web.spec.WebMetaData;
-import org.jboss.shamrock.annotations.BuildProducer;
-import org.jboss.shamrock.annotations.BuildStep;
-import org.jboss.shamrock.annotations.Record;
+import org.jboss.shamrock.deployment.annotations.BuildStep;
+import org.jboss.shamrock.deployment.annotations.Record;
 import org.jboss.shamrock.deployment.ApplicationArchive;
 import org.jboss.shamrock.deployment.builditem.ApplicationArchivesBuildItem;
 import org.jboss.shamrock.deployment.builditem.ArchiveRootBuildItem;
@@ -138,9 +137,9 @@ public class UndertowBuildStep {
                                       ServletDeploymentBuildItem servletDeploymentBuildItem,
                                       List<HttpHandlerWrapperBuildItem> wrappers,
                                       ShutdownContextBuildItem shutdown,
-                                      BuildProducer<UndertowBuildItem> undertowProducer) throws Exception {
+                                      Consumer<UndertowBuildItem> undertowProducer) throws Exception {
         RuntimeValue<Undertow> ut = template.startUndertow(shutdown, servletDeploymentBuildItem.getDeployment(), config, wrappers.stream().map(HttpHandlerWrapperBuildItem::getValue).collect(Collectors.toList()));
-        undertowProducer.produce(new UndertowBuildItem(ut));
+        undertowProducer.accept(new UndertowBuildItem(ut));
         return new ServiceStartBuildItem("undertow");
     }
 
@@ -180,9 +179,9 @@ public class UndertowBuildStep {
                                             List<ServletExtensionBuildItem> extensions,
                                             InjectionFactoryBuildItem injectionFactory,
                                             InjectionFactoryBuildItem bc,
-                                            BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) throws Exception {
+                                            Consumer<ReflectiveClassBuildItem> reflectiveClasses) throws Exception {
 
-        reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, DefaultServlet.class.getName(), "io.undertow.server.protocol.http.HttpRequestParser$$generated"));
+        reflectiveClasses.accept(new ReflectiveClassBuildItem(false, false, DefaultServlet.class.getName(), "io.undertow.server.protocol.http.HttpRequestParser$$generated"));
 
         //we need to check for web resources in order to get welcome files to work
         //this kinda sucks
@@ -227,7 +226,7 @@ public class UndertowBuildStep {
         //add servlets
         if (result.getServlets() != null) {
             for (ServletMetaData servlet : result.getServlets()) {
-                reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, servlet.getServletClass()));
+                reflectiveClasses.accept(new ReflectiveClassBuildItem(false, false, servlet.getServletClass()));
                 RuntimeValue<ServletInfo> sref = template.registerServlet(deployment, servlet.getServletName(),
                         context.classProxy(servlet.getServletClass()),
                         servlet.isAsyncSupported(),
@@ -283,7 +282,7 @@ public class UndertowBuildStep {
         //filters
         if (result.getFilters() != null) {
             for (FilterMetaData filter : result.getFilters()) {
-                reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, filter.getFilterClass()));
+                reflectiveClasses.accept(new ReflectiveClassBuildItem(false, false, filter.getFilterClass()));
                 RuntimeValue<FilterInfo> sref = template.registerFilter(deployment,
                         filter.getFilterName(),
                         context.classProxy(filter.getFilterClass()),
@@ -314,7 +313,7 @@ public class UndertowBuildStep {
         //listeners
         if (result.getListeners() != null) {
             for (ListenerMetaData listener : result.getListeners()) {
-                reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, listener.getListenerClass()));
+                reflectiveClasses.accept(new ReflectiveClassBuildItem(false, false, listener.getListenerClass()));
                 template.registerListener(deployment, context.classProxy(listener.getListenerClass()), injectionFactory.getFactory());
             }
         }
@@ -322,7 +321,7 @@ public class UndertowBuildStep {
         for (ServletBuildItem servlet : servlets) {
             String servletClass = servlet.getServletClass();
             if (servlet.getLoadOnStartup() == 0) {
-                reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, servlet.getServletClass()));
+                reflectiveClasses.accept(new ReflectiveClassBuildItem(false, false, servlet.getServletClass()));
             }
             template.registerServlet(deployment, servlet.getName(), context.classProxy(servletClass), servlet.isAsyncSupported(), servlet.getLoadOnStartup(), injectionFactory.getFactory());
 
@@ -333,7 +332,7 @@ public class UndertowBuildStep {
 
         for (FilterBuildItem filter : filters) {
             String filterClass = filter.getFilterClass();
-            reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, filterClass));
+            reflectiveClasses.accept(new ReflectiveClassBuildItem(false, false, filterClass));
             template.registerFilter(deployment, filter.getName(), context.classProxy(filterClass), filter.isAsyncSupported(), injectionFactory.getFactory());
             for (FilterBuildItem.FilterMappingInfo m : filter.getMappings()) {
                 if (m.getMappingType() == FilterBuildItem.FilterMappingInfo.MappingType.URL) {

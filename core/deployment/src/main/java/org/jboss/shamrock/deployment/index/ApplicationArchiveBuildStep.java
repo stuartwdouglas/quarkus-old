@@ -38,18 +38,18 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.IndexReader;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
-import org.jboss.shamrock.annotations.BuildStep;
+import org.jboss.shamrock.deployment.annotations.BuildStep;
 import org.jboss.shamrock.deployment.ApplicationArchive;
 import org.jboss.shamrock.deployment.ApplicationArchiveImpl;
 import org.jboss.shamrock.deployment.builditem.AdditionalApplicationArchiveMarkerBuildItem;
 import org.jboss.shamrock.deployment.builditem.ApplicationArchivesBuildItem;
 import org.jboss.shamrock.deployment.builditem.ApplicationIndexBuildItem;
 import org.jboss.shamrock.deployment.builditem.ArchiveRootBuildItem;
+import org.jboss.shamrock.runtime.annotations.ConfigItem;
 
 public class ApplicationArchiveBuildStep {
 
@@ -59,8 +59,8 @@ public class ApplicationArchiveBuildStep {
      * Artifacts on the class path that should also be indexed, which will allow classes in the index to be
      * processed by shamrocks processors
      */
-    @ConfigProperty(name = "shamrock.index-dependency")
-    Map<String, IndexDependencyConfig> depsToIndex;
+    @ConfigItem
+    Map<String, IndexDependencyConfig> indexDependency;
 
 
     @BuildStep
@@ -80,7 +80,7 @@ public class ApplicationArchiveBuildStep {
 
         Set<Path> dependenciesToIndex = new HashSet<>();
         //get paths that are included via index-dependencies
-        dependenciesToIndex.addAll(getIndexDependencyPaths(depsToIndex, classLoader));
+        dependenciesToIndex.addAll(getIndexDependencyPaths(indexDependency, classLoader));
         //get paths that are included via marker files
         Set<String> markers = new HashSet<>(applicationArchiveFiles);
         markers.add(JANDEX_INDEX);
@@ -99,7 +99,7 @@ public class ApplicationArchiveBuildStep {
         try {
             List<Path> ret = new ArrayList<>();
 
-            for (Map.Entry<String, IndexDependencyConfig> entry : depsToIndex.entrySet()) {
+            for (Map.Entry<String, IndexDependencyConfig> entry : indexDependency.entrySet()) {
                 Path path;
                 if (entry.getValue().classifier.isEmpty()) {
                     path = artifactIndex.getPath(entry.getValue().groupId, entry.getValue().artifactId, null);

@@ -16,7 +16,7 @@
 
 package org.jboss.shamrock.opentracing.runtime;
 
-import org.jboss.shamrock.runtime.Template;
+import org.jboss.shamrock.runtime.annotations.Template;
 
 import io.opentracing.util.GlobalTracer;
 

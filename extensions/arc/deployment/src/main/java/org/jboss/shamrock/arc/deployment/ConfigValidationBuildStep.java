@@ -10,7 +10,7 @@ import org.jboss.jandex.Type;
 import org.jboss.protean.arc.processor.BeanDeploymentValidator;
 import org.jboss.protean.arc.processor.DotNames;
 import org.jboss.protean.arc.processor.InjectionPointInfo;
-import org.jboss.shamrock.annotations.BuildStep;
+import org.jboss.shamrock.deployment.annotations.BuildStep;
 
 /**
  * TODO: we should move this to the core-deployment module

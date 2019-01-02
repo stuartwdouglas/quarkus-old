@@ -19,7 +19,7 @@ package org.jboss.shamrock.jpa;
 import java.util.Objects;
 
 import org.hibernate.type.EnumType;
-import org.jboss.shamrock.annotations.BuildProducer;
+import org.jboss.shamrock.deployment.annotations.BuildProducer;
 import org.jboss.shamrock.deployment.builditem.substrate.ReflectiveClassBuildItem;
 
 /**

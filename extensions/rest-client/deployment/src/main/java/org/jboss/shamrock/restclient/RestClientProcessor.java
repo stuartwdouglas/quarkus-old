@@ -43,8 +43,8 @@ import org.jboss.protean.gizmo.MethodDescriptor;
 import org.jboss.protean.gizmo.ResultHandle;
 import org.jboss.resteasy.client.jaxrs.internal.proxy.ResteasyClientProxy;
 import org.jboss.resteasy.spi.ResteasyConfiguration;
-import org.jboss.shamrock.annotations.BuildStep;
-import org.jboss.shamrock.annotations.BuildProducer;
+import org.jboss.shamrock.deployment.annotations.BuildStep;
+import org.jboss.shamrock.deployment.annotations.BuildProducer;
 import javax.inject.Inject;
 
 import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;

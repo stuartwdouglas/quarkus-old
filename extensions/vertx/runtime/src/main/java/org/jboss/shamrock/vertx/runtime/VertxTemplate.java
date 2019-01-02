@@ -1,6 +1,6 @@
 package org.jboss.shamrock.vertx.runtime;
 
-import org.jboss.shamrock.runtime.Template;
+import org.jboss.shamrock.runtime.annotations.Template;
 import org.jboss.shamrock.runtime.cdi.BeanContainerListener;
 
 @Template

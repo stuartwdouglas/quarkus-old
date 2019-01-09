@@ -19,6 +19,7 @@ package org.jboss.builder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.jboss.builder.item.BuildItem;
 import org.jboss.builder.item.NamedBuildItem;
@@ -383,5 +384,12 @@ public final class BuildStepBuilder {
         builder.append(buildStep);
         builder.append("]");
         return builder.toString();
+    }
+
+    /**
+     * Used by the BuildAnnotationProcessor to have let expressions
+     */
+    public static <Arg, Ret> Ret let(Arg arg, Function<Arg, Ret> f) {
+        return f.apply(arg);
     }
 }

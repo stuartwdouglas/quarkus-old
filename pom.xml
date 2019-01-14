@@ -52,22 +52,6 @@
         <module>core</module>
         <module>test-framework</module>
 
-        <!-- External projects -->
-        <module>ext/gizmo</module>
-        <module>ext/arc</module>
-        <module>ext/hibernate-orm-protean</module>
-        <module>ext/panache</module>
-
-        <!-- Plumbing -->
-        <module>arc</module>
-        <module>scheduler</module>
-        <module>panache</module>
-
-        <!-- HTTP -->
-        <module>undertow</module>
-        <module>openssl</module>
-        <module>websockets</module>
-
         <!-- Extensions -->
         <module>extensions</module>
 
@@ -77,6 +61,7 @@
         <module>independent-projects/hibernate-orm-protean</module>
         <module>independent-projects/jboss-logmanager-embedded</module>
         <module>independent-projects/jboss-logging-embedded</module>
+        <module>independent-projects/panache</module>
 
         <!-- Maven -->
         <module>maven</module>

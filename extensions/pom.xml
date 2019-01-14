@@ -62,12 +62,14 @@
         <module>jdbc</module>
         <module>jpa</module>
         <module>bean-validation</module>
+	<module>panache</module>
 
         <!-- Spring -->
         <module>spring-di</module>
 
         <!-- Security -->
         <module>security</module>
+
     </modules>
 
 </project>

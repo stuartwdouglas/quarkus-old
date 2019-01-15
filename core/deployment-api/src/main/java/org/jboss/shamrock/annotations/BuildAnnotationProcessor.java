@@ -355,6 +355,8 @@ public class BuildAnnotationProcessor extends AbstractProcessor {
                     buildProviderWriter.append("    arg1.produce("+buildItem+");\n");
                 }
 
+                buildProviderWriter.append("   }catch(RuntimeException x){\n");
+                buildProviderWriter.append("     throw x;\n");
                 buildProviderWriter.append("   }catch(Exception x){\n");
                 buildProviderWriter.append("     throw new RuntimeException(\"Failed to process build step\", x);\n");
                 buildProviderWriter.append("   }\n");

@@ -202,7 +202,7 @@ public final class ExtensionStepLoader {
                 } else if (parameter.getType().isAnnotationPresent(ConfigGroup.class) || parameter.getType() == Map.class && rawTypeOfParameter(parameterType, 0) == String.class) {
                     consumingConfig = true;
                     String address = addressOfConfig(parameter);
-                    registrationItems.add(new ConfigurationRegistrationBuildItem(parameter.getType(), address));
+                    registrationItems.add(new ConfigurationRegistrationBuildItem(parameter.getParameterizedType(), address));
                     ctorParamFns.add(bc -> bc.consume(ConfigurationBuildItem.class).getConfigurationObject(address));
                     stepInstanceSetup = stepInstanceSetup.andThen((bc, o) -> bc.produce(new ConfigurationKeyBuildItem(address)));
                 } else if (isTemplate(parameter.getType())) {
@@ -261,7 +261,7 @@ public final class ExtensionStepLoader {
             } else if (field.getType().isAnnotationPresent(ConfigGroup.class) || field.getType() == Map.class && rawTypeOfParameter(fieldType, 0) == String.class) {
                 consumingConfig = true;
                 String address = addressOfConfig(field);
-                registrationItems.add(new ConfigurationRegistrationBuildItem(field.getType(), address));
+                registrationItems.add(new ConfigurationRegistrationBuildItem(field.getGenericType(), address));
                 stepInstanceSetup = stepInstanceSetup.andThen((bc, o) -> ReflectUtil.setFieldVal(field, o, bc.consume(ConfigurationBuildItem.class).getConfigurationObject(address)));
                 stepInstanceSetup = stepInstanceSetup.andThen((bc, o) -> bc.produce(new ConfigurationKeyBuildItem(address)));
             } else if (isTemplate(field.getType())) {
@@ -341,7 +341,7 @@ public final class ExtensionStepLoader {
                             methodStepConfig = methodStepConfig.andThen(bsb -> bsb.produces(ConfigurationRunTimeKeyBuildItem.class, ProduceFlag.WEAK));
                         }
                         String address = addressOfConfig(parameter);
-                        registrationItems.add(new ConfigurationRegistrationBuildItem(parameter.getType(), address));
+                        registrationItems.add(new ConfigurationRegistrationBuildItem(parameter.getParameterizedType(), address));
                         methodParamFns.add((bc, bri) -> bc.consume(ConfigurationBuildItem.class).getConfigurationObject(address));
                     } else if (isTemplate(parameter.getType())) {
                         if (! isRecorder) {
@@ -368,7 +368,7 @@ public final class ExtensionStepLoader {
                 resultConsumer = Functions.discardingBiConsumer();
             } else if (rawTypeExtends(returnType, BuildItem.class)) {
                 methodStepConfig = methodStepConfig.andThen(bsb -> bsb.produces(method.getReturnType().asSubclass(BuildItem.class)));
-                resultConsumer = (bc, o) -> bc.produce((BuildItem) o);
+                resultConsumer = (bc, o) -> {if( o != null) bc.produce((BuildItem) o);};
             } else if (isOptionalOf(returnType, BuildItem.class)) {
                 methodStepConfig = methodStepConfig.andThen(bsb -> bsb.produces(rawTypeOfParameter(returnType, 0).asSubclass(BuildItem.class)));
                 resultConsumer = (bc, o) -> ((Optional<? extends BuildItem>) o).ifPresent(bc::produce);
@@ -440,7 +440,7 @@ public final class ExtensionStepLoader {
             })));
         }
         if (! registrationItems.isEmpty()) {
-            chainConfig = chainConfig.andThen(bcb -> bcb.addBuildStep(bc -> bc.produce(registrationItems)).produces(ConfigurationRegistrationBuildItem.class, ProduceFlag.WEAK).build());
+            chainConfig = chainConfig.andThen(bcb -> bcb.addBuildStep(bc -> bc.produce(registrationItems)).produces(ConfigurationRegistrationBuildItem.class).build());
         }
         return chainConfig;
     }

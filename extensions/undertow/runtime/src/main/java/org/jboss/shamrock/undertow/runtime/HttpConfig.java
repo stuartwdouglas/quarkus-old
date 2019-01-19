@@ -48,7 +48,7 @@ public class HttpConfig {
      * The number if IO threads used to perform IO. This will be automatically set to a reasonable value based on
      * the number of CPU cores if it is not provided
      */
-    @ConfigProperty
+    @ConfigItem
     public OptionalInt ioThreads;
 
 }

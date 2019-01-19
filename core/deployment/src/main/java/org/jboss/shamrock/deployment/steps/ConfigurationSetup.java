@@ -81,7 +81,7 @@ public class ConfigurationSetup {
             final Class<?> rawType = rawTypeOf(type);
             if (rawType == Map.class) {
                 // check key type
-                processMap(NO_CONTAINING_NAME, configDefinition, true, baseKey, rawType);
+                processMap(NO_CONTAINING_NAME, configDefinition, true, baseKey, type);
             } else if (rawType.isAnnotationPresent(ConfigGroup.class)) {
                 processConfigGroup(NO_CONTAINING_NAME, configDefinition, true, baseKey, rawType);
             }
@@ -101,59 +101,54 @@ public class ConfigurationSetup {
         GroupConfigType gct = new GroupConfigType(containingName, container, consumeSegment, configGroupClass);
         final Field[] fields = configGroupClass.getDeclaredFields();
         for (Field field : fields) {
-            if (field.isAnnotationPresent(ConfigItem.class)) {
-                final ConfigItem configItemAnnotation = field.getAnnotation(ConfigItem.class);
-                final String name = configItemAnnotation.name();
-                String subKey;
-                boolean consume;
-                if (name.equals(ConfigItem.PARENT)) {
-                    subKey = baseKey;
-                    consume = false;
-                } else if (name.equals(ConfigItem.ELEMENT_NAME)) {
-                    subKey = baseKey + "." + field.getName();
-                    consume = true;
-                } else if (name.equals(ConfigItem.HYPHENATED_ELEMENT_NAME)) {
-                    subKey = baseKey + "." + StringUtil.hyphenate(field.getName());
-                    consume = true;
-                } else {
-                    subKey = baseKey + "." + name;
-                    consume = true;
-                }
-                final String defaultValue = configItemAnnotation.defaultValue();
-                final Type fieldType = field.getGenericType();
-                final Class<?> fieldClass = field.getType();
-                if (fieldClass.isAnnotationPresent(ConfigGroup.class)) {
-                    if (! defaultValue.equals(ConfigItem.NO_DEFAULT)) {
-                        throw new IllegalArgumentException("Default value cannot be given for a config group");
-                    }
-                    gct.addField(processConfigGroup(field.getName(), gct, consume, subKey, fieldClass));
-                } else if (fieldClass.isPrimitive()) {
-                    if (fieldClass == boolean.class) {
-                        gct.addField(new BooleanConfigType(field.getName(), gct, consume, defaultValue));
-                    } else if (fieldClass == int.class) {
-                        gct.addField(new IntConfigType(field.getName(), gct, consume, defaultValue));
-                    } else {
-                        throw new IllegalArgumentException("Unsupported primitive field type on " + field + " of " + configGroupClass);
-                    }
-                } else if (fieldClass == Map.class) {
-                    if (rawTypeOfParameter(fieldType, 0) != String.class) {
-                        throw new IllegalArgumentException("Map key must be " + String.class + " on field " + field + " of configuration " + configGroupClass);
-                    }
-                    gct.addField(processMap(field.getName(), gct, consume, subKey, typeOfParameter(fieldType, 1)));
-                } else if (fieldClass == List.class) {
-                    // list leaf class
-                    final Class<?> listType = rawTypeOfParameter(fieldType, 0);
-                    gct.addField(new ObjectListConfigType(field.getName(), gct, consume, defaultValue, listType));
-                } else if (fieldClass == Optional.class) {
-                    // optional config property
-                    gct.addField(new OptionalObjectConfigType(field.getName(), gct, consume, defaultValue, rawTypeOfParameter(fieldType, 1)));
-                } else {
-                    // it's a plain config property
-                    gct.addField(new ObjectConfigType(field.getName(), gct, consume, defaultValue, fieldClass));
-                }
+            final ConfigItem configItemAnnotation = field.getAnnotation(ConfigItem.class);
+            final String name = configItemAnnotation == null ? ConfigItem.HYPHENATED_ELEMENT_NAME : configItemAnnotation.name();
+            String subKey;
+            boolean consume;
+            if (name.equals(ConfigItem.PARENT)) {
+                subKey = baseKey;
+                consume = false;
+            } else if (name.equals(ConfigItem.ELEMENT_NAME)) {
+                subKey = baseKey + "." + field.getName();
+                consume = true;
+            } else if (name.equals(ConfigItem.HYPHENATED_ELEMENT_NAME)) {
+                subKey = baseKey + "." + StringUtil.hyphenate(field.getName());
+                consume = true;
             } else {
-                // ???????????
-                throw new IllegalArgumentException("Unknown/unsupported field " + field + " found on configuration " + configGroupClass);
+                subKey = baseKey + "." + name;
+                consume = true;
+            }
+            final String defaultValue = configItemAnnotation == null ? ConfigItem.NO_DEFAULT : configItemAnnotation.defaultValue();
+            final Type fieldType = field.getGenericType();
+            final Class<?> fieldClass = field.getType();
+            if (fieldClass.isAnnotationPresent(ConfigGroup.class)) {
+                if (! defaultValue.equals(ConfigItem.NO_DEFAULT)) {
+                    throw new IllegalArgumentException("Default value cannot be given for a config group");
+                }
+                gct.addField(processConfigGroup(field.getName(), gct, consume, subKey, fieldClass));
+            } else if (fieldClass.isPrimitive()) {
+                if (fieldClass == boolean.class) {
+                    gct.addField(new BooleanConfigType(field.getName(), gct, consume, defaultValue));
+                } else if (fieldClass == int.class) {
+                    gct.addField(new IntConfigType(field.getName(), gct, consume, defaultValue));
+                } else {
+                    throw new IllegalArgumentException("Unsupported primitive field type on " + field + " of " + configGroupClass);
+                }
+            } else if (fieldClass == Map.class) {
+                if (rawTypeOfParameter(fieldType, 0) != String.class) {
+                    throw new IllegalArgumentException("Map key must be " + String.class + " on field " + field + " of configuration " + configGroupClass);
+                }
+                gct.addField(processMap(field.getName(), gct, consume, subKey, typeOfParameter(fieldType, 1)));
+            } else if (fieldClass == List.class) {
+                // list leaf class
+                final Class<?> listType = rawTypeOfParameter(fieldType, 0);
+                gct.addField(new ObjectListConfigType(field.getName(), gct, consume, defaultValue, listType));
+            } else if (fieldClass == Optional.class) {
+                // optional config property
+                gct.addField(new OptionalObjectConfigType(field.getName(), gct, consume, defaultValue, rawTypeOfParameter(fieldType, 0)));
+            } else {
+                // it's a plain config property
+                gct.addField(new ObjectConfigType(field.getName(), gct, consume, defaultValue, fieldClass));
             }
         }
         return gct;

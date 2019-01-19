@@ -43,7 +43,7 @@ public @interface ConfigItem {
      *
      * @return the name
      */
-    String name() default ELEMENT_NAME;
+    String name() default HYPHENATED_ELEMENT_NAME;
 
     /**
      * Specify the default value of the configuration item, if none is found in the configuration.

@@ -81,11 +81,13 @@ public final class LoggingResourceProcessor {
         /**
          * Console logging config
          */
+        @ConfigItem
         ConsoleConfig console;
 
         /**
          * File logging config
          */
+        @ConfigItem
         FileConfig file;
     }
 

@@ -17,7 +17,7 @@ public class SslConfig {
     @BuildStep
     SystemPropertyBuildItem setupNativeSsl() {
         String graalVmHome = System.getenv("GRAALVM_HOME");
-        if(enableSsl.value) {
+        if(enableSsl != null && enableSsl.value) {
             // I assume we only fail if we actually enable it, but perhaps there's a no-native called that we can't
             // see here?
             

@@ -92,6 +92,12 @@
             <groupId>org.jboss.shamrock</groupId>
             <artifactId>shamrock-builder</artifactId>
         </dependency>
+        <dependency>
+            <!-- This is a hack to make the project build in the correct order-->
+            <groupId>org.jboss.shamrock</groupId>
+            <artifactId>shamrock-extension-processor</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

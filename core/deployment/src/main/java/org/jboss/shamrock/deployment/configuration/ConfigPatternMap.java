@@ -116,7 +116,7 @@ public final class ConfigPatternMap<T> implements Iterable<T> {
     }
 
     public PatternIterator<T> iterator() {
-        return new PatternIterator<T>(children, this);
+        return new PatternIterator<T>(children, null);
     }
 
     public static class PatternIterator<T> implements Iterator<T> {

@@ -18,6 +18,7 @@ package org.jboss.shamrock.undertow.test;
 
 import static org.hamcrest.Matchers.is;
 
+import io.restassured.RestAssured;
 import org.jboss.shamrock.test.Deployment;
 import org.jboss.shamrock.test.ShamrockUnitTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -25,22 +26,16 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.restassured.RestAssured;
-
 @RunWith(ShamrockUnitTest.class)
 public class AnnotationServletTestCase {
 
-    @Deployment
-    public static JavaArchive deploy() {
-        return ShrinkWrap.create(JavaArchive.class)
-                .addClasses(TestServlet.class);
-    }
+  @Deployment
+  public static JavaArchive deploy() {
+    return ShrinkWrap.create(JavaArchive.class).addClasses(TestServlet.class);
+  }
 
-    @Test
-    public void testServlet() {
-        RestAssured.when().get("/test").then()
-                .statusCode(200)
-                .body(is("test servlet"));
-    }
-
+  @Test
+  public void testServlet() {
+    RestAssured.when().get("/test").then().statusCode(200).body(is("test servlet"));
+  }
 }

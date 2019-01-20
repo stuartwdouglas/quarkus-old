@@ -16,56 +16,54 @@
 
 package org.jboss.logmanager.handlers;
 
-import java.io.Writer;
 import java.io.IOException;
+import java.io.Writer;
 
-/**
- * An output stream wrapper which drops calls to the {@code close()} method.
- */
+/** An output stream wrapper which drops calls to the {@code close()} method. */
 public final class UncloseableWriter extends Writer {
-    private final Writer delegate;
+  private final Writer delegate;
 
-    public UncloseableWriter(final Writer delegate) {
-        this.delegate = delegate;
-    }
+  public UncloseableWriter(final Writer delegate) {
+    this.delegate = delegate;
+  }
 
-    public void write(final int c) throws IOException {
-        delegate.write(c);
-    }
+  public void write(final int c) throws IOException {
+    delegate.write(c);
+  }
 
-    public void write(final char[] cbuf) throws IOException {
-        delegate.write(cbuf);
-    }
+  public void write(final char[] cbuf) throws IOException {
+    delegate.write(cbuf);
+  }
 
-    public void write(final char[] cbuf, final int off, final int len) throws IOException {
-        delegate.write(cbuf, off, len);
-    }
+  public void write(final char[] cbuf, final int off, final int len) throws IOException {
+    delegate.write(cbuf, off, len);
+  }
 
-    public void write(final String str) throws IOException {
-        delegate.write(str);
-    }
+  public void write(final String str) throws IOException {
+    delegate.write(str);
+  }
 
-    public void write(final String str, final int off, final int len) throws IOException {
-        delegate.write(str, off, len);
-    }
+  public void write(final String str, final int off, final int len) throws IOException {
+    delegate.write(str, off, len);
+  }
 
-    public Writer append(final CharSequence csq) throws IOException {
-        return delegate.append(csq);
-    }
+  public Writer append(final CharSequence csq) throws IOException {
+    return delegate.append(csq);
+  }
 
-    public Writer append(final CharSequence csq, final int start, final int end) throws IOException {
-        return delegate.append(csq, start, end);
-    }
+  public Writer append(final CharSequence csq, final int start, final int end) throws IOException {
+    return delegate.append(csq, start, end);
+  }
 
-    public Writer append(final char c) throws IOException {
-        return delegate.append(c);
-    }
+  public Writer append(final char c) throws IOException {
+    return delegate.append(c);
+  }
 
-    public void flush() throws IOException {
-        delegate.flush();
-    }
+  public void flush() throws IOException {
+    delegate.flush();
+  }
 
-    public void close() {
-        // ignore
-    }
+  public void close() {
+    // ignore
+  }
 }

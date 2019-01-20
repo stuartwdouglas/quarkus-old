@@ -32,7 +32,6 @@ import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
-
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaCompiler;
@@ -48,91 +47,98 @@ import javax.tools.ToolProvider;
  */
 public class ClassLoaderCompiler {
 
-    private final File outputDirectory;
-    private final Set<File> classPath;
+  private final File outputDirectory;
+  private final Set<File> classPath;
 
-    public ClassLoaderCompiler(ClassLoader classLoader, File outputDirectory) throws IOException {
-        this.outputDirectory = outputDirectory;
+  public ClassLoaderCompiler(ClassLoader classLoader, File outputDirectory) throws IOException {
+    this.outputDirectory = outputDirectory;
 
-        List<URL> urls = new ArrayList<>();
-        ClassLoader c = classLoader;
-        while (c != null) {
-            if (c instanceof URLClassLoader) {
-                urls.addAll(Arrays.asList(((URLClassLoader) c).getURLs()));
-            }
-            c = c.getParent();
-        }
+    List<URL> urls = new ArrayList<>();
+    ClassLoader c = classLoader;
+    while (c != null) {
+      if (c instanceof URLClassLoader) {
+        urls.addAll(Arrays.asList(((URLClassLoader) c).getURLs()));
+      }
+      c = c.getParent();
+    }
 
-        Set<String> parsedFiles = new HashSet<>();
-        Deque<String> toParse = new ArrayDeque<>();
-        for (URL url : urls) {
-            toParse.add(new File(url.getPath()).getAbsolutePath());
-        }
-        Set<File> classPathElements = new HashSet<>();
-        classPathElements.add(outputDirectory);
-        while (!toParse.isEmpty()) {
-            String s = toParse.poll();
-            if (!parsedFiles.contains(s)) {
-                parsedFiles.add(s);
-                File file = new File(s);
-                if (file.exists() && file.getName().endsWith(".jar")) {
-                    classPathElements.add(file);
-                    if(!file.isDirectory() && file.getName().endsWith(".jar")) {
-                        try (JarFile jar = new JarFile(file)) {
-                            Manifest mf = jar.getManifest();
-                            if(mf == null || mf.getMainAttributes() == null) {
-                                continue;
-                            }
-                            Object classPath = mf.getMainAttributes().get(Attributes.Name.CLASS_PATH);
-                            if (classPath != null) {
-                                for (String i : classPath.toString().split(" ")) {
-                                    File f;
-                                    try {
-                                        URL u = new URL(i);
-                                        f = new File(u.getPath());
-                                    } catch (MalformedURLException e) {
-                                        f = new File(file.getParentFile(), i);
-                                    }
-                                    if (f.exists()) {
-                                        toParse.add(f.getAbsolutePath());
-                                    }
-                                }
-                            }
-                        } catch (Exception e) {
-                            throw new RuntimeException("Failed to open class path file " + file, e);
-                        }
-                    }
+    Set<String> parsedFiles = new HashSet<>();
+    Deque<String> toParse = new ArrayDeque<>();
+    for (URL url : urls) {
+      toParse.add(new File(url.getPath()).getAbsolutePath());
+    }
+    Set<File> classPathElements = new HashSet<>();
+    classPathElements.add(outputDirectory);
+    while (!toParse.isEmpty()) {
+      String s = toParse.poll();
+      if (!parsedFiles.contains(s)) {
+        parsedFiles.add(s);
+        File file = new File(s);
+        if (file.exists() && file.getName().endsWith(".jar")) {
+          classPathElements.add(file);
+          if (!file.isDirectory() && file.getName().endsWith(".jar")) {
+            try (JarFile jar = new JarFile(file)) {
+              Manifest mf = jar.getManifest();
+              if (mf == null || mf.getMainAttributes() == null) {
+                continue;
+              }
+              Object classPath = mf.getMainAttributes().get(Attributes.Name.CLASS_PATH);
+              if (classPath != null) {
+                for (String i : classPath.toString().split(" ")) {
+                  File f;
+                  try {
+                    URL u = new URL(i);
+                    f = new File(u.getPath());
+                  } catch (MalformedURLException e) {
+                    f = new File(file.getParentFile(), i);
+                  }
+                  if (f.exists()) {
+                    toParse.add(f.getAbsolutePath());
+                  }
                 }
+              }
+            } catch (Exception e) {
+              throw new RuntimeException("Failed to open class path file " + file, e);
             }
+          }
         }
-        this.classPath = classPathElements;
+      }
     }
+    this.classPath = classPathElements;
+  }
 
-    public void compile(Set<File> filesToCompile) {
+  public void compile(Set<File> filesToCompile) {
 
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        if (compiler == null) {
-            throw new RuntimeException("No system java compiler provided");
-        }
-        DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
-        try (StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, null);) {
-
-
-            fileManager.setLocation(StandardLocation.CLASS_PATH, classPath);
-            fileManager.setLocation(StandardLocation.CLASS_OUTPUT, Collections.singleton(outputDirectory));
-
-            Iterable<? extends JavaFileObject> sources = fileManager.getJavaFileObjectsFromFiles(filesToCompile);
-            JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnostics, null, null, sources);
-
-            if (!task.call()) {
-                throw new RuntimeException("Compilation failed" + diagnostics.getDiagnostics());
-            }
-
-            for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
-                System.out.format("%s, line %d in %s", diagnostic.getMessage(null), diagnostic.getLineNumber(), diagnostic.getSource().getName());
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Cannot close file manager", e);
-        }
+    JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+    if (compiler == null) {
+      throw new RuntimeException("No system java compiler provided");
     }
+    DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
+    try (StandardJavaFileManager fileManager =
+        compiler.getStandardFileManager(diagnostics, null, null); ) {
+
+      fileManager.setLocation(StandardLocation.CLASS_PATH, classPath);
+      fileManager.setLocation(
+          StandardLocation.CLASS_OUTPUT, Collections.singleton(outputDirectory));
+
+      Iterable<? extends JavaFileObject> sources =
+          fileManager.getJavaFileObjectsFromFiles(filesToCompile);
+      JavaCompiler.CompilationTask task =
+          compiler.getTask(null, fileManager, diagnostics, null, null, sources);
+
+      if (!task.call()) {
+        throw new RuntimeException("Compilation failed" + diagnostics.getDiagnostics());
+      }
+
+      for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
+        System.out.format(
+            "%s, line %d in %s",
+            diagnostic.getMessage(null),
+            diagnostic.getLineNumber(),
+            diagnostic.getSource().getName());
+      }
+    } catch (IOException e) {
+      throw new RuntimeException("Cannot close file manager", e);
+    }
+  }
 }

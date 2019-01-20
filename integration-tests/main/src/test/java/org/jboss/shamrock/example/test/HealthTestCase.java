@@ -19,27 +19,32 @@ package org.jboss.shamrock.example.test;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 
+import io.restassured.RestAssured;
+import io.restassured.parsing.Parser;
 import org.jboss.shamrock.test.ShamrockTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.restassured.RestAssured;
-import io.restassured.parsing.Parser;
-
 @RunWith(ShamrockTest.class)
 public class HealthTestCase {
 
-    @Test
-    public void testHealthCheck() {
-        // the health check does not set a content type so we need to force the parser
-        try {
-            RestAssured.defaultParser = Parser.JSON;
-            RestAssured.when().get("/health").then()
-                    .body("outcome", is("UP"),
-                            "checks.state", contains("UP"),
-                            "checks.name", contains("basic"));
-        } finally {
-            RestAssured.reset();
-        }
+  @Test
+  public void testHealthCheck() {
+    // the health check does not set a content type so we need to force the parser
+    try {
+      RestAssured.defaultParser = Parser.JSON;
+      RestAssured.when()
+          .get("/health")
+          .then()
+          .body(
+              "outcome",
+              is("UP"),
+              "checks.state",
+              contains("UP"),
+              "checks.name",
+              contains("basic"));
+    } finally {
+      RestAssured.reset();
     }
+  }
 }

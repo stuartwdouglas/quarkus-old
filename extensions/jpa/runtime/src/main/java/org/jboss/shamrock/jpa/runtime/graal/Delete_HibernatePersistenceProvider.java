@@ -21,5 +21,4 @@ import com.oracle.svm.core.annotate.TargetClass;
 
 @TargetClass(className = "org.hibernate.jpa.HibernatePersistenceProvider")
 @Delete
-public final class Delete_HibernatePersistenceProvider {
-}
+public final class Delete_HibernatePersistenceProvider {}

@@ -17,11 +17,8 @@
 
 package org.jboss.shamrock.creator.config.reader;
 
-/**
- *
- * @author Alexey Loubyansky
- */
+/** @author Alexey Loubyansky */
 public interface PropertyLineConverter<T> {
 
-    PropertyLine toPropertyLine(T t) throws PropertiesConfigReaderException;
+  PropertyLine toPropertyLine(T t) throws PropertiesConfigReaderException;
 }

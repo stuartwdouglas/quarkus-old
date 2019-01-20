@@ -16,19 +16,18 @@
 
 package org.jboss.shamrock.undertow;
 
-import org.jboss.builder.item.SimpleBuildItem;
-
 import io.undertow.servlet.api.Deployment;
+import org.jboss.builder.item.SimpleBuildItem;
 
 public final class ServletDeploymentBuildItem extends SimpleBuildItem {
 
-    private final Deployment deployment;
+  private final Deployment deployment;
 
-    public ServletDeploymentBuildItem(Deployment deployment) {
-        this.deployment = deployment;
-    }
+  public ServletDeploymentBuildItem(Deployment deployment) {
+    this.deployment = deployment;
+  }
 
-    public Deployment getDeployment() {
-        return deployment;
-    }
+  public Deployment getDeployment() {
+    return deployment;
+  }
 }

@@ -16,26 +16,23 @@
 
 package org.jboss.shamrock.openapi.runtime;
 
+import io.smallrye.openapi.api.OpenApiDocument;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Produces;
 
-import io.smallrye.openapi.api.OpenApiDocument;
-
-/**
- * @author Ken Finnigan
- */
+/** @author Ken Finnigan */
 @ApplicationScoped
 public class OpenApiDocumentProducer {
-    private OpenApiDocument document;
+  private OpenApiDocument document;
 
-    @Produces
-    @Dependent
-    OpenApiDocument openApiDocument() {
-        return this.document;
-    }
+  @Produces
+  @Dependent
+  OpenApiDocument openApiDocument() {
+    return this.document;
+  }
 
-    void setDocument(OpenApiDocument document) {
-        this.document = document;
-    }
+  void setDocument(OpenApiDocument document) {
+    this.document = document;
+  }
 }

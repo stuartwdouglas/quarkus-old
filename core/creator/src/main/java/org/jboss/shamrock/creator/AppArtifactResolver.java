@@ -27,30 +27,30 @@ import java.util.List;
  */
 public interface AppArtifactResolver {
 
-    /**
-     * (Re-)links an artifact to a path.
-     *
-     * @param appArtifact  an artifact to (re-)link to the path
-     * @param localPath  local path to the artifact
-     * @throws AppCreatorException  in case of a failure
-     */
-    void relink(AppArtifact appArtifact, Path localPath) throws AppCreatorException;
+  /**
+   * (Re-)links an artifact to a path.
+   *
+   * @param appArtifact an artifact to (re-)link to the path
+   * @param localPath local path to the artifact
+   * @throws AppCreatorException in case of a failure
+   */
+  void relink(AppArtifact appArtifact, Path localPath) throws AppCreatorException;
 
-    /**
-     * Resolves an artifact.
-     *
-     * @param artifact  artifact to resolve
-     * @return  local path
-     * @throws AppCreatorException  in case of a failure
-     */
-    Path resolve(AppArtifact artifact) throws AppCreatorException;
+  /**
+   * Resolves an artifact.
+   *
+   * @param artifact artifact to resolve
+   * @return local path
+   * @throws AppCreatorException in case of a failure
+   */
+  Path resolve(AppArtifact artifact) throws AppCreatorException;
 
-    /**
-     * Collects artifact dependencies.
-     *
-     * @param artifact  root artifact
-     * @return  collected dependencies
-     * @throws AppCreatorException  in case of a failure
-     */
-    List<AppDependency> collectDependencies(AppArtifact artifact) throws AppCreatorException;
+  /**
+   * Collects artifact dependencies.
+   *
+   * @param artifact root artifact
+   * @return collected dependencies
+   * @throws AppCreatorException in case of a failure
+   */
+  List<AppDependency> collectDependencies(AppArtifact artifact) throws AppCreatorException;
 }

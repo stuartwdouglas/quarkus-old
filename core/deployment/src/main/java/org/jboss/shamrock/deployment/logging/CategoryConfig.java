@@ -22,15 +22,11 @@ import org.jboss.shamrock.runtime.ConfigGroup;
 @ConfigGroup
 public class CategoryConfig {
 
-    /**
-     * The minimum level that this category can be set to
-     */
-    @ConfigProperty(name = "min-level", defaultValue = "inherit")
-    String minLevel;
+  /** The minimum level that this category can be set to */
+  @ConfigProperty(name = "min-level", defaultValue = "inherit")
+  String minLevel;
 
-    /**
-     * The log level level for this category
-     */
-    @ConfigProperty(name = "level", defaultValue = "inherit")
-    String level;
+  /** The log level level for this category */
+  @ConfigProperty(name = "level", defaultValue = "inherit")
+  String level;
 }

@@ -24,27 +24,27 @@ import org.jboss.shamrock.deployment.builditem.ShutdownContextBuildItem;
 import org.jboss.shamrock.deployment.builditem.substrate.RuntimeInitializedClassBuildItem;
 import org.jboss.shamrock.runtime.ExecutorTemplate;
 
-/**
- */
+/** */
 public class ThreadPoolSetup {
 
-    @BuildStep
-    @Record(value = ExecutionTime.RUNTIME_INIT, optional = true)
-    public ExecutorBuildItem createExecutor(ExecutorTemplate setupTemplate, ShutdownContextBuildItem shutdownContextBuildItem) {
-        return new ExecutorBuildItem(setupTemplate.setupRunTime(
+  @BuildStep
+  @Record(value = ExecutionTime.RUNTIME_INIT, optional = true)
+  public ExecutorBuildItem createExecutor(
+      ExecutorTemplate setupTemplate, ShutdownContextBuildItem shutdownContextBuildItem) {
+    return new ExecutorBuildItem(
+        setupTemplate.setupRunTime(
             shutdownContextBuildItem,
             // build time default config constants - static method calls are not proxied
             ExecutorTemplate.getIntConfigVal(ExecutorTemplate.CORE_POOL_SIZE, -1),
             ExecutorTemplate.getIntConfigVal(ExecutorTemplate.MAX_POOL_SIZE, -1),
             ExecutorTemplate.getIntConfigVal(ExecutorTemplate.QUEUE_SIZE, Integer.MAX_VALUE),
             ExecutorTemplate.getFloatConfigVal(ExecutorTemplate.GROWTH_RESISTANCE, 0f),
-            ExecutorTemplate.getIntConfigVal(ExecutorTemplate.KEEP_ALIVE_MILLIS, 60_000)
-        ));
-    }
+            ExecutorTemplate.getIntConfigVal(ExecutorTemplate.KEEP_ALIVE_MILLIS, 60_000)));
+  }
 
-    @BuildStep
-    RuntimeInitializedClassBuildItem registerClasses() {
-        // make sure that the config provider gets initialized only at run time
-        return new RuntimeInitializedClassBuildItem(ExecutorTemplate.class.getName());
-    }
+  @BuildStep
+  RuntimeInitializedClassBuildItem registerClasses() {
+    // make sure that the config provider gets initialized only at run time
+    return new RuntimeInitializedClassBuildItem(ExecutorTemplate.class.getName());
+  }
 }

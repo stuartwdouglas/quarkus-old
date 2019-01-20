@@ -17,59 +17,57 @@
 package org.jboss.logmanager.formatters;
 
 import java.util.logging.Formatter;
-
 import org.jboss.logmanager.ExtLogRecord;
 
-/**
- * A compound format step.  Create via {@link FormatStep#createCompoundStep(FormatStep...)}.
- */
+/** A compound format step. Create via {@link FormatStep#createCompoundStep(FormatStep...)}. */
 public class CompoundFormatStep implements FormatStep {
-    private final FormatStep[] steps;
+  private final FormatStep[] steps;
 
-    protected CompoundFormatStep(final FormatStep[] clonedSteps) {
-        this.steps = clonedSteps;
-    }
+  protected CompoundFormatStep(final FormatStep[] clonedSteps) {
+    this.steps = clonedSteps;
+  }
 
-    public void render(final Formatter formatter, final StringBuilder builder, final ExtLogRecord record) {
-        for (FormatStep step : steps) {
-            step.render(formatter, builder, record);
-        }
+  public void render(
+      final Formatter formatter, final StringBuilder builder, final ExtLogRecord record) {
+    for (FormatStep step : steps) {
+      step.render(formatter, builder, record);
     }
+  }
 
-    public void render(final StringBuilder builder, final ExtLogRecord record) {
-        render(null, builder, record);
-    }
+  public void render(final StringBuilder builder, final ExtLogRecord record) {
+    render(null, builder, record);
+  }
 
-    public int estimateLength() {
-        int est = 0;
-        for (FormatStep step : steps) {
-            est += step.estimateLength();
-        }
-        return est;
+  public int estimateLength() {
+    int est = 0;
+    for (FormatStep step : steps) {
+      est += step.estimateLength();
     }
+    return est;
+  }
 
-    public boolean isCallerInformationRequired() {
-        for (FormatStep step : steps) {
-            if (step.isCallerInformationRequired()) {
-                return true;
-            }
-        }
-        return false;
+  public boolean isCallerInformationRequired() {
+    for (FormatStep step : steps) {
+      if (step.isCallerInformationRequired()) {
+        return true;
+      }
     }
+    return false;
+  }
 
-    public ItemType getItemType() {
-        return ItemType.COMPOUND;
-    }
+  public ItemType getItemType() {
+    return ItemType.COMPOUND;
+  }
 
-    public int childStepCount() {
-        return steps.length;
-    }
+  public int childStepCount() {
+    return steps.length;
+  }
 
-    public FormatStep getChildStep(final int idx) {
-        return steps[idx];
-    }
+  public FormatStep getChildStep(final int idx) {
+    return steps[idx];
+  }
 
-    public FormatStep[] childSteps() {
-        return steps.clone();
-    }
+  public FormatStep[] childSteps() {
+    return steps.clone();
+  }
 }

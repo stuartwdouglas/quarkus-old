@@ -17,29 +17,25 @@
 package org.jboss.shamrock.deployment;
 
 import java.util.Set;
-
 import org.jboss.builder.item.SimpleBuildItem;
 
-/**
- * The list of capabilities.
- */
+/** The list of capabilities. */
 public final class Capabilities extends SimpleBuildItem {
 
-    public static final String CDI_ARC = "org.jboss.shamrock.cdi";
-    public static final String TRANSACTIONS = "org.jboss.shamrock.transactions";
+  public static final String CDI_ARC = "org.jboss.shamrock.cdi";
+  public static final String TRANSACTIONS = "org.jboss.shamrock.transactions";
 
-    private final Set<String> capabilities;
+  private final Set<String> capabilities;
 
-    public boolean isCapabilityPresent(String capability) {
-        return capabilities.contains(capability);
-    }
+  public boolean isCapabilityPresent(String capability) {
+    return capabilities.contains(capability);
+  }
 
-    public Capabilities(Set<String> capabilities) {
-        this.capabilities = capabilities;
-    }
+  public Capabilities(Set<String> capabilities) {
+    this.capabilities = capabilities;
+  }
 
-    public Set<String> getCapabilities() {
-        return capabilities;
-    }
-
+  public Set<String> getCapabilities() {
+    return capabilities;
+  }
 }

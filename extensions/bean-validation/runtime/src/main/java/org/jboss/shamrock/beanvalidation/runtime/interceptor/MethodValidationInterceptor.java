@@ -11,15 +11,15 @@ import javax.interceptor.InvocationContext;
 @Priority(Interceptor.Priority.PLATFORM_AFTER + 800)
 public class MethodValidationInterceptor extends AbstractMethodValidationInterceptor {
 
-    @AroundInvoke
-    @Override
-    public Object validateMethodInvocation(InvocationContext ctx) throws Exception {
-        return super.validateMethodInvocation(ctx);
-    }
+  @AroundInvoke
+  @Override
+  public Object validateMethodInvocation(InvocationContext ctx) throws Exception {
+    return super.validateMethodInvocation(ctx);
+  }
 
-    @AroundConstruct
-    @Override
-    public void validateConstructorInvocation(InvocationContext ctx) throws Exception {
-        super.validateConstructorInvocation(ctx);
-    }
+  @AroundConstruct
+  @Override
+  public void validateConstructorInvocation(InvocationContext ctx) throws Exception {
+    super.validateConstructorInvocation(ctx);
+  }
 }

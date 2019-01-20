@@ -24,7 +24,6 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
@@ -34,43 +33,52 @@ import org.jboss.shamrock.creator.AppCreationContext;
 import org.jboss.shamrock.creator.AppCreationPhase;
 import org.jboss.shamrock.creator.AppCreatorException;
 
-/**
- *
- * @author Alexey Loubyansky
- */
+/** @author Alexey Loubyansky */
 public class CuratePhase implements AppCreationPhase {
 
-    @Override
-    public void process(AppCreationContext ctx) throws AppCreatorException {
+  @Override
+  public void process(AppCreationContext ctx) throws AppCreatorException {
 
-        final AppArtifact appArtifact = ctx.getAppArtifact();
-        System.out.println("Curate " + appArtifact);
+    final AppArtifact appArtifact = ctx.getAppArtifact();
+    System.out.println("Curate " + appArtifact);
 
-        final Path appJar = ctx.getArtifactResolver().resolve(appArtifact);
+    final Path appJar = ctx.getArtifactResolver().resolve(appArtifact);
 
-        final Model model;
-        try (FileSystem fs = FileSystems.newFileSystem(appJar, null)) {
-            final Path pomXml = fs.getPath("META-INF", "maven", appArtifact.getGroupId(), appArtifact.getArtifactId(), "pom.xml");
-            if(pomXml == null) {
-                throw new AppCreatorException("Failed to located META-INF/maven/" + appArtifact.getGroupId() + "/" + appArtifact.getArtifactId() + "/pom.xml in " + appJar);
-            }
-            try(BufferedReader reader = Files.newBufferedReader(pomXml)) {
-                final MavenXpp3Reader xpp3Reader = new MavenXpp3Reader();
-                model = xpp3Reader.read(reader);
-            } catch (XmlPullParserException e) {
-                throw new AppCreatorException("Failed to parse application POM model", e);
-            }
-        } catch (IOException e) {
-            throw new AppCreatorException("Failed to load pom.properties from " + appJar, e);
-        }
-
-        final List<Dependency> deps = model.getDependencies();
-        for(Dependency dep : deps) {
-            final String groupId = dep.getGroupId();
-            if(!groupId.equals("org.jboss.shamrock") || "test".equals(dep.getScope())) {
-                continue;
-            }
-            System.out.println("- " + dep);
-        }
+    final Model model;
+    try (FileSystem fs = FileSystems.newFileSystem(appJar, null)) {
+      final Path pomXml =
+          fs.getPath(
+              "META-INF",
+              "maven",
+              appArtifact.getGroupId(),
+              appArtifact.getArtifactId(),
+              "pom.xml");
+      if (pomXml == null) {
+        throw new AppCreatorException(
+            "Failed to located META-INF/maven/"
+                + appArtifact.getGroupId()
+                + "/"
+                + appArtifact.getArtifactId()
+                + "/pom.xml in "
+                + appJar);
+      }
+      try (BufferedReader reader = Files.newBufferedReader(pomXml)) {
+        final MavenXpp3Reader xpp3Reader = new MavenXpp3Reader();
+        model = xpp3Reader.read(reader);
+      } catch (XmlPullParserException e) {
+        throw new AppCreatorException("Failed to parse application POM model", e);
+      }
+    } catch (IOException e) {
+      throw new AppCreatorException("Failed to load pom.properties from " + appJar, e);
     }
+
+    final List<Dependency> deps = model.getDependencies();
+    for (Dependency dep : deps) {
+      final String groupId = dep.getGroupId();
+      if (!groupId.equals("org.jboss.shamrock") || "test".equals(dep.getScope())) {
+        continue;
+      }
+      System.out.println("- " + dep);
+    }
+  }
 }

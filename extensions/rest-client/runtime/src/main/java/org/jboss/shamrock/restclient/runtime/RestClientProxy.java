@@ -18,17 +18,13 @@ package org.jboss.shamrock.restclient.runtime;
 import javax.ws.rs.client.Client;
 
 /**
- * This interface is implemented by every proxy created by {@link io.smallrye.restclient.RestClientBuilderImpl}.
+ * This interface is implemented by every proxy created by {@link
+ * io.smallrye.restclient.RestClientBuilderImpl}.
  *
  * @author Martin Kouba
  */
 public interface RestClientProxy {
 
-
-    /**
-     *
-     * @return the underlying {@link Client} instance
-     */
-    Client getClient();
-
+  /** @return the underlying {@link Client} instance */
+  Client getClient();
 }

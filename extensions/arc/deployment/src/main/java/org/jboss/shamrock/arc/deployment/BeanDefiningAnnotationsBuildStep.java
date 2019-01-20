@@ -7,10 +7,11 @@ import org.jboss.shamrock.deployment.Capabilities;
 
 public class BeanDefiningAnnotationsBuildStep {
 
-    @BuildStep
-    void beanDefiningAnnotations(Capabilities capabilities, BuildProducer<BeanDefiningAnnotationBuildItem> annotations) {
-        // TODO: we should only add this when running the tests
-        annotations.produce(new BeanDefiningAnnotationBuildItem(DotName.createSimple("org.junit.runner.RunWith")));
-    }
-
+  @BuildStep
+  void beanDefiningAnnotations(
+      Capabilities capabilities, BuildProducer<BeanDefiningAnnotationBuildItem> annotations) {
+    // TODO: we should only add this when running the tests
+    annotations.produce(
+        new BeanDefiningAnnotationBuildItem(DotName.createSimple("org.junit.runner.RunWith")));
+  }
 }

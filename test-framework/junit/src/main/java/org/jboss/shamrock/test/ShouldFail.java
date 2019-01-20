@@ -20,20 +20,18 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
 import org.jboss.shamrock.runner.RuntimeRunner;
 
 /**
  * Annotation that is used to assert a boot failure.
- * <p>
- * This method should be used together with {@link Deployment}.
- * 
+ *
+ * <p>This method should be used together with {@link Deployment}.
+ *
  * @see RuntimeRunner#run()
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface ShouldFail {
 
-    Class<? extends Throwable> value() default Throwable.class;
-    
+  Class<? extends Throwable> value() default Throwable.class;
 }

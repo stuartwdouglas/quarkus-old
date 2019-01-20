@@ -24,6 +24,5 @@ import org.jboss.shamrock.scheduler.api.ScheduledExecution;
  */
 public interface ScheduledInvoker {
 
-    void invoke(ScheduledExecution action);
-
+  void invoke(ScheduledExecution action);
 }

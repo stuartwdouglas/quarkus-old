@@ -16,41 +16,38 @@
 
 package org.jboss.shamrock.jaeger.runtime;
 
-import org.jboss.shamrock.runtime.Template;
+import static io.jaegertracing.Configuration.JAEGER_ENDPOINT;
+import static io.jaegertracing.Configuration.JAEGER_SERVICE_NAME;
 
 import io.opentracing.util.GlobalTracer;
-
-import static io.jaegertracing.Configuration.JAEGER_SERVICE_NAME;
-import static io.jaegertracing.Configuration.JAEGER_ENDPOINT;
-
 import org.jboss.logging.Logger;
+import org.jboss.shamrock.runtime.Template;
 
 @Template
 public class JaegerDeploymentTemplate {
-    private static volatile boolean registered;
+  private static volatile boolean registered;
 
-    private static final Logger log = Logger.getLogger(JaegerDeploymentTemplate.class);
+  private static final Logger log = Logger.getLogger(JaegerDeploymentTemplate.class);
 
-    public void registerTracer() {
-        if (!registered) {
-            if (isValidConfig()) {
-                GlobalTracer.register(new ShamrockJaegerTracer());
-            }
-            registered = true;
-        }
+  public void registerTracer() {
+    if (!registered) {
+      if (isValidConfig()) {
+        GlobalTracer.register(new ShamrockJaegerTracer());
+      }
+      registered = true;
     }
+  }
 
-    private static boolean isValidConfig() {
-        if (System.getProperty(JAEGER_SERVICE_NAME, System.getenv(JAEGER_SERVICE_NAME)) == null) {
-            log.warn("Property 'JAEGER_SERVICE_NAME' has not been defined");
-        } else if (System.getProperty(JAEGER_ENDPOINT, System.getenv(JAEGER_ENDPOINT)) == null) {
-            log.warn("Property 'JAEGER_ENDPOINT' has not been defined");
-            // Return true for now, so we can reproduce issue with UdpSender
-            return true;
-        } else {
-            return true;
-        }
-        return false;
+  private static boolean isValidConfig() {
+    if (System.getProperty(JAEGER_SERVICE_NAME, System.getenv(JAEGER_SERVICE_NAME)) == null) {
+      log.warn("Property 'JAEGER_SERVICE_NAME' has not been defined");
+    } else if (System.getProperty(JAEGER_ENDPOINT, System.getenv(JAEGER_ENDPOINT)) == null) {
+      log.warn("Property 'JAEGER_ENDPOINT' has not been defined");
+      // Return true for now, so we can reproduce issue with UdpSender
+      return true;
+    } else {
+      return true;
     }
+    return false;
+  }
 }
-

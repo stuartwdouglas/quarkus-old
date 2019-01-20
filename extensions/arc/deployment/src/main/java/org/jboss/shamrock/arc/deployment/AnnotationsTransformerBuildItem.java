@@ -5,14 +5,13 @@ import org.jboss.protean.arc.processor.AnnotationsTransformer;
 
 public final class AnnotationsTransformerBuildItem extends MultiBuildItem {
 
-    private final AnnotationsTransformer transformer;
+  private final AnnotationsTransformer transformer;
 
-    public AnnotationsTransformerBuildItem(AnnotationsTransformer transformer) {
-        this.transformer = transformer;
-    }
+  public AnnotationsTransformerBuildItem(AnnotationsTransformer transformer) {
+    this.transformer = transformer;
+  }
 
-    public AnnotationsTransformer getAnnotationsTransformer() {
-        return transformer;
-    }
-
+  public AnnotationsTransformer getAnnotationsTransformer() {
+    return transformer;
+  }
 }

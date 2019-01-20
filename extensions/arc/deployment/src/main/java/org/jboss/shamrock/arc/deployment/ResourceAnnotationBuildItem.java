@@ -20,17 +20,18 @@ import org.jboss.builder.item.MultiBuildItem;
 import org.jboss.jandex.DotName;
 
 /**
- * This build item is used to specify resource annotations that makes it possible to resolve non-CDI injection points, such as Java EE resources.
+ * This build item is used to specify resource annotations that makes it possible to resolve non-CDI
+ * injection points, such as Java EE resources.
  */
 public final class ResourceAnnotationBuildItem extends MultiBuildItem {
 
-    private final DotName name;
+  private final DotName name;
 
-    public ResourceAnnotationBuildItem(DotName name) {
-        this.name = name;
-    }
+  public ResourceAnnotationBuildItem(DotName name) {
+    this.name = name;
+  }
 
-    public DotName getName() {
-        return name;
-    }
+  public DotName getName() {
+    return name;
+  }
 }

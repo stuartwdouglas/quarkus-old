@@ -5,9 +5,8 @@ import org.jboss.shamrock.deployment.builditem.HotDeploymentConfigFileBuildItem;
 
 public class HotDeploymentConfigBuildStep {
 
-    @BuildStep
-    HotDeploymentConfigFileBuildItem configFile() {
-        return new HotDeploymentConfigFileBuildItem("META-INF/beans.xml");
-    }
-
+  @BuildStep
+  HotDeploymentConfigFileBuildItem configFile() {
+    return new HotDeploymentConfigFileBuildItem("META-INF/beans.xml");
+  }
 }

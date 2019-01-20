@@ -26,11 +26,9 @@ import javax.persistence.PersistenceUnit;
 @Dependent
 public class JpaProducer {
 
-    @Produces
-    @PersistenceUnit(unitName = "templatePU")
-    EntityManagerFactory emf;
+  @Produces
+  @PersistenceUnit(unitName = "templatePU")
+  EntityManagerFactory emf;
 
-    @Produces
-    @PersistenceContext
-    EntityManager em;
+  @Produces @PersistenceContext EntityManager em;
 }

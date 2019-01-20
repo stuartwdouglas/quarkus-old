@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.hibernate.boot.registry.BootstrapServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceInitiator;
 import org.hibernate.boot.registry.internal.BootstrapServiceRegistryImpl;
@@ -64,171 +63,177 @@ import org.jboss.shamrock.jpa.runtime.service.ProteanJdbcEnvironmentInitiator;
 import org.jboss.shamrock.jpa.runtime.service.ProteanJtaPlatformResolver;
 
 /**
- * Helps to instantiate a ServiceRegistryBuilder from a previous state. This
- * will perform only minimal configuration validation and will never modify the
- * given configuration properties.
- * <p>
- * Meant to be used only to rebuild a previously created ServiceRegistry, which
- * has been created via the traditional methods, so this builder expects much
- * more explicit input.
+ * Helps to instantiate a ServiceRegistryBuilder from a previous state. This will perform only
+ * minimal configuration validation and will never modify the given configuration properties.
+ *
+ * <p>Meant to be used only to rebuild a previously created ServiceRegistry, which has been created
+ * via the traditional methods, so this builder expects much more explicit input.
  */
 public class PreconfiguredServiceRegistryBuilder {
 
-    private static final EntityManagerMessageLogger LOG = messageLogger(PreconfiguredServiceRegistryBuilder.class);
+  private static final EntityManagerMessageLogger LOG =
+      messageLogger(PreconfiguredServiceRegistryBuilder.class);
 
-    private final Map configurationValues = new HashMap();
-    private final List<StandardServiceInitiator> initiators;
-    private final List<ProvidedService> providedServices = new ArrayList<ProvidedService>();
-    private final MirroringIntegratorService integrators = new MirroringIntegratorService();
-    private final StandardServiceRegistryImpl destroyedRegistry;
+  private final Map configurationValues = new HashMap();
+  private final List<StandardServiceInitiator> initiators;
+  private final List<ProvidedService> providedServices = new ArrayList<ProvidedService>();
+  private final MirroringIntegratorService integrators = new MirroringIntegratorService();
+  private final StandardServiceRegistryImpl destroyedRegistry;
 
-    public PreconfiguredServiceRegistryBuilder(RecordedState rs) {
-        this.initiators = buildProteanServiceInitiatorList(rs);
-        this.destroyedRegistry = (StandardServiceRegistryImpl) rs.getMetadata().getMetadataBuildingOptions()
-                .getServiceRegistry();
-    }
+  public PreconfiguredServiceRegistryBuilder(RecordedState rs) {
+    this.initiators = buildProteanServiceInitiatorList(rs);
+    this.destroyedRegistry =
+        (StandardServiceRegistryImpl)
+            rs.getMetadata().getMetadataBuildingOptions().getServiceRegistry();
+  }
 
-    public PreconfiguredServiceRegistryBuilder applySetting(String settingName, Object value) {
-        configurationValues.put(settingName, value);
-        return this;
-    }
+  public PreconfiguredServiceRegistryBuilder applySetting(String settingName, Object value) {
+    configurationValues.put(settingName, value);
+    return this;
+  }
 
-    public PreconfiguredServiceRegistryBuilder applyIntegrator(Integrator integrator) {
-        integrators.addIntegrator(integrator);
-        return this;
-    }
+  public PreconfiguredServiceRegistryBuilder applyIntegrator(Integrator integrator) {
+    integrators.addIntegrator(integrator);
+    return this;
+  }
 
-    public PreconfiguredServiceRegistryBuilder addInitiator(StandardServiceInitiator initiator) {
-        initiators.add(initiator);
-        return this;
-    }
+  public PreconfiguredServiceRegistryBuilder addInitiator(StandardServiceInitiator initiator) {
+    initiators.add(initiator);
+    return this;
+  }
 
-    public PreconfiguredServiceRegistryBuilder addService(final Class serviceRole, final Service service) {
-        providedServices.add(new ProvidedService(serviceRole, service));
-        return this;
-    }
+  public PreconfiguredServiceRegistryBuilder addService(
+      final Class serviceRole, final Service service) {
+    providedServices.add(new ProvidedService(serviceRole, service));
+    return this;
+  }
 
-    public StandardServiceRegistryImpl buildNewServiceRegistry() {
-        final BootstrapServiceRegistry bootstrapServiceRegistry = buildEmptyBootstrapServiceRegistry();
+  public StandardServiceRegistryImpl buildNewServiceRegistry() {
+    final BootstrapServiceRegistry bootstrapServiceRegistry = buildEmptyBootstrapServiceRegistry();
 
-        // Can skip, it's only deprecated stuff:
-        // applyServiceContributingIntegrators( bootstrapServiceRegistry );
+    // Can skip, it's only deprecated stuff:
+    // applyServiceContributingIntegrators( bootstrapServiceRegistry );
 
-        // This is NOT deprecated stuff.. yet they will at best contribute stuff we
-        // already recorded as part of #applyIntegrator, #addInitiator, #addService
-        // applyServiceContributors( bootstrapServiceRegistry );
+    // This is NOT deprecated stuff.. yet they will at best contribute stuff we
+    // already recorded as part of #applyIntegrator, #addInitiator, #addService
+    // applyServiceContributors( bootstrapServiceRegistry );
 
-        final Map settingsCopy = new HashMap();
-        settingsCopy.putAll(configurationValues);
-        ConfigurationHelper.resolvePlaceHolders(settingsCopy);
+    final Map settingsCopy = new HashMap();
+    settingsCopy.putAll(configurationValues);
+    ConfigurationHelper.resolvePlaceHolders(settingsCopy);
 
-        destroyedRegistry.resetAndReactivate(bootstrapServiceRegistry, initiators, providedServices, settingsCopy);
-        return destroyedRegistry;
+    destroyedRegistry.resetAndReactivate(
+        bootstrapServiceRegistry, initiators, providedServices, settingsCopy);
+    return destroyedRegistry;
 
-//		return new StandardServiceRegistryImpl(
-//				true,
-//				bootstrapServiceRegistry,
-//				initiators,
-//				providedServices,
-//				settingsCopy
-//		);
-    }
+    //		return new StandardServiceRegistryImpl(
+    //				true,
+    //				bootstrapServiceRegistry,
+    //				initiators,
+    //				providedServices,
+    //				settingsCopy
+    //		);
+  }
 
-    private BootstrapServiceRegistry buildEmptyBootstrapServiceRegistry() {
+  private BootstrapServiceRegistry buildEmptyBootstrapServiceRegistry() {
 
-        // N.B. support for custom IntegratorProvider injected via Properties (as
-        // instance) removed
+    // N.B. support for custom IntegratorProvider injected via Properties (as
+    // instance) removed
 
-        // N.B. support for custom StrategySelector is not implemented yet: see
-        // MirroringStrategySelector
+    // N.B. support for custom StrategySelector is not implemented yet: see
+    // MirroringStrategySelector
 
-        final StrategySelectorImpl strategySelector = new StrategySelectorImpl(FlatClassLoaderService.INSTANCE);
+    final StrategySelectorImpl strategySelector =
+        new StrategySelectorImpl(FlatClassLoaderService.INSTANCE);
 
-        return new BootstrapServiceRegistryImpl(true,
-                FlatClassLoaderService.INSTANCE,
-                strategySelector, // new MirroringStrategySelector(),
-                integrators);
-    }
+    return new BootstrapServiceRegistryImpl(
+        true,
+        FlatClassLoaderService.INSTANCE,
+        strategySelector, // new MirroringStrategySelector(),
+        integrators);
+  }
 
-    /**
-     * Modified copy from
-     * org.hibernate.service.StandardServiceInitiators#buildStandardServiceInitiatorList
-     *
-     * N.B. not to be confused with
-     * org.hibernate.service.internal.StandardSessionFactoryServiceInitiators#buildStandardServiceInitiatorList()
-     *
-     * @return
-     */
-    private static List<StandardServiceInitiator> buildProteanServiceInitiatorList(RecordedState rs) {
-        final ArrayList<StandardServiceInitiator> serviceInitiators = new ArrayList<StandardServiceInitiator>();
+  /**
+   * Modified copy from
+   * org.hibernate.service.StandardServiceInitiators#buildStandardServiceInitiatorList
+   *
+   * <p>N.B. not to be confused with
+   * org.hibernate.service.internal.StandardSessionFactoryServiceInitiators#buildStandardServiceInitiatorList()
+   *
+   * @return
+   */
+  private static List<StandardServiceInitiator> buildProteanServiceInitiatorList(RecordedState rs) {
+    final ArrayList<StandardServiceInitiator> serviceInitiators =
+        new ArrayList<StandardServiceInitiator>();
 
-        // Replaces org.hibernate.boot.cfgxml.internal.CfgXmlAccessServiceInitiator :
-        // not used
-        // (Original disabled)
-        serviceInitiators.add(CfgXmlAccessServiceInitiatorProtean.INSTANCE);
+    // Replaces org.hibernate.boot.cfgxml.internal.CfgXmlAccessServiceInitiator :
+    // not used
+    // (Original disabled)
+    serviceInitiators.add(CfgXmlAccessServiceInitiatorProtean.INSTANCE);
 
-        // Useful as-is
-        serviceInitiators.add(ConfigurationServiceInitiator.INSTANCE);
+    // Useful as-is
+    serviceInitiators.add(ConfigurationServiceInitiator.INSTANCE);
 
-        // TODO (optional): assume entities are already enhanced?
-        serviceInitiators.add(PropertyAccessStrategyResolverInitiator.INSTANCE);
+    // TODO (optional): assume entities are already enhanced?
+    serviceInitiators.add(PropertyAccessStrategyResolverInitiator.INSTANCE);
 
-        // TODO (optional): not a priority
-        serviceInitiators.add(ImportSqlCommandExtractorInitiator.INSTANCE);
+    // TODO (optional): not a priority
+    serviceInitiators.add(ImportSqlCommandExtractorInitiator.INSTANCE);
 
-        // TODO disable?
-        serviceInitiators.add(SchemaManagementToolInitiator.INSTANCE);
+    // TODO disable?
+    serviceInitiators.add(SchemaManagementToolInitiator.INSTANCE);
 
-        // Replaces JdbcEnvironmentInitiator.INSTANCE :
-        serviceInitiators.add(new ProteanJdbcEnvironmentInitiator(rs.getDialect()));
+    // Replaces JdbcEnvironmentInitiator.INSTANCE :
+    serviceInitiators.add(new ProteanJdbcEnvironmentInitiator(rs.getDialect()));
 
-        serviceInitiators.add(JndiServiceInitiator.INSTANCE);
+    serviceInitiators.add(JndiServiceInitiator.INSTANCE);
 
-        // Custom one!
-        serviceInitiators.add(DisabledJMXInitiator.INSTANCE);
+    // Custom one!
+    serviceInitiators.add(DisabledJMXInitiator.INSTANCE);
 
-        serviceInitiators.add(PersisterClassResolverInitiator.INSTANCE);
-        serviceInitiators.add(PersisterFactoryInitiator.INSTANCE);
+    serviceInitiators.add(PersisterClassResolverInitiator.INSTANCE);
+    serviceInitiators.add(PersisterFactoryInitiator.INSTANCE);
 
-        serviceInitiators.add(ConnectionProviderInitiator.INSTANCE);
-        serviceInitiators.add(MultiTenantConnectionProviderInitiator.INSTANCE);
+    serviceInitiators.add(ConnectionProviderInitiator.INSTANCE);
+    serviceInitiators.add(MultiTenantConnectionProviderInitiator.INSTANCE);
 
-        // Disabled: Dialect is injected explicitly
-        // serviceInitiators.add( DialectResolverInitiator.INSTANCE );
+    // Disabled: Dialect is injected explicitly
+    // serviceInitiators.add( DialectResolverInitiator.INSTANCE );
 
-        // Disabled: Dialect is injected explicitly
-        // serviceInitiators.add( DialectFactoryInitiator.INSTANCE );
+    // Disabled: Dialect is injected explicitly
+    // serviceInitiators.add( DialectFactoryInitiator.INSTANCE );
 
-        serviceInitiators.add(BatchBuilderInitiator.INSTANCE);
-        serviceInitiators.add(JdbcServicesInitiator.INSTANCE);
-        serviceInitiators.add(RefCursorSupportInitiator.INSTANCE);
+    serviceInitiators.add(BatchBuilderInitiator.INSTANCE);
+    serviceInitiators.add(JdbcServicesInitiator.INSTANCE);
+    serviceInitiators.add(RefCursorSupportInitiator.INSTANCE);
 
-        serviceInitiators.add(QueryTranslatorFactoryInitiator.INSTANCE);
-        serviceInitiators.add(MutableIdentifierGeneratorFactoryInitiator.INSTANCE);
+    serviceInitiators.add(QueryTranslatorFactoryInitiator.INSTANCE);
+    serviceInitiators.add(MutableIdentifierGeneratorFactoryInitiator.INSTANCE);
 
-        // Replaces JtaPlatformResolverInitiator.INSTANCE );
-        serviceInitiators.add(new ProteanJtaPlatformResolver(rs.getJtaPlatform()));
-        serviceInitiators.add(new JtaPlatformInitiator() {
-            @Override
-            protected JtaPlatform getFallbackProvider(Map configurationValues, ServiceRegistryImplementor registry) {
-                return new JBossStandAloneJtaPlatform();
-            }
+    // Replaces JtaPlatformResolverInitiator.INSTANCE );
+    serviceInitiators.add(new ProteanJtaPlatformResolver(rs.getJtaPlatform()));
+    serviceInitiators.add(
+        new JtaPlatformInitiator() {
+          @Override
+          protected JtaPlatform getFallbackProvider(
+              Map configurationValues, ServiceRegistryImplementor registry) {
+            return new JBossStandAloneJtaPlatform();
+          }
         });
-        // Disabled:
-        // serviceInitiators.add( JtaPlatformInitiator.INSTANCE );
+    // Disabled:
+    // serviceInitiators.add( JtaPlatformInitiator.INSTANCE );
 
-        serviceInitiators.add(SessionFactoryServiceRegistryFactoryInitiator.INSTANCE);
+    serviceInitiators.add(SessionFactoryServiceRegistryFactoryInitiator.INSTANCE);
 
-        serviceInitiators.add(RegionFactoryInitiator.INSTANCE);
+    serviceInitiators.add(RegionFactoryInitiator.INSTANCE);
 
-        serviceInitiators.add(TransactionCoordinatorBuilderInitiator.INSTANCE);
+    serviceInitiators.add(TransactionCoordinatorBuilderInitiator.INSTANCE);
 
-        serviceInitiators.add(ManagedBeanRegistryInitiator.INSTANCE);
+    serviceInitiators.add(ManagedBeanRegistryInitiator.INSTANCE);
 
-        serviceInitiators.add(EntityCopyObserverFactoryInitiator.INSTANCE);
+    serviceInitiators.add(EntityCopyObserverFactoryInitiator.INSTANCE);
 
-        serviceInitiators.trimToSize();
-        return serviceInitiators;
-    }
-
+    serviceInitiators.trimToSize();
+    return serviceInitiators;
+  }
 }

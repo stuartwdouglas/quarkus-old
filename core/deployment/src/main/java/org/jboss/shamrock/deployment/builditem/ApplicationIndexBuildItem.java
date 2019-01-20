@@ -19,19 +19,16 @@ package org.jboss.shamrock.deployment.builditem;
 import org.jboss.builder.item.SimpleBuildItem;
 import org.jboss.jandex.Index;
 
-/**
- * The Jandex index of the application root
- */
+/** The Jandex index of the application root */
 public final class ApplicationIndexBuildItem extends SimpleBuildItem {
 
-    private final Index index;
+  private final Index index;
 
+  public ApplicationIndexBuildItem(Index index) {
+    this.index = index;
+  }
 
-    public ApplicationIndexBuildItem(Index index) {
-        this.index = index;
-    }
-
-    public Index getIndex() {
-        return index;
-    }
+  public Index getIndex() {
+    return index;
+  }
 }

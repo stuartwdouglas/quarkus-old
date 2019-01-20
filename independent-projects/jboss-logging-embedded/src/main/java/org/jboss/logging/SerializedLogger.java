@@ -20,15 +20,15 @@ import java.io.Serializable;
 
 final class SerializedLogger implements Serializable {
 
-    private static final long serialVersionUID = 508779982439435831L;
+  private static final long serialVersionUID = 508779982439435831L;
 
-    private final String name;
+  private final String name;
 
-    SerializedLogger(final String name) {
-        this.name = name;
-    }
+  SerializedLogger(final String name) {
+    this.name = name;
+  }
 
-    protected Object readResolve() {
-        return Logger.getLogger(name);
-    }
+  protected Object readResolve() {
+    return Logger.getLogger(name);
+  }
 }

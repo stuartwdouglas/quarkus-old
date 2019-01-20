@@ -23,125 +23,125 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URL;
 import java.net.URLClassLoader;
-
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.InitializationError;
 
-/**
- * A test runner for GraalVM native images.
- */
+/** A test runner for GraalVM native images. */
 public class SubstrateTest extends AbstractShamrockTestRunner {
 
-    private static final long IMAGE_WAIT_TIME = 60000;
+  private static final long IMAGE_WAIT_TIME = 60000;
 
-    public SubstrateTest(Class<?> klass) throws InitializationError {
-        super(klass, (c , n) -> new ShamrockNativeImageRunListener(c, n));
+  public SubstrateTest(Class<?> klass) throws InitializationError {
+    super(klass, (c, n) -> new ShamrockNativeImageRunListener(c, n));
+  }
+
+  private static class ShamrockNativeImageRunListener extends AbstractShamrockRunListener {
+
+    private Process shamrockProcess;
+
+    ShamrockNativeImageRunListener(Class<?> testClass, RunNotifier runNotifier) {
+      super(testClass, runNotifier);
     }
 
-    private static class ShamrockNativeImageRunListener extends AbstractShamrockRunListener {
+    @Override
+    protected void startShamrock() throws IOException {
+      String path = System.getProperty("native.image.path");
+      if (path == null) {
+        path = guessPath(getTestClass());
+      }
 
-        private Process shamrockProcess;
+      System.out.println("Executing " + path);
 
-        ShamrockNativeImageRunListener(Class<?> testClass, RunNotifier runNotifier) {
-            super(testClass, runNotifier);
-        }
+      shamrockProcess = Runtime.getRuntime().exec(path);
+      new Thread(new ProcessReader(shamrockProcess.getInputStream())).start();
+      new Thread(new ProcessReader(shamrockProcess.getErrorStream())).start();
 
-        @Override
-        protected void startShamrock() throws IOException {
-            String path = System.getProperty("native.image.path");
-            if (path == null) {
-                path = guessPath(getTestClass());
+      waitForShamrock();
+    }
+
+    @Override
+    protected void stopShamrock() {
+      shamrockProcess.destroy();
+    }
+  }
+
+  private static String guessPath(Class<?> testClass) {
+    // ok, lets make a guess
+    // this is a horrible hack, but it is intended to make this work in IDE's
+
+    ClassLoader cl = testClass.getClassLoader();
+
+    if (cl instanceof URLClassLoader) {
+      URL[] urls = ((URLClassLoader) cl).getURLs();
+      for (URL url : urls) {
+        if (url.getProtocol().equals("file") && url.getPath().endsWith("test-classes/")) {
+          // we have the test classes dir
+          File testClasses = new File(url.getPath());
+          for (File file : testClasses.getParentFile().listFiles()) {
+            if (file.getName().endsWith("-runner")) {
+              logGuessedPath(file.getAbsolutePath());
+              return file.getAbsolutePath();
             }
-
-            System.out.println("Executing " + path);
-
-            shamrockProcess = Runtime.getRuntime().exec(path);
-            new Thread(new ProcessReader(shamrockProcess.getInputStream())).start();
-            new Thread(new ProcessReader(shamrockProcess.getErrorStream())).start();
-
-            waitForShamrock();
+          }
         }
-
-        @Override
-        protected void stopShamrock() {
-            shamrockProcess.destroy();
-        }
+      }
     }
 
-    private static String guessPath(Class<?> testClass) {
-        //ok, lets make a guess
-        //this is a horrible hack, but it is intended to make this work in IDE's
+    throw new RuntimeException("Unable to find native image, make sure native.image.path is set");
+  }
 
-        ClassLoader cl = testClass.getClassLoader();
+  private static void logGuessedPath(String guessedPath) {
+    String errorString =
+        "\n=native.image.path was not set, making a guess that  "
+            + guessedPath
+            + " is the correct native image=";
+    for (int i = 0; i < errorString.length(); ++i) {
+      System.err.print("=");
+    }
+    System.err.println(errorString);
+    for (int i = 0; i < errorString.length(); ++i) {
+      System.err.print("=");
+    }
+    System.err.println();
+  }
 
-        if (cl instanceof URLClassLoader) {
-            URL[] urls = ((URLClassLoader) cl).getURLs();
-            for (URL url : urls) {
-                if (url.getProtocol().equals("file") && url.getPath().endsWith("test-classes/")) {
-                    //we have the test classes dir
-                    File testClasses = new File(url.getPath());
-                    for (File file : testClasses.getParentFile().listFiles()) {
-                        if (file.getName().endsWith("-runner")) {
-                            logGuessedPath(file.getAbsolutePath());
-                            return file.getAbsolutePath();
-                        }
-                    }
-                }
-            }
+  private static void waitForShamrock() {
+    int port = Integer.getInteger("http.port", 8080);
+    long bailout = System.currentTimeMillis() + IMAGE_WAIT_TIME;
+
+    while (System.currentTimeMillis() < bailout) {
+      try {
+        Thread.sleep(100);
+        try (Socket s = new Socket()) {
+          s.connect(new InetSocketAddress("localhost", port));
+          return;
         }
-
-        throw new RuntimeException("Unable to find native image, make sure native.image.path is set");
+      } catch (Exception expected) {
+      }
     }
 
-    private static void logGuessedPath(String guessedPath) {
-        String errorString = "\n=native.image.path was not set, making a guess that  " + guessedPath + " is the correct native image=";
-        for (int i = 0; i < errorString.length(); ++i) {
-            System.err.print("=");
-        }
-        System.err.println(errorString);
-        for (int i = 0; i < errorString.length(); ++i) {
-            System.err.print("=");
-        }
-        System.err.println();
+    throw new RuntimeException("Unable to start native image in " + IMAGE_WAIT_TIME + "ms");
+  }
+
+  private static final class ProcessReader implements Runnable {
+
+    private final InputStream inputStream;
+
+    private ProcessReader(InputStream inputStream) {
+      this.inputStream = inputStream;
     }
 
-    private static void waitForShamrock() {
-        int port = Integer.getInteger("http.port", 8080);
-        long bailout = System.currentTimeMillis() + IMAGE_WAIT_TIME;
-
-        while (System.currentTimeMillis() < bailout) {
-            try {
-                Thread.sleep(100);
-                try (Socket s = new Socket()) {
-                    s.connect(new InetSocketAddress("localhost", port));
-                    return;
-                }
-            } catch (Exception expected) {
-            }
+    @Override
+    public void run() {
+      byte[] b = new byte[100];
+      int i;
+      try {
+        while ((i = inputStream.read(b)) > 0) {
+          System.out.print(new String(b, 0, i));
         }
-
-        throw new RuntimeException("Unable to start native image in " + IMAGE_WAIT_TIME + "ms");
+      } catch (IOException e) {
+        // ignore
+      }
     }
-
-    private static final class ProcessReader implements Runnable {
-
-        private final InputStream inputStream;
-
-        private ProcessReader(InputStream inputStream) {
-            this.inputStream = inputStream;
-        }
-
-        @Override
-        public void run() {
-            byte[] b = new byte[100];
-            int i;
-            try {
-                while ((i = inputStream.read(b)) > 0) {
-                    System.out.print(new String(b, 0, i));
-                }
-            } catch (IOException e) {
-                //ignore
-            }
-        }
-    }
+  }
 }

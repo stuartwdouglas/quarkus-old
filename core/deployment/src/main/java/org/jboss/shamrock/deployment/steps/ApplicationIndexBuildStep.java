@@ -23,7 +23,6 @@ import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-
 import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
 import org.jboss.shamrock.annotations.BuildStep;
@@ -32,38 +31,41 @@ import org.jboss.shamrock.deployment.builditem.ArchiveRootBuildItem;
 
 public class ApplicationIndexBuildStep {
 
-    @BuildStep
-    ApplicationIndexBuildItem build(ArchiveRootBuildItem root) throws IOException {
+  @BuildStep
+  ApplicationIndexBuildItem build(ArchiveRootBuildItem root) throws IOException {
 
-        Indexer indexer = new Indexer();
-        Files.walkFileTree(root.getPath(), new FileVisitor<Path>() {
-            @Override
-            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                return FileVisitResult.CONTINUE;
-            }
+    Indexer indexer = new Indexer();
+    Files.walkFileTree(
+        root.getPath(),
+        new FileVisitor<Path>() {
+          @Override
+          public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
+              throws IOException {
+            return FileVisitResult.CONTINUE;
+          }
 
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                if (file.toString().endsWith(".class")) {
-                    try (InputStream stream = Files.newInputStream(file)) {
-                        indexer.index(stream);
-                    }
-                }
-                return FileVisitResult.CONTINUE;
+          @Override
+          public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+              throws IOException {
+            if (file.toString().endsWith(".class")) {
+              try (InputStream stream = Files.newInputStream(file)) {
+                indexer.index(stream);
+              }
             }
+            return FileVisitResult.CONTINUE;
+          }
 
-            @Override
-            public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-                return FileVisitResult.CONTINUE;
-            }
+          @Override
+          public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+            return FileVisitResult.CONTINUE;
+          }
 
-            @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                return FileVisitResult.CONTINUE;
-            }
+          @Override
+          public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+            return FileVisitResult.CONTINUE;
+          }
         });
-        Index appIndex = indexer.complete();
-        return new ApplicationIndexBuildItem(appIndex);
-    }
-
+    Index appIndex = indexer.complete();
+    return new ApplicationIndexBuildItem(appIndex);
+  }
 }

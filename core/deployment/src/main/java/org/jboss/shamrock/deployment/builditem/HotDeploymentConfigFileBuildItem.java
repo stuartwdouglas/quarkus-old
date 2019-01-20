@@ -18,19 +18,16 @@ package org.jboss.shamrock.deployment.builditem;
 
 import org.jboss.builder.item.MultiBuildItem;
 
-/**
- * A configuration file that if modified should result in a hot redeployment when in
- * dev mode
- */
+/** A configuration file that if modified should result in a hot redeployment when in dev mode */
 public final class HotDeploymentConfigFileBuildItem extends MultiBuildItem {
 
-    private final String location;
+  private final String location;
 
-    public HotDeploymentConfigFileBuildItem(String location) {
-        this.location = location;
-    }
+  public HotDeploymentConfigFileBuildItem(String location) {
+    this.location = location;
+  }
 
-    public String getLocation() {
-        return location;
-    }
+  public String getLocation() {
+    return location;
+  }
 }

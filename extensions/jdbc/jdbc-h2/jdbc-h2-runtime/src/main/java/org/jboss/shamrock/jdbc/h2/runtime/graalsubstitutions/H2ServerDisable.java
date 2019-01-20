@@ -5,5 +5,4 @@ import com.oracle.svm.core.annotate.TargetClass;
 
 @TargetClass(className = "org.h2.tools.Server")
 @Delete
-public final class H2ServerDisable {
-}
+public final class H2ServerDisable {}

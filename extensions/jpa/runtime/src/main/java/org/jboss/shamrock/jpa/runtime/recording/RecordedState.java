@@ -17,39 +17,41 @@
 package org.jboss.shamrock.jpa.runtime.recording;
 
 import java.util.Map;
-
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.transaction.jta.platform.spi.JtaPlatform;
 
 public final class RecordedState {
 
-    private final Dialect dialect;
-    private final MetadataImplementor metadata;
-    private final JtaPlatform jtaPlatform;
-    private final Map<String, Object> cfg;
+  private final Dialect dialect;
+  private final MetadataImplementor metadata;
+  private final JtaPlatform jtaPlatform;
+  private final Map<String, Object> cfg;
 
-    public RecordedState(Dialect dialect, JtaPlatform jtaPlatform, MetadataImplementor metadata,
-            Map<String, Object> cfg) {
-        this.dialect = dialect;
-        this.jtaPlatform = jtaPlatform;
-        this.metadata = metadata;
-        this.cfg = cfg;
-    }
+  public RecordedState(
+      Dialect dialect,
+      JtaPlatform jtaPlatform,
+      MetadataImplementor metadata,
+      Map<String, Object> cfg) {
+    this.dialect = dialect;
+    this.jtaPlatform = jtaPlatform;
+    this.metadata = metadata;
+    this.cfg = cfg;
+  }
 
-    public Dialect getDialect() {
-        return dialect;
-    }
+  public Dialect getDialect() {
+    return dialect;
+  }
 
-    public MetadataImplementor getMetadata() {
-        return metadata;
-    }
+  public MetadataImplementor getMetadata() {
+    return metadata;
+  }
 
-    public Map<String, Object> getConfigurationProperties() {
-        return cfg;
-    }
+  public Map<String, Object> getConfigurationProperties() {
+    return cfg;
+  }
 
-    public JtaPlatform getJtaPlatform() {
-        return jtaPlatform;
-    }
+  public JtaPlatform getJtaPlatform() {
+    return jtaPlatform;
+  }
 }

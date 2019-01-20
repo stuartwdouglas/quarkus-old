@@ -20,42 +20,39 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
 import java.util.logging.Filter;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
-/**
- * A filter which excludes messages of a certain level or levels
- */
+/** A filter which excludes messages of a certain level or levels */
 public final class LevelFilter implements Filter {
-    private final Set<Level> includedLevels;
+  private final Set<Level> includedLevels;
 
-    /**
-     * Construct a new instance.
-     *
-     * @param includedLevel the level to include
-     */
-    public LevelFilter(final Level includedLevel) {
-        includedLevels = Collections.singleton(includedLevel);
-    }
+  /**
+   * Construct a new instance.
+   *
+   * @param includedLevel the level to include
+   */
+  public LevelFilter(final Level includedLevel) {
+    includedLevels = Collections.singleton(includedLevel);
+  }
 
-    /**
-     * Construct a new instance.
-     *
-     * @param includedLevels the levels to exclude
-     */
-    public LevelFilter(final Collection<Level> includedLevels) {
-        this.includedLevels = new HashSet<Level>(includedLevels);
-    }
+  /**
+   * Construct a new instance.
+   *
+   * @param includedLevels the levels to exclude
+   */
+  public LevelFilter(final Collection<Level> includedLevels) {
+    this.includedLevels = new HashSet<Level>(includedLevels);
+  }
 
-    /**
-     * Determine whether the message is loggable.
-     *
-     * @param record the log record
-     * @return {@code true} if the level is in the inclusion list
-     */
-    public boolean isLoggable(final LogRecord record) {
-        return includedLevels.contains(record.getLevel());
-    }
+  /**
+   * Determine whether the message is loggable.
+   *
+   * @param record the log record
+   * @return {@code true} if the level is in the inclusion list
+   */
+  public boolean isLoggable(final LogRecord record) {
+    return includedLevels.contains(record.getLevel());
+  }
 }

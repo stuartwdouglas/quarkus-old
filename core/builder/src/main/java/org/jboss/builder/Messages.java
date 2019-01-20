@@ -16,24 +16,21 @@
 
 package org.jboss.builder;
 
-/**
- */
+/** */
 final class Messages {
-    static final Messages msg = new Messages();
+  static final Messages msg = new Messages();
 
-    IllegalArgumentException undeclaredItem(ItemId itemId) {
-        return new IllegalArgumentException("Undeclared build item " + itemId);
-    }
+  IllegalArgumentException undeclaredItem(ItemId itemId) {
+    return new IllegalArgumentException("Undeclared build item " + itemId);
+  }
 
-    IllegalArgumentException cannotMulti(ItemId itemId) {
-        return new IllegalArgumentException("Cannot provide/consume multiple values for " + itemId);
-    }
+  IllegalArgumentException cannotMulti(ItemId itemId) {
+    return new IllegalArgumentException("Cannot provide/consume multiple values for " + itemId);
+  }
 
-    public void closeFailed(final Object obj, final Exception e) {
+  public void closeFailed(final Object obj, final Exception e) {}
 
-    }
-
-    IllegalArgumentException cannotSingle(final ItemId itemId) {
-        return new IllegalArgumentException("Cannot provide/consume single value for " + itemId);
-    }
+  IllegalArgumentException cannotSingle(final ItemId itemId) {
+    return new IllegalArgumentException("Cannot provide/consume single value for " + itemId);
+  }
 }

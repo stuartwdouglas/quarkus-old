@@ -21,13 +21,13 @@ import org.jboss.shamrock.arc.runtime.BeanContainer;
 
 public final class BeanContainerBuildItem extends SimpleBuildItem {
 
-    private final BeanContainer value;
+  private final BeanContainer value;
 
-    public BeanContainerBuildItem(BeanContainer value) {
-        this.value = value;
-    }
+  public BeanContainerBuildItem(BeanContainer value) {
+    this.value = value;
+  }
 
-    public BeanContainer getValue() {
-        return value;
-    }
+  public BeanContainer getValue() {
+    return value;
+  }
 }

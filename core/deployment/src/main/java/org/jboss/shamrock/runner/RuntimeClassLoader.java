@@ -41,7 +41,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.function.BiFunction;
-
 import org.jboss.logging.Logger;
 import org.jboss.shamrock.deployment.ClassOutput;
 import org.objectweb.asm.ClassReader;
@@ -50,283 +49,292 @@ import org.objectweb.asm.ClassWriter;
 
 public class RuntimeClassLoader extends ClassLoader implements ClassOutput {
 
-    private static final Logger log = Logger.getLogger(RuntimeClassLoader.class);
+  private static final Logger log = Logger.getLogger(RuntimeClassLoader.class);
 
-    private final Map<String, byte[]> appClasses = new ConcurrentHashMap<>();
-    private final Set<String> frameworkClasses = Collections.newSetFromMap(new ConcurrentHashMap<>());
+  private final Map<String, byte[]> appClasses = new ConcurrentHashMap<>();
+  private final Set<String> frameworkClasses = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-    private final Map<String, byte[]> resources = new ConcurrentHashMap<>();
+  private final Map<String, byte[]> resources = new ConcurrentHashMap<>();
 
-    private volatile Map<String, List<BiFunction<String, ClassVisitor, ClassVisitor>>> bytecodeTransformers = null;
+  private volatile Map<String, List<BiFunction<String, ClassVisitor, ClassVisitor>>>
+      bytecodeTransformers = null;
 
-    private final Path applicationClasses;
-    private final Path frameworkClassesPath;
-    private final Path transformerCache;
+  private final Path applicationClasses;
+  private final Path frameworkClassesPath;
+  private final Path transformerCache;
 
-    private final ConcurrentHashMap<String, Future<Class<?>>> loadingClasses = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<String, Future<Class<?>>> loadingClasses =
+      new ConcurrentHashMap<>();
 
-    static {
-        registerAsParallelCapable();
+  static {
+    registerAsParallelCapable();
+  }
+
+  public RuntimeClassLoader(
+      ClassLoader parent,
+      Path applicationClasses,
+      Path frameworkClassesPath,
+      Path transformerCache) {
+    super(parent);
+    this.applicationClasses = applicationClasses;
+    this.frameworkClassesPath = frameworkClassesPath;
+    this.transformerCache = transformerCache;
+  }
+
+  @Override
+  public Enumeration<URL> getResources(String nm) throws IOException {
+    String name;
+    if (nm.startsWith("/")) {
+      name = nm.substring(1);
+    } else {
+      name = nm;
     }
 
-    public RuntimeClassLoader(ClassLoader parent, Path applicationClasses, Path frameworkClassesPath, Path transformerCache) {
-        super(parent);
-        this.applicationClasses = applicationClasses;
-        this.frameworkClassesPath = frameworkClassesPath;
-        this.transformerCache = transformerCache;
-    }
-
-    @Override
-    public Enumeration<URL> getResources(String nm) throws IOException {
-        String name;
-        if (nm.startsWith("/")) {
-            name = nm.substring(1);
-        } else {
-            name = nm;
-        }
-
-        // TODO: some superugly hack for bean provider
-        byte[] data = resources.get(name);
-        if (data != null) {
-            URL url = new URL(null, "shamrock:" + name + "/", new URLStreamHandler() {
+    // TODO: some superugly hack for bean provider
+    byte[] data = resources.get(name);
+    if (data != null) {
+      URL url =
+          new URL(
+              null,
+              "shamrock:" + name + "/",
+              new URLStreamHandler() {
                 @Override
                 protected URLConnection openConnection(final URL u) throws IOException {
-                    return new URLConnection(u) {
-                        @Override
-                        public void connect() throws IOException {
-                        }
+                  return new URLConnection(u) {
+                    @Override
+                    public void connect() throws IOException {}
 
-                        @Override
-                        public InputStream getInputStream() throws IOException {
-                            return new ByteArrayInputStream(resources.get(name));
-                        }
-                    };
-                }
-            });
-            return Collections.enumeration(Collections.singleton(url));
-        }
-
-        URL appResource = findApplicationResource(name);
-        if (appResource != null) {
-            List<URL> resources = new ArrayList<>();
-            resources.add(appResource);
-            for (Enumeration<URL> e = super.getResources(name); e.hasMoreElements();) {
-                resources.add(e.nextElement());
-            }
-            return Collections.enumeration(resources);
-        }
-        return super.getResources(name);
-    }
-
-    @Override
-    public URL getResource(String nm) {
-        String name;
-        if (nm.startsWith("/")) {
-            name = nm.substring(1);
-        } else {
-            name = nm;
-        }
-        URL appResource = findApplicationResource(name);
-        if (appResource != null) {
-            return appResource;
-        }
-        return super.getResource(name);
-    }
-
-    @Override
-    public InputStream getResourceAsStream(String nm) {
-        String name;
-        if (nm.startsWith("/")) {
-            name = nm.substring(1);
-        } else {
-            name = nm;
-        }
-        return super.getResourceAsStream(name);
-    }
-    
-    @Override
-    protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-        Class<?> ex = findLoadedClass(name);
-        if (ex != null) {
-            return ex;
-        }
-        if (appClasses.containsKey(name)) {
-            return findClass(name);
-        }
-        if (frameworkClasses.contains(name)) {
-            return super.loadClass(name, resolve);
-        }
-
-        final String fileName = name.replace('.', '/') + ".class";
-        Path classLoc = applicationClasses.resolve(fileName);
-        if (Files.exists(classLoc)) {
-            CompletableFuture<Class<?>> res = new CompletableFuture<>();
-            Future<Class<?>> existing = loadingClasses.putIfAbsent(name, res);
-            if(existing != null) {
-                try {
-                    return existing.get();
-                } catch (Exception e) {
-                    throw new ClassNotFoundException("Failed to load " + name, e);
-                }
-            }
-            try {
-                byte[] buf = new byte[1024];
-                int r;
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                try (FileInputStream in = new FileInputStream(classLoc.toFile())) {
-                    while ((r = in.read(buf)) > 0) {
-                        out.write(buf, 0, r);
+                    @Override
+                    public InputStream getInputStream() throws IOException {
+                      return new ByteArrayInputStream(resources.get(name));
                     }
-                } catch (IOException e) {
-                    throw new ClassNotFoundException("Failed to load class", e);
+                  };
                 }
-                byte[] bytes = out.toByteArray();
-                bytes = handleTransform(name, bytes);
-                Class<?> clazz = defineClass(name, bytes, 0, bytes.length);
-                res.complete(clazz);
-                return clazz;
-            } catch (RuntimeException e) {
-                res.completeExceptionally(e);
-                throw e;
-            } catch (Throwable e) {
-                res.completeExceptionally(e);
-                throw e;
-            }
-        }
-        return super.loadClass(name, resolve);
+              });
+      return Collections.enumeration(Collections.singleton(url));
     }
 
-    private byte[] handleTransform(String name, byte[] bytes) {
-        if (bytecodeTransformers == null || bytecodeTransformers.isEmpty()) {
-            return bytes;
-        }
-        List<BiFunction<String, ClassVisitor, ClassVisitor>> transformers = bytecodeTransformers.get(name);
-        if (transformers == null) {
-            return bytes;
-        }
+    URL appResource = findApplicationResource(name);
+    if (appResource != null) {
+      List<URL> resources = new ArrayList<>();
+      resources.add(appResource);
+      for (Enumeration<URL> e = super.getResources(name); e.hasMoreElements(); ) {
+        resources.add(e.nextElement());
+      }
+      return Collections.enumeration(resources);
+    }
+    return super.getResources(name);
+  }
 
-        Path hashPath = null;
-        if(transformerCache != null) {
+  @Override
+  public URL getResource(String nm) {
+    String name;
+    if (nm.startsWith("/")) {
+      name = nm.substring(1);
+    } else {
+      name = nm;
+    }
+    URL appResource = findApplicationResource(name);
+    if (appResource != null) {
+      return appResource;
+    }
+    return super.getResource(name);
+  }
 
-            try {
-                MessageDigest md = MessageDigest.getInstance("MD5");
-                byte[] thedigest = md.digest(bytes);
-                String hash = Base64.getUrlEncoder().encodeToString(thedigest);
-                hashPath = transformerCache.resolve(hash);
-                if(Files.exists(hashPath)) {
-                    return readFileContent(hashPath);
-                }
-            } catch (Exception e) {
-                log.error("Unable to load transformed class from cache", e);
-            }
-        }
+  @Override
+  public InputStream getResourceAsStream(String nm) {
+    String name;
+    if (nm.startsWith("/")) {
+      name = nm.substring(1);
+    } else {
+      name = nm;
+    }
+    return super.getResourceAsStream(name);
+  }
 
-
-        ClassReader cr = new ClassReader(bytes);
-        ClassWriter writer = new ClassWriter(cr, ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
-        ClassVisitor visitor = writer;
-        for (BiFunction<String, ClassVisitor, ClassVisitor> i : transformers) {
-            visitor = i.apply(name, visitor);
-        }
-        cr.accept(visitor, 0);
-        byte[] data = writer.toByteArray();
-        if(hashPath != null) {
-            try {
-
-                File file = hashPath.toFile();
-                file.getParentFile().mkdirs();
-                try (FileOutputStream out = new FileOutputStream(file)) {
-                    out.write(data);
-                }
-            } catch (Exception e) {
-                log.error("Unable to write class to cache", e);
-            }
-        }
-        return data;
+  @Override
+  protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+    Class<?> ex = findLoadedClass(name);
+    if (ex != null) {
+      return ex;
+    }
+    if (appClasses.containsKey(name)) {
+      return findClass(name);
+    }
+    if (frameworkClasses.contains(name)) {
+      return super.loadClass(name, resolve);
     }
 
-    @Override
-    protected Class<?> findClass(String name) throws ClassNotFoundException {
-        Class<?> existing = findLoadedClass(name);
-        if(existing != null) {
-            return existing;
-        }
-        byte[] bytes = appClasses.get(name);
-        if (bytes == null) {
-            throw new ClassNotFoundException(name);
-        }
+    final String fileName = name.replace('.', '/') + ".class";
+    Path classLoc = applicationClasses.resolve(fileName);
+    if (Files.exists(classLoc)) {
+      CompletableFuture<Class<?>> res = new CompletableFuture<>();
+      Future<Class<?>> existing = loadingClasses.putIfAbsent(name, res);
+      if (existing != null) {
         try {
-            return defineClass(name, bytes, 0, bytes.length);
-        } catch (Error e) {
-            //potential race conditions if another thread is loading the same class
-            existing = findLoadedClass(name);
-            if(existing != null) {
-                return existing;
-            }
-            throw e;
+          return existing.get();
+        } catch (Exception e) {
+          throw new ClassNotFoundException("Failed to load " + name, e);
         }
-    }
-
-    @Override
-    public void writeClass(boolean applicationClass, String className, byte[] data) {
-        if (applicationClass) {
-            appClasses.put(className.replace('/', '.'), data);
-        } else {
-            //this is pretty horrible
-            //basically we add the framework level classes to the file system
-            //in the same dir as the actual app classes
-            //however as we add them to the frameworkClasses set we know to load them
-            //from the parent CL
-            frameworkClasses.add(className.replace('/', '.'));
-            final Path fileName = frameworkClassesPath.resolve(className.replace('.', '/') + ".class");
-            try {
-                Files.createDirectories(fileName.getParent());
-                try (FileOutputStream out = new FileOutputStream(fileName.toFile())) {
-                    out.write(data);
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+      }
+      try {
+        byte[] buf = new byte[1024];
+        int r;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try (FileInputStream in = new FileInputStream(classLoc.toFile())) {
+          while ((r = in.read(buf)) > 0) {
+            out.write(buf, 0, r);
+          }
+        } catch (IOException e) {
+          throw new ClassNotFoundException("Failed to load class", e);
         }
+        byte[] bytes = out.toByteArray();
+        bytes = handleTransform(name, bytes);
+        Class<?> clazz = defineClass(name, bytes, 0, bytes.length);
+        res.complete(clazz);
+        return clazz;
+      } catch (RuntimeException e) {
+        res.completeExceptionally(e);
+        throw e;
+      } catch (Throwable e) {
+        res.completeExceptionally(e);
+        throw e;
+      }
+    }
+    return super.loadClass(name, resolve);
+  }
+
+  private byte[] handleTransform(String name, byte[] bytes) {
+    if (bytecodeTransformers == null || bytecodeTransformers.isEmpty()) {
+      return bytes;
+    }
+    List<BiFunction<String, ClassVisitor, ClassVisitor>> transformers =
+        bytecodeTransformers.get(name);
+    if (transformers == null) {
+      return bytes;
     }
 
-    public void setTransformers(Map<String, List<BiFunction<String, ClassVisitor, ClassVisitor>>> functions) {
-        this.bytecodeTransformers = functions;
-    }
+    Path hashPath = null;
+    if (transformerCache != null) {
 
-    @Override
-    public void writeResource(String name, byte[] data) throws IOException {
-        resources.put(name, data);
-    }
-
-    public static byte[] readFileContent(final Path path) throws IOException {
-        final File file = path.toFile();
-        final long fileLength = file.length();
-        if (fileLength > Integer.MAX_VALUE) {
-            throw new RuntimeException("Can't process class files larger than Integer.MAX_VALUE bytes");
+      try {
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        byte[] thedigest = md.digest(bytes);
+        String hash = Base64.getUrlEncoder().encodeToString(thedigest);
+        hashPath = transformerCache.resolve(hash);
+        if (Files.exists(hashPath)) {
+          return readFileContent(hashPath);
         }
-        final int intLength = (int) fileLength;
-        try (FileInputStream in = new FileInputStream(file)) {
-            //Might be large but we need a single byte[] at the end of things, might as well allocate it in one shot:
-            ByteArrayOutputStream out = new ByteArrayOutputStream(intLength);
-            final int reasonableBufferSize = Math.min(intLength, 2048);
-            byte[] buf = new byte[reasonableBufferSize];
-            int r;
-            while ((r = in.read(buf)) > 0) {
-                out.write(buf, 0, r);
-            }
-            return out.toByteArray();
-        }
+      } catch (Exception e) {
+        log.error("Unable to load transformed class from cache", e);
+      }
     }
 
-    private URL findApplicationResource(String name) {
-        Path resourcePath = applicationClasses.resolve(name);
-        try {
-            return Files.exists(resourcePath) ? resourcePath.toUri()
-                    .toURL() : null;
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        }
+    ClassReader cr = new ClassReader(bytes);
+    ClassWriter writer = new ClassWriter(cr, ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
+    ClassVisitor visitor = writer;
+    for (BiFunction<String, ClassVisitor, ClassVisitor> i : transformers) {
+      visitor = i.apply(name, visitor);
     }
+    cr.accept(visitor, 0);
+    byte[] data = writer.toByteArray();
+    if (hashPath != null) {
+      try {
 
+        File file = hashPath.toFile();
+        file.getParentFile().mkdirs();
+        try (FileOutputStream out = new FileOutputStream(file)) {
+          out.write(data);
+        }
+      } catch (Exception e) {
+        log.error("Unable to write class to cache", e);
+      }
+    }
+    return data;
+  }
+
+  @Override
+  protected Class<?> findClass(String name) throws ClassNotFoundException {
+    Class<?> existing = findLoadedClass(name);
+    if (existing != null) {
+      return existing;
+    }
+    byte[] bytes = appClasses.get(name);
+    if (bytes == null) {
+      throw new ClassNotFoundException(name);
+    }
+    try {
+      return defineClass(name, bytes, 0, bytes.length);
+    } catch (Error e) {
+      // potential race conditions if another thread is loading the same class
+      existing = findLoadedClass(name);
+      if (existing != null) {
+        return existing;
+      }
+      throw e;
+    }
+  }
+
+  @Override
+  public void writeClass(boolean applicationClass, String className, byte[] data) {
+    if (applicationClass) {
+      appClasses.put(className.replace('/', '.'), data);
+    } else {
+      // this is pretty horrible
+      // basically we add the framework level classes to the file system
+      // in the same dir as the actual app classes
+      // however as we add them to the frameworkClasses set we know to load them
+      // from the parent CL
+      frameworkClasses.add(className.replace('/', '.'));
+      final Path fileName = frameworkClassesPath.resolve(className.replace('.', '/') + ".class");
+      try {
+        Files.createDirectories(fileName.getParent());
+        try (FileOutputStream out = new FileOutputStream(fileName.toFile())) {
+          out.write(data);
+        }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
+  public void setTransformers(
+      Map<String, List<BiFunction<String, ClassVisitor, ClassVisitor>>> functions) {
+    this.bytecodeTransformers = functions;
+  }
+
+  @Override
+  public void writeResource(String name, byte[] data) throws IOException {
+    resources.put(name, data);
+  }
+
+  public static byte[] readFileContent(final Path path) throws IOException {
+    final File file = path.toFile();
+    final long fileLength = file.length();
+    if (fileLength > Integer.MAX_VALUE) {
+      throw new RuntimeException("Can't process class files larger than Integer.MAX_VALUE bytes");
+    }
+    final int intLength = (int) fileLength;
+    try (FileInputStream in = new FileInputStream(file)) {
+      // Might be large but we need a single byte[] at the end of things, might as well allocate it
+      // in one shot:
+      ByteArrayOutputStream out = new ByteArrayOutputStream(intLength);
+      final int reasonableBufferSize = Math.min(intLength, 2048);
+      byte[] buf = new byte[reasonableBufferSize];
+      int r;
+      while ((r = in.read(buf)) > 0) {
+        out.write(buf, 0, r);
+      }
+      return out.toByteArray();
+    }
+  }
+
+  private URL findApplicationResource(String name) {
+    Path resourcePath = applicationClasses.resolve(name);
+    try {
+      return Files.exists(resourcePath) ? resourcePath.toUri().toURL() : null;
+    } catch (MalformedURLException e) {
+      throw new RuntimeException(e);
+    }
+  }
 }

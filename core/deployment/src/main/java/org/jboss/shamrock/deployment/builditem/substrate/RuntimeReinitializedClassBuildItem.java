@@ -20,13 +20,13 @@ import org.jboss.builder.item.MultiBuildItem;
 
 public final class RuntimeReinitializedClassBuildItem extends MultiBuildItem {
 
-    private final String className;
+  private final String className;
 
-    public RuntimeReinitializedClassBuildItem(String className) {
-        this.className = className;
-    }
+  public RuntimeReinitializedClassBuildItem(String className) {
+    this.className = className;
+  }
 
-    public String getClassName() {
-        return className;
-    }
+  public String getClassName() {
+    return className;
+  }
 }

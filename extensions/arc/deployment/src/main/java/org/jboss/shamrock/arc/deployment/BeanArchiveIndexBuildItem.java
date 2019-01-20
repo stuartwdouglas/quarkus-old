@@ -21,15 +21,13 @@ import org.jboss.jandex.IndexView;
 
 public final class BeanArchiveIndexBuildItem extends SimpleBuildItem {
 
-    private final IndexView index;
+  private final IndexView index;
 
-    public BeanArchiveIndexBuildItem(IndexView index) {
-        this.index = index;
-    }
+  public BeanArchiveIndexBuildItem(IndexView index) {
+    this.index = index;
+  }
 
-
-    public IndexView getIndex() {
-        return index;
-    }
-
+  public IndexView getIndex() {
+    return index;
+  }
 }

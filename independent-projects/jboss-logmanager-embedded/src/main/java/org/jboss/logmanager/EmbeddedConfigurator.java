@@ -18,42 +18,39 @@ package org.jboss.logmanager;
 
 import java.util.logging.Handler;
 
-/**
- * The configurator for the embedded log manager.
- */
+/** The configurator for the embedded log manager. */
 public interface EmbeddedConfigurator {
-    Handler[] NO_HANDLERS = new Handler[0];
+  Handler[] NO_HANDLERS = new Handler[0];
 
-    EmbeddedConfigurator EMPTY = new EmbeddedConfigurator() {
-    };
+  EmbeddedConfigurator EMPTY = new EmbeddedConfigurator() {};
 
-    /**
-     * Get the configured minimum level of the given logger name.
-     *
-     * @param loggerName the logger name (not {@code null})
-     * @return the minimum level of the given logger name, or {@code null} to inherit
-     */
-    default java.util.logging.Level getMinimumLevelOf(String loggerName) {
-        return null;
-    }
+  /**
+   * Get the configured minimum level of the given logger name.
+   *
+   * @param loggerName the logger name (not {@code null})
+   * @return the minimum level of the given logger name, or {@code null} to inherit
+   */
+  default java.util.logging.Level getMinimumLevelOf(String loggerName) {
+    return null;
+  }
 
-    /**
-     * Get the configured level of the given logger name.
-     *
-     * @param loggerName the logger name (not {@code null})
-     * @return the level of the given logger name, or {@code null} to inherit
-     */
-    default java.util.logging.Level getLevelOf(String loggerName) {
-        return null;
-    }
+  /**
+   * Get the configured level of the given logger name.
+   *
+   * @param loggerName the logger name (not {@code null})
+   * @return the level of the given logger name, or {@code null} to inherit
+   */
+  default java.util.logging.Level getLevelOf(String loggerName) {
+    return null;
+  }
 
-    /**
-     * Get the handlers of the given logger name.
-     *
-     * @param loggerName the logger name (not {@code null})
-     * @return the handlers of the given logger name (must not be {@code null})
-     */
-    default Handler[] getHandlersOf(String loggerName) {
-        return NO_HANDLERS;
-    }
+  /**
+   * Get the handlers of the given logger name.
+   *
+   * @param loggerName the logger name (not {@code null})
+   * @return the handlers of the given logger name (must not be {@code null})
+   */
+  default Handler[] getHandlersOf(String loggerName) {
+    return NO_HANDLERS;
+  }
 }

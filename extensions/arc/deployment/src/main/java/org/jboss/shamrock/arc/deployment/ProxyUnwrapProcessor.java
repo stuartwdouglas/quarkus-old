@@ -22,8 +22,8 @@ import org.jboss.shamrock.deployment.builditem.ProxyUnwrapperBuildItem;
 
 public class ProxyUnwrapProcessor {
 
-    @BuildStep
-    ProxyUnwrapperBuildItem wrapper() {
-        return new ProxyUnwrapperBuildItem(new ClientProxyUnwrapper());
-    }
+  @BuildStep
+  ProxyUnwrapperBuildItem wrapper() {
+    return new ProxyUnwrapperBuildItem(new ClientProxyUnwrapper());
+  }
 }

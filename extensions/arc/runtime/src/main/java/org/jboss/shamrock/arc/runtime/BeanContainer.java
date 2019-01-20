@@ -17,40 +17,40 @@
 package org.jboss.shamrock.arc.runtime;
 
 import java.lang.annotation.Annotation;
-
 import org.jboss.protean.arc.ManagedContext;
 
 public interface BeanContainer {
 
-    default <T> T instance(Class<T> type, Annotation... qualifiers) {
-        return instanceFactory(type, qualifiers).get();
-    }
+  default <T> T instance(Class<T> type, Annotation... qualifiers) {
+    return instanceFactory(type, qualifiers).get();
+  }
 
-    <T> Factory<T> instanceFactory(Class<T> type, Annotation... qualifiers);
+  <T> Factory<T> instanceFactory(Class<T> type, Annotation... qualifiers);
 
-    /**
-     * <pre>
-     * ManagedContext requestContext = beanContainer.requestContext();
-     * if (requestContext.isActive()) {
-     *     // Perform action 
-     * } else {
-     *     try {
-     *         requestContext.activate();
-     *         // Perform action
-     *     } finally {
-     *         requestContext.terminate();
-     *     }
-     * }
-     * </pre>
-     * 
-     * @return the context for {@link javax.enterprise.context.RequestScoped}
-     * @throws IllegalStateException If the container is not running
-     */
-    ManagedContext requestContext();
+  /**
+   *
+   *
+   * <pre>
+   * ManagedContext requestContext = beanContainer.requestContext();
+   * if (requestContext.isActive()) {
+   *     // Perform action
+   * } else {
+   *     try {
+   *         requestContext.activate();
+   *         // Perform action
+   *     } finally {
+   *         requestContext.terminate();
+   *     }
+   * }
+   * </pre>
+   *
+   * @return the context for {@link javax.enterprise.context.RequestScoped}
+   * @throws IllegalStateException If the container is not running
+   */
+  ManagedContext requestContext();
 
-    interface Factory<T> {
+  interface Factory<T> {
 
-        T get();
-    }
-
+    T get();
+  }
 }

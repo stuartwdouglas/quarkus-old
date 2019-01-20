@@ -18,28 +18,26 @@ package org.jboss.shamrock.jaxrs.runtime.graal;
 
 import java.util.List;
 import java.util.function.Function;
-
 import org.jboss.shamrock.arc.runtime.BeanContainer;
 import org.jboss.shamrock.runtime.Template;
 
-/**
- * Created by bob on 7/31/18.
- */
+/** Created by bob on 7/31/18. */
 @Template
 public class JaxrsTemplate {
 
-    public void setupIntegration(BeanContainer container, List<Function<Object, Object>> propertyUnwrappers) {
-        ShamrockInjectorFactory.CONTAINER = container;
-        ShamrockInjectorFactory.PROXY_UNWRAPPER = new Function<Object, Object>() {
-            @Override
-            public Object apply(Object o) {
-                Object res = o;
-                for (Function<Object, Object> i : propertyUnwrappers) {
-                    res = i.apply(res);
-                }
-                return res;
+  public void setupIntegration(
+      BeanContainer container, List<Function<Object, Object>> propertyUnwrappers) {
+    ShamrockInjectorFactory.CONTAINER = container;
+    ShamrockInjectorFactory.PROXY_UNWRAPPER =
+        new Function<Object, Object>() {
+          @Override
+          public Object apply(Object o) {
+            Object res = o;
+            for (Function<Object, Object> i : propertyUnwrappers) {
+              res = i.apply(res);
             }
+            return res;
+          }
         };
-    }
-
+  }
 }

@@ -17,21 +17,18 @@
 package org.jboss.shamrock.deployment.builditem;
 
 import java.util.function.Function;
-
 import org.jboss.builder.item.MultiBuildItem;
 
-/**
- * A build item that can be used to unwrap CDI or other proxies
- */
+/** A build item that can be used to unwrap CDI or other proxies */
 public final class ProxyUnwrapperBuildItem extends MultiBuildItem {
 
-    private final Function<Object, Object> unwrapper;
+  private final Function<Object, Object> unwrapper;
 
-    public ProxyUnwrapperBuildItem(Function<Object, Object> unwrapper) {
-        this.unwrapper = unwrapper;
-    }
+  public ProxyUnwrapperBuildItem(Function<Object, Object> unwrapper) {
+    this.unwrapper = unwrapper;
+  }
 
-    public Function<Object, Object> getUnwrapper() {
-        return unwrapper;
-    }
+  public Function<Object, Object> getUnwrapper() {
+    return unwrapper;
+  }
 }

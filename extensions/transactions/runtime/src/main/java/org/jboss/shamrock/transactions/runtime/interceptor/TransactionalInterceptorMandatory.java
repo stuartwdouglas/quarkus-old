@@ -16,6 +16,7 @@
 
 package org.jboss.shamrock.transactions.runtime.interceptor;
 
+import com.arjuna.ats.jta.logging.jtaLogger;
 import javax.annotation.Priority;
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
@@ -26,31 +27,28 @@ import javax.transaction.TransactionRequiredException;
 import javax.transaction.Transactional;
 import javax.transaction.TransactionalException;
 
-import com.arjuna.ats.jta.logging.jtaLogger;
-
-/**
- * @author paul.robinson@redhat.com 25/05/2013
- */
-
+/** @author paul.robinson@redhat.com 25/05/2013 */
 @Interceptor
 @Transactional(Transactional.TxType.MANDATORY)
 @Priority(Interceptor.Priority.PLATFORM_BEFORE + 200)
 public class TransactionalInterceptorMandatory extends TransactionalInterceptorBase {
-    public TransactionalInterceptorMandatory() {
-        super(false);
-    }
+  public TransactionalInterceptorMandatory() {
+    super(false);
+  }
 
-    @Override
-    @AroundInvoke
-    public Object intercept(InvocationContext ic) throws Exception {
-        return super.intercept(ic);
-    }
+  @Override
+  @AroundInvoke
+  public Object intercept(InvocationContext ic) throws Exception {
+    return super.intercept(ic);
+  }
 
-    @Override
-    protected Object doIntercept(TransactionManager tm, Transaction tx, InvocationContext ic) throws Exception {
-        if (tx == null) {
-            throw new TransactionalException(jtaLogger.i18NLogger.get_tx_required(), new TransactionRequiredException());
-        }
-        return invokeInCallerTx(ic, tx);
+  @Override
+  protected Object doIntercept(TransactionManager tm, Transaction tx, InvocationContext ic)
+      throws Exception {
+    if (tx == null) {
+      throw new TransactionalException(
+          jtaLogger.i18NLogger.get_tx_required(), new TransactionRequiredException());
     }
+    return invokeInCallerTx(ic, tx);
+  }
 }

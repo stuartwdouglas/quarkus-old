@@ -18,10 +18,8 @@ package org.jboss.shamrock.maven;
 
 public class MavenConstants {
 
-    public static final String PLUGIN_GROUPID = "org.jboss.shamrock";
-    public static final String PLUGIN_ARTIFACTID = "shamrock-maven-plugin";
+  public static final String PLUGIN_GROUPID = "org.jboss.shamrock";
+  public static final String PLUGIN_ARTIFACTID = "shamrock-maven-plugin";
 
-    private MavenConstants() {
-
-    }
+  private MavenConstants() {}
 }

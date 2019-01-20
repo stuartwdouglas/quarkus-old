@@ -22,28 +22,21 @@ import org.jboss.shamrock.runtime.ConfigGroup;
 @ConfigGroup
 public class ConsoleConfig {
 
-    /**
-     * If console logging should be enabled
-     */
-    @ConfigProperty(name = "enable", defaultValue = "true")
-    boolean enable;
+  /** If console logging should be enabled */
+  @ConfigProperty(name = "enable", defaultValue = "true")
+  boolean enable;
 
-    /**
-     * The log format
-     */
-    @ConfigProperty(name = "format", defaultValue = "%d{yyyy-MM-dd HH:mm:ss,SSS} %h %N[%i] %-5p [%c{1.}] (%t) %s%e%n")
-    String format;
+  /** The log format */
+  @ConfigProperty(
+      name = "format",
+      defaultValue = "%d{yyyy-MM-dd HH:mm:ss,SSS} %h %N[%i] %-5p [%c{1.}] (%t) %s%e%n")
+  String format;
 
-    /**
-     * The console log level
-     */
-    @ConfigProperty(name = "level", defaultValue = "INFO")
-    String level;
+  /** The console log level */
+  @ConfigProperty(name = "level", defaultValue = "INFO")
+  String level;
 
-    /**
-     * If the console logging should be in color
-     */
-    @ConfigProperty(name = "color", defaultValue = "true")
-    boolean color;
-
+  /** If the console logging should be in color */
+  @ConfigProperty(name = "color", defaultValue = "true")
+  boolean color;
 }

@@ -19,30 +19,28 @@ package org.jboss.logmanager.filters;
 import java.util.logging.Filter;
 import java.util.logging.LogRecord;
 
-/**
- * A deny-all filter.
- */
+/** A deny-all filter. */
 public final class DenyAllFilter implements Filter {
-    private DenyAllFilter() {}
+  private DenyAllFilter() {}
 
-    private static final DenyAllFilter INSTANCE = new DenyAllFilter();
+  private static final DenyAllFilter INSTANCE = new DenyAllFilter();
 
-    /**
-     * Always returns {@code false}.
-     *
-     * @param record ignored
-     * @return {@code false}
-     */
-    public boolean isLoggable(final LogRecord record) {
-        return false;
-    }
+  /**
+   * Always returns {@code false}.
+   *
+   * @param record ignored
+   * @return {@code false}
+   */
+  public boolean isLoggable(final LogRecord record) {
+    return false;
+  }
 
-    /**
-     * Get the filter instance.
-     *
-     * @return the filter instance
-     */
-    public static DenyAllFilter getInstance() {
-        return INSTANCE;
-    }
+  /**
+   * Get the filter instance.
+   *
+   * @return the filter instance
+   */
+  public static DenyAllFilter getInstance() {
+    return INSTANCE;
+  }
 }

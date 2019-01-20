@@ -20,46 +20,45 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.jboss.builder.item.MultiBuildItem;
 
 /**
  * This build item is used to specify additional bean classes to be analyzed.
- * <p>
- * By default, the resulting beans may be removed if they are considered unused and {@link ArcConfig#removeUnusedBeans} is enabled. 
+ *
+ * <p>By default, the resulting beans may be removed if they are considered unused and {@link
+ * ArcConfig#removeUnusedBeans} is enabled.
  */
 public final class AdditionalBeanBuildItem extends MultiBuildItem {
 
-    private final List<String> beanClasses;
-    private final boolean removable;
-    
-    public AdditionalBeanBuildItem(String... beanClasses) {
-        this(true, beanClasses);
-    }
-    
-    public AdditionalBeanBuildItem(boolean removable, String... beanClasses) {
-        this(Arrays.asList(beanClasses), removable);
-    }
+  private final List<String> beanClasses;
+  private final boolean removable;
 
-    public AdditionalBeanBuildItem(Class<?>... beanClasses) {
-        this(true, beanClasses);
-    }
-    
-    public AdditionalBeanBuildItem(boolean removable, Class<?>... beanClasses) {
-        this(Arrays.stream(beanClasses).map(Class::getName).collect(Collectors.toList()), removable);
-    }
-    
-    AdditionalBeanBuildItem(List<String> beanClasses, boolean removable) {
-        this.beanClasses = beanClasses;
-        this.removable = removable;
-    }
+  public AdditionalBeanBuildItem(String... beanClasses) {
+    this(true, beanClasses);
+  }
 
-    public List<String> getBeanClasses() {
-        return Collections.unmodifiableList(beanClasses);
-    }
+  public AdditionalBeanBuildItem(boolean removable, String... beanClasses) {
+    this(Arrays.asList(beanClasses), removable);
+  }
 
-    public boolean isRemovable() {
-        return removable;
-    }
-    
+  public AdditionalBeanBuildItem(Class<?>... beanClasses) {
+    this(true, beanClasses);
+  }
+
+  public AdditionalBeanBuildItem(boolean removable, Class<?>... beanClasses) {
+    this(Arrays.stream(beanClasses).map(Class::getName).collect(Collectors.toList()), removable);
+  }
+
+  AdditionalBeanBuildItem(List<String> beanClasses, boolean removable) {
+    this.beanClasses = beanClasses;
+    this.removable = removable;
+  }
+
+  public List<String> getBeanClasses() {
+    return Collections.unmodifiableList(beanClasses);
+  }
+
+  public boolean isRemovable() {
+    return removable;
+  }
 }

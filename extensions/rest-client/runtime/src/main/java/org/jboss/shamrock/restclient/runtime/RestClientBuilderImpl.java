@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLContextSpi;
@@ -56,7 +55,6 @@ import javax.ws.rs.core.Configuration;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.ext.ParamConverterProvider;
-
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.rest.client.RestClientBuilder;
@@ -68,440 +66,460 @@ import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.spi.ResteasyUriBuilder;
 
-
-/**
- * Created by hbraun on 15.01.18.
- */
+/** Created by hbraun on 15.01.18. */
 class RestClientBuilderImpl implements RestClientBuilder {
 
-    private static final String RESTEASY_PROPERTY_PREFIX = "resteasy.";
+  private static final String RESTEASY_PROPERTY_PREFIX = "resteasy.";
 
-    private static final String DEFAULT_MAPPER_PROP = "microprofile.rest.client.disable.default.mapper";
-    private static final Logger log = Logger.getLogger("org.jboss.shamrock.restclient");
+  private static final String DEFAULT_MAPPER_PROP =
+      "microprofile.rest.client.disable.default.mapper";
+  private static final Logger log = Logger.getLogger("org.jboss.shamrock.restclient");
 
-    RestClientBuilderImpl() {
-        ClientBuilder availableBuilder = ClientBuilder.newBuilder();
+  RestClientBuilderImpl() {
+    ClientBuilder availableBuilder = ClientBuilder.newBuilder();
 
-        if (availableBuilder instanceof ResteasyClientBuilder) {
-            this.builderDelegate = (ResteasyClientBuilder) availableBuilder;
-            this.configurationWrapper = new ConfigurationWrapper(this.builderDelegate.getConfiguration());
-            this.config = ConfigProvider.getConfig();
-        } else {
-            throw new IllegalStateException("Incompatible client builder found " + availableBuilder.getClass());
-        }
+    if (availableBuilder instanceof ResteasyClientBuilder) {
+      this.builderDelegate = (ResteasyClientBuilder) availableBuilder;
+      this.configurationWrapper = new ConfigurationWrapper(this.builderDelegate.getConfiguration());
+      this.config = ConfigProvider.getConfig();
+    } else {
+      throw new IllegalStateException(
+          "Incompatible client builder found " + availableBuilder.getClass());
+    }
+  }
+
+  public Configuration getConfigurationWrapper() {
+    return this.configurationWrapper;
+  }
+
+  @Override
+  public RestClientBuilder baseUrl(URL url) {
+    try {
+      this.baseURI = url.toURI();
+      return this;
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e.getMessage());
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public <T> T build(Class<T> aClass) throws IllegalStateException, RestClientDefinitionException {
+
+    // Interface validity
+    verifyInterface(aClass);
+
+    // Provider annotations
+    Annotation[] providers = aClass.getAnnotations();
+
+    for (Annotation provider : providers) {
+      if (provider instanceof RegisterProvider) {
+        RegisterProvider p = (RegisterProvider) provider;
+        register(p.value(), p.priority());
+      }
     }
 
-    public Configuration getConfigurationWrapper() {
-        return this.configurationWrapper;
+    // Default exception mapper
+    if (!isMapperDisabled()) {
+      register(DefaultResponseExceptionMapper.class);
     }
 
-    @Override
-    public RestClientBuilder baseUrl(URL url) {
-        try {
-            this.baseURI = url.toURI();
-            return this;
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e.getMessage());
-        }
-    }
+    this.builderDelegate.register(new ExceptionMapping(localProviderInstances), 1);
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T> T build(Class<T> aClass) throws IllegalStateException, RestClientDefinitionException {
+    ClassLoader classLoader = aClass.getClassLoader();
 
-        // Interface validity
-        verifyInterface(aClass);
+    List<String> noProxyHosts =
+        Arrays.asList(System.getProperty("http.nonProxyHosts", "localhost|127.*|[::1]").split("|"));
+    String proxyHost = System.getProperty("http.proxyHost");
 
-        // Provider annotations
-        Annotation[] providers = aClass.getAnnotations();
+    T actualClient;
+    ResteasyClient client;
+    // TODO: Substrate does not support SSL yet
+    this.builderDelegate.sslContext(
+        new SSLContext(
+            new SSLContextSpi() {
+              @Override
+              protected void engineInit(
+                  KeyManager[] keyManagers, TrustManager[] trustManagers, SecureRandom secureRandom)
+                  throws KeyManagementException {}
 
-        for (Annotation provider : providers) {
-            if(provider instanceof  RegisterProvider) {
-                RegisterProvider p = (RegisterProvider) provider;
-                register(p.value(), p.priority());
-            }
-        }
-
-        // Default exception mapper
-        if (!isMapperDisabled()) {
-            register(DefaultResponseExceptionMapper.class);
-        }
-
-        this.builderDelegate.register(new ExceptionMapping(localProviderInstances), 1);
-
-        ClassLoader classLoader = aClass.getClassLoader();
-
-        List<String> noProxyHosts = Arrays.asList(
-                System.getProperty("http.nonProxyHosts", "localhost|127.*|[::1]").split("|"));
-        String proxyHost = System.getProperty("http.proxyHost");
-
-        T actualClient;
-        ResteasyClient client;
-        //TODO: Substrate does not support SSL yet
-        this.builderDelegate.sslContext(new SSLContext(new SSLContextSpi() {
-            @Override
-            protected void engineInit(KeyManager[] keyManagers, TrustManager[] trustManagers, SecureRandom secureRandom) throws KeyManagementException {
-
-            }
-
-            @Override
-            protected SSLSocketFactory engineGetSocketFactory() {
+              @Override
+              protected SSLSocketFactory engineGetSocketFactory() {
                 return new SSLSocketFactory() {
-                    @Override
-                    public String[] getDefaultCipherSuites() {
-                        return new String[0];
-                    }
+                  @Override
+                  public String[] getDefaultCipherSuites() {
+                    return new String[0];
+                  }
 
-                    @Override
-                    public String[] getSupportedCipherSuites() {
-                        return new String[0];
-                    }
+                  @Override
+                  public String[] getSupportedCipherSuites() {
+                    return new String[0];
+                  }
 
-                    @Override
-                    public Socket createSocket(Socket socket, String s, int i, boolean b) throws IOException {
-                        return null;
-                    }
+                  @Override
+                  public Socket createSocket(Socket socket, String s, int i, boolean b)
+                      throws IOException {
+                    return null;
+                  }
 
-                    @Override
-                    public Socket createSocket(String s, int i) throws IOException, UnknownHostException {
-                        return null;
-                    }
+                  @Override
+                  public Socket createSocket(String s, int i)
+                      throws IOException, UnknownHostException {
+                    return null;
+                  }
 
-                    @Override
-                    public Socket createSocket(String s, int i, InetAddress inetAddress, int i1) throws IOException, UnknownHostException {
-                        return null;
-                    }
+                  @Override
+                  public Socket createSocket(String s, int i, InetAddress inetAddress, int i1)
+                      throws IOException, UnknownHostException {
+                    return null;
+                  }
 
-                    @Override
-                    public Socket createSocket(InetAddress inetAddress, int i) throws IOException {
-                        return null;
-                    }
+                  @Override
+                  public Socket createSocket(InetAddress inetAddress, int i) throws IOException {
+                    return null;
+                  }
 
-                    @Override
-                    public Socket createSocket(InetAddress inetAddress, int i, InetAddress inetAddress1, int i1) throws IOException {
-                        return null;
-                    }
+                  @Override
+                  public Socket createSocket(
+                      InetAddress inetAddress, int i, InetAddress inetAddress1, int i1)
+                      throws IOException {
+                    return null;
+                  }
                 };
-            }
+              }
 
-            @Override
-            protected SSLServerSocketFactory engineGetServerSocketFactory() {
+              @Override
+              protected SSLServerSocketFactory engineGetServerSocketFactory() {
                 return null;
-            }
+              }
 
-            @Override
-            protected SSLEngine engineCreateSSLEngine() {
+              @Override
+              protected SSLEngine engineCreateSSLEngine() {
                 return null;
-            }
+              }
 
-            @Override
-            protected SSLEngine engineCreateSSLEngine(String s, int i) {
+              @Override
+              protected SSLEngine engineCreateSSLEngine(String s, int i) {
                 return null;
-            }
+              }
 
-            @Override
-            protected SSLSessionContext engineGetServerSessionContext() {
+              @Override
+              protected SSLSessionContext engineGetServerSessionContext() {
                 return null;
-            }
+              }
 
-            @Override
-            protected SSLSessionContext engineGetClientSessionContext() {
+              @Override
+              protected SSLSessionContext engineGetClientSessionContext() {
                 return null;
-            }
-        }, new Provider("Dummy", 1, "Dummy") {
-            @Override
-            public String getName() {
+              }
+            },
+            new Provider("Dummy", 1, "Dummy") {
+              @Override
+              public String getName() {
                 return super.getName();
-            }
-        }, "BOGUS") {
+              }
+            },
+            "BOGUS") {});
+    if (proxyHost != null && !noProxyHosts.contains(this.baseURI.getHost())) {
+      // Use proxy, if defined
+      client =
+          this.builderDelegate
+              .defaultProxy(proxyHost, Integer.parseInt(System.getProperty("http.proxyPort", "80")))
+              .build();
+    } else {
+      client = this.builderDelegate.build();
+    }
 
-        });
-        if (proxyHost != null && !noProxyHosts.contains(this.baseURI.getHost())) {
-            // Use proxy, if defined
-            client = this.builderDelegate.defaultProxy(
-                    proxyHost,
-                    Integer.parseInt(System.getProperty("http.proxyPort", "80")))
-                    .build();
-        } else {
-            client = this.builderDelegate.build();
-        }
+    actualClient =
+        client
+            .target(this.baseURI)
+            .proxyBuilder(aClass)
+            .classloader(classLoader)
+            .defaultConsumes(MediaType.TEXT_PLAIN)
+            .defaultProduces(MediaType.TEXT_PLAIN)
+            .build();
 
-        actualClient = client.target(this.baseURI)
-                .proxyBuilder(aClass)
-                .classloader(classLoader)
-                .defaultConsumes(MediaType.TEXT_PLAIN)
-                .defaultProduces(MediaType.TEXT_PLAIN).build();
+    Class<?>[] interfaces = new Class<?>[2];
+    interfaces[0] = aClass;
+    interfaces[1] = RestClientProxy.class;
 
-        Class<?>[] interfaces = new Class<?>[2];
-        interfaces[0] = aClass;
-        interfaces[1] = RestClientProxy.class;
-
-        return (T) Proxy.newProxyInstance(classLoader, interfaces, new InvocationHandler() {
-            @Override
-            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    return (T)
+        Proxy.newProxyInstance(
+            classLoader,
+            interfaces,
+            new InvocationHandler() {
+              @Override
+              public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                 return method.invoke(actualClient, args);
-            }
-        });
-    }
+              }
+            });
+  }
 
-    private boolean isMapperDisabled() {
-        boolean disabled = false;
-        Optional<Boolean> defaultMapperProp = this.config.getOptionalValue(DEFAULT_MAPPER_PROP, Boolean.class);
+  private boolean isMapperDisabled() {
+    boolean disabled = false;
+    Optional<Boolean> defaultMapperProp =
+        this.config.getOptionalValue(DEFAULT_MAPPER_PROP, Boolean.class);
 
-        // disabled through config api
-        if (defaultMapperProp.isPresent() && defaultMapperProp.get().equals(Boolean.TRUE)) {
-            disabled = true;
-        } else if (!defaultMapperProp.isPresent()) {
+    // disabled through config api
+    if (defaultMapperProp.isPresent() && defaultMapperProp.get().equals(Boolean.TRUE)) {
+      disabled = true;
+    } else if (!defaultMapperProp.isPresent()) {
 
-            // disabled through jaxrs property
-            try {
-                Object property = this.builderDelegate.getConfiguration().getProperty(DEFAULT_MAPPER_PROP);
-                if (property != null) {
-                    disabled = (Boolean) property;
-                }
-            } catch (Throwable e) {
-                // ignore cast exception
-            }
+      // disabled through jaxrs property
+      try {
+        Object property = this.builderDelegate.getConfiguration().getProperty(DEFAULT_MAPPER_PROP);
+        if (property != null) {
+          disabled = (Boolean) property;
         }
-        return disabled;
+      } catch (Throwable e) {
+        // ignore cast exception
+      }
     }
+    return disabled;
+  }
 
-    private <T> void verifyInterface(Class<T> typeDef) {
+  private <T> void verifyInterface(Class<T> typeDef) {
 
-        Method[] methods = typeDef.getMethods();
+    Method[] methods = typeDef.getMethods();
 
-        // multiple verbs
-        for (Method method : methods) {
-            boolean hasHttpMethod = false;
-            for (Annotation annotation : method.getAnnotations()) {
-                boolean isHttpMethod = (annotation.annotationType().getAnnotation(HttpMethod.class) != null);
-                if (!hasHttpMethod && isHttpMethod) {
-                    hasHttpMethod = true;
-                } else if (hasHttpMethod && isHttpMethod) {
-                    throw new RestClientDefinitionException("Ambiguous @Httpmethod defintion on type " + typeDef);
-                }
-            }
+    // multiple verbs
+    for (Method method : methods) {
+      boolean hasHttpMethod = false;
+      for (Annotation annotation : method.getAnnotations()) {
+        boolean isHttpMethod =
+            (annotation.annotationType().getAnnotation(HttpMethod.class) != null);
+        if (!hasHttpMethod && isHttpMethod) {
+          hasHttpMethod = true;
+        } else if (hasHttpMethod && isHttpMethod) {
+          throw new RestClientDefinitionException(
+              "Ambiguous @Httpmethod defintion on type " + typeDef);
         }
+      }
+    }
 
-        // invalid parameter
-        Path classPathAnno = typeDef.getAnnotation(Path.class);
+    // invalid parameter
+    Path classPathAnno = typeDef.getAnnotation(Path.class);
 
-        final Set<String> classLevelVariables = new HashSet<>();
-        ResteasyUriBuilder classTemplate = null;
-        if (classPathAnno != null) {
-            classTemplate = (ResteasyUriBuilder) UriBuilder.fromUri(classPathAnno.value());
-            classLevelVariables.addAll(classTemplate.getPathParamNamesInDeclarationOrder());
+    final Set<String> classLevelVariables = new HashSet<>();
+    ResteasyUriBuilder classTemplate = null;
+    if (classPathAnno != null) {
+      classTemplate = (ResteasyUriBuilder) UriBuilder.fromUri(classPathAnno.value());
+      classLevelVariables.addAll(classTemplate.getPathParamNamesInDeclarationOrder());
+    }
+    ResteasyUriBuilder template;
+    for (Method method : methods) {
+
+      Path methodPathAnno = method.getAnnotation(Path.class);
+      if (methodPathAnno != null) {
+        template =
+            classPathAnno == null
+                ? (ResteasyUriBuilder) UriBuilder.fromUri(methodPathAnno.value())
+                : (ResteasyUriBuilder)
+                    UriBuilder.fromUri(classPathAnno.value() + "/" + methodPathAnno.value());
+      } else {
+        template = classTemplate;
+      }
+      if (template == null) {
+        continue;
+      }
+
+      // it's not executed, so this can be anything - but a hostname needs to present
+      template.host("localhost");
+
+      Set<String> allVariables = new HashSet<>(template.getPathParamNamesInDeclarationOrder());
+      Map<String, Object> paramMap = new HashMap<>();
+      for (Parameter p : method.getParameters()) {
+        PathParam pathParam = p.getAnnotation(PathParam.class);
+        if (pathParam != null) {
+          paramMap.put(pathParam.value(), "foobar");
         }
-        ResteasyUriBuilder template;
-        for (Method method : methods) {
+      }
 
-            Path methodPathAnno = method.getAnnotation(Path.class);
-            if (methodPathAnno != null) {
-                template = classPathAnno == null ? (ResteasyUriBuilder) UriBuilder.fromUri(methodPathAnno.value())
-                        : (ResteasyUriBuilder) UriBuilder.fromUri(classPathAnno.value() + "/" + methodPathAnno.value());
-            } else {
-                template = classTemplate;
-            }
-            if (template == null) {
-                continue;
-            }
+      if (allVariables.size() != paramMap.size()) {
+        throw new RestClientDefinitionException(
+            "Parameters and variables don't match on " + typeDef + "::" + method.getName());
+      }
 
-            // it's not executed, so this can be anything - but a hostname needs to present
-            template.host("localhost");
+      try {
+        template.resolveTemplates(paramMap, false).build();
+      } catch (IllegalArgumentException ex) {
+        throw new RestClientDefinitionException(
+            "Parameter names don't match variable names on " + typeDef + "::" + method.getName(),
+            ex);
+      }
+    }
+  }
 
-            Set<String> allVariables = new HashSet<>(template.getPathParamNamesInDeclarationOrder());
-            Map<String, Object> paramMap = new HashMap<>();
-            for (Parameter p : method.getParameters()) {
-                PathParam pathParam = p.getAnnotation(PathParam.class);
-                if (pathParam != null) {
-                    paramMap.put(pathParam.value(), "foobar");
-                }
-            }
+  @Override
+  public Configuration getConfiguration() {
+    return getConfigurationWrapper();
+  }
 
-            if (allVariables.size() != paramMap.size()) {
-                throw new RestClientDefinitionException("Parameters and variables don't match on " + typeDef + "::" + method.getName());
-            }
+  @Override
+  public RestClientBuilder property(String name, Object value) {
+    if (name.startsWith(RESTEASY_PROPERTY_PREFIX)) {
+      // Allows to configure some of the ResteasyClientBuilder delegate properties
+      String builderMethodName = name.substring(RESTEASY_PROPERTY_PREFIX.length());
+      try {
+        Method builderMethod =
+            ResteasyClientBuilder.class.getMethod(builderMethodName, unwrapPrimitiveType(value));
+        builderMethod.invoke(builderDelegate, value);
+      } catch (NoSuchMethodException e) {
+        log.warnf("ResteasyClientBuilder method %s not found", builderMethodName);
+      } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+        log.errorf(e, "Unable to invoke ResteasyClientBuilder method %s", builderMethodName);
+      }
+    }
+    this.builderDelegate.property(name, value);
+    return this;
+  }
 
-            try {
-                template.resolveTemplates(paramMap, false).build();
-            } catch (IllegalArgumentException ex) {
-                throw new RestClientDefinitionException("Parameter names don't match variable names on " + typeDef + "::" + method.getName(), ex);
-            }
+  private static Class<?> unwrapPrimitiveType(Object value) {
+    if (value instanceof Integer) {
+      return int.class;
+    } else if (value instanceof Long) {
+      return long.class;
+    } else if (value instanceof Boolean) {
+      return boolean.class;
+    }
+    return value.getClass();
+  }
 
-        }
+  private static Object newInstanceOf(Class<?> clazz) {
+    try {
+      return clazz.getDeclaredConstructor().newInstance();
+    } catch (Throwable t) {
+      throw new RuntimeException("Failed to register " + clazz, t);
+    }
+  }
+
+  @Override
+  public RestClientBuilder register(Class<?> aClass) {
+    this.register(newInstanceOf(aClass));
+    return this;
+  }
+
+  @Override
+  public RestClientBuilder register(Class<?> aClass, int i) {
+
+    this.register(newInstanceOf(aClass), i);
+    return this;
+  }
+
+  @Override
+  public RestClientBuilder register(Class<?> aClass, Class<?>... classes) {
+    this.register(newInstanceOf(aClass), classes);
+    return this;
+  }
+
+  @Override
+  public RestClientBuilder register(Class<?> aClass, Map<Class<?>, Integer> map) {
+    this.register(newInstanceOf(aClass), map);
+    return this;
+  }
+
+  @Override
+  public RestClientBuilder register(Object o) {
+    if (o instanceof ResponseExceptionMapper) {
+      ResponseExceptionMapper mapper = (ResponseExceptionMapper) o;
+      register(mapper, mapper.getPriority());
+    } else if (o instanceof ParamConverterProvider) {
+      register(o, Priorities.USER);
+    } else {
+      this.builderDelegate.register(o);
+    }
+    return this;
+  }
+
+  @Override
+  public RestClientBuilder register(Object o, int i) {
+    if (o instanceof ResponseExceptionMapper) {
+
+      // local
+      ResponseExceptionMapper mapper = (ResponseExceptionMapper) o;
+      HashMap<Class<?>, Integer> contracts = new HashMap<>();
+      contracts.put(ResponseExceptionMapper.class, i);
+      registerLocalProviderInstance(mapper, contracts);
+
+      // delegate
+      this.builderDelegate.register(mapper, i);
+
+    } else if (o instanceof ParamConverterProvider) {
+
+      // local
+      ParamConverterProvider converter = (ParamConverterProvider) o;
+      HashMap<Class<?>, Integer> contracts = new HashMap<>();
+      contracts.put(ParamConverterProvider.class, i);
+      registerLocalProviderInstance(converter, contracts);
+
+      // delegate
+      this.builderDelegate.register(converter, i);
+
+    } else {
+      this.builderDelegate.register(o, i);
+    }
+    return this;
+  }
+
+  @Override
+  public RestClientBuilder register(Object o, Class<?>... classes) {
+
+    // local
+    for (Class<?> aClass : classes) {
+      if (aClass.isAssignableFrom(ResponseExceptionMapper.class)) {
+        register(o);
+      }
     }
 
+    // other
+    this.builderDelegate.register(o, classes);
+    return this;
+  }
 
-    @Override
-    public Configuration getConfiguration() {
-        return getConfigurationWrapper();
+  @Override
+  public RestClientBuilder register(Object o, Map<Class<?>, Integer> map) {
+
+    if (o instanceof ResponseExceptionMapper) {
+
+      // local
+      ResponseExceptionMapper mapper = (ResponseExceptionMapper) o;
+      HashMap<Class<?>, Integer> contracts = new HashMap<>();
+      contracts.put(ResponseExceptionMapper.class, map.get(ResponseExceptionMapper.class));
+      registerLocalProviderInstance(mapper, contracts);
+
+      // other
+      this.builderDelegate.register(o, map);
+
+    } else {
+      this.builderDelegate.register(o, map);
     }
 
-    @Override
-    public RestClientBuilder property(String name, Object value) {
-        if (name.startsWith(RESTEASY_PROPERTY_PREFIX)) {
-            // Allows to configure some of the ResteasyClientBuilder delegate properties
-            String builderMethodName = name.substring(RESTEASY_PROPERTY_PREFIX.length());
-            try {
-                Method builderMethod = ResteasyClientBuilder.class.getMethod(builderMethodName, unwrapPrimitiveType(value));
-                builderMethod.invoke(builderDelegate, value);
-            } catch (NoSuchMethodException e) {
-                log.warnf("ResteasyClientBuilder method %s not found", builderMethodName);
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                log.errorf(e, "Unable to invoke ResteasyClientBuilder method %s", builderMethodName);
-            }
-        }
-        this.builderDelegate.property(name, value);
-        return this;
+    return this;
+  }
+
+  public Set<Object> getLocalProviderInstances() {
+    return localProviderInstances;
+  }
+
+  public void registerLocalProviderInstance(Object provider, Map<Class<?>, Integer> contracts) {
+    for (Object registered : getLocalProviderInstances()) {
+      if (registered == provider) {
+        log.debugf("Provider already registered: %s", provider.getClass());
+        return;
+      }
     }
 
-    private static Class<?> unwrapPrimitiveType(Object value) {
-        if (value instanceof Integer) {
-            return int.class;
-        } else if (value instanceof Long) {
-            return long.class;
-        } else if (value instanceof Boolean) {
-            return boolean.class;
-        }
-        return value.getClass();
-    }
+    localProviderInstances.add(provider);
+    configurationWrapper.registerLocalContract(provider.getClass(), contracts);
+  }
 
-    private static Object newInstanceOf(Class<?> clazz) {
-        try {
-            return clazz.getDeclaredConstructor().newInstance();
-        } catch (Throwable t) {
-            throw new RuntimeException("Failed to register " + clazz, t);
-        }
-    }
+  private final ResteasyClientBuilder builderDelegate;
 
-    @Override
-    public RestClientBuilder register(Class<?> aClass) {
-        this.register(newInstanceOf(aClass));
-        return this;
-    }
+  private final ConfigurationWrapper configurationWrapper;
 
-    @Override
-    public RestClientBuilder register(Class<?> aClass, int i) {
+  private final Config config;
 
-        this.register(newInstanceOf(aClass), i);
-        return this;
-    }
+  private URI baseURI;
 
-    @Override
-    public RestClientBuilder register(Class<?> aClass, Class<?>... classes) {
-        this.register(newInstanceOf(aClass), classes);
-        return this;
-    }
-
-    @Override
-    public RestClientBuilder register(Class<?> aClass, Map<Class<?>, Integer> map) {
-        this.register(newInstanceOf(aClass), map);
-        return this;
-    }
-
-    @Override
-    public RestClientBuilder register(Object o) {
-        if (o instanceof ResponseExceptionMapper) {
-            ResponseExceptionMapper mapper = (ResponseExceptionMapper) o;
-            register(mapper, mapper.getPriority());
-        } else if (o instanceof ParamConverterProvider) {
-            register(o, Priorities.USER);
-        } else {
-            this.builderDelegate.register(o);
-        }
-        return this;
-    }
-
-    @Override
-    public RestClientBuilder register(Object o, int i) {
-        if (o instanceof ResponseExceptionMapper) {
-
-            // local
-            ResponseExceptionMapper mapper = (ResponseExceptionMapper) o;
-            HashMap<Class<?>, Integer> contracts = new HashMap<>();
-            contracts.put(ResponseExceptionMapper.class, i);
-            registerLocalProviderInstance(mapper, contracts);
-
-            // delegate
-            this.builderDelegate.register(mapper, i);
-
-        } else if (o instanceof ParamConverterProvider) {
-
-            // local
-            ParamConverterProvider converter = (ParamConverterProvider) o;
-            HashMap<Class<?>, Integer> contracts = new HashMap<>();
-            contracts.put(ParamConverterProvider.class, i);
-            registerLocalProviderInstance(converter, contracts);
-
-            // delegate
-            this.builderDelegate.register(converter, i);
-
-        } else {
-            this.builderDelegate.register(o, i);
-        }
-        return this;
-    }
-
-    @Override
-    public RestClientBuilder register(Object o, Class<?>... classes) {
-
-        // local
-        for (Class<?> aClass : classes) {
-            if (aClass.isAssignableFrom(ResponseExceptionMapper.class)) {
-                register(o);
-            }
-        }
-
-        // other
-        this.builderDelegate.register(o, classes);
-        return this;
-    }
-
-    @Override
-    public RestClientBuilder register(Object o, Map<Class<?>, Integer> map) {
-
-
-        if (o instanceof ResponseExceptionMapper) {
-
-            //local
-            ResponseExceptionMapper mapper = (ResponseExceptionMapper) o;
-            HashMap<Class<?>, Integer> contracts = new HashMap<>();
-            contracts.put(ResponseExceptionMapper.class, map.get(ResponseExceptionMapper.class));
-            registerLocalProviderInstance(mapper, contracts);
-
-            // other
-            this.builderDelegate.register(o, map);
-
-        } else {
-            this.builderDelegate.register(o, map);
-        }
-
-        return this;
-    }
-
-    public Set<Object> getLocalProviderInstances() {
-        return localProviderInstances;
-    }
-
-    public void registerLocalProviderInstance(Object provider, Map<Class<?>, Integer> contracts) {
-        for (Object registered : getLocalProviderInstances()) {
-            if (registered == provider) {
-                log.debugf("Provider already registered: %s", provider.getClass());
-                return;
-            }
-        }
-
-        localProviderInstances.add(provider);
-        configurationWrapper.registerLocalContract(provider.getClass(), contracts);
-    }
-
-    private final ResteasyClientBuilder builderDelegate;
-
-    private final ConfigurationWrapper configurationWrapper;
-
-    private final Config config;
-
-    private URI baseURI;
-
-    private Set<Object> localProviderInstances = new HashSet<Object>();
+  private Set<Object> localProviderInstances = new HashSet<Object>();
 }

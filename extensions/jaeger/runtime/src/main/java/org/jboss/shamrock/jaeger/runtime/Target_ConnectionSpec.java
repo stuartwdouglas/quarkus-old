@@ -22,12 +22,13 @@ import com.oracle.svm.core.annotate.TargetClass;
 @TargetClass(className = "okhttp3.ConnectionSpec")
 public final class Target_ConnectionSpec {
 
-    // TODO: Investigate alternative options.
-    // This is required to avoid java.lang.ClassNotFoundException: sun.security.ssl.TrustManagerFactoryImpl$PKIXFactory
-    // or java.lang.ClassNotFoundException: sun.security.ssl.SSLContextImpl$TLSContext (if trying to skip trustmgr setup)
-    @Substitute
-    public boolean isTls() {
-        return false;
-    }
+  // TODO: Investigate alternative options.
+  // This is required to avoid java.lang.ClassNotFoundException:
+  // sun.security.ssl.TrustManagerFactoryImpl$PKIXFactory
+  // or java.lang.ClassNotFoundException: sun.security.ssl.SSLContextImpl$TLSContext (if trying to
+  // skip trustmgr setup)
+  @Substitute
+  public boolean isTls() {
+    return false;
+  }
 }
-

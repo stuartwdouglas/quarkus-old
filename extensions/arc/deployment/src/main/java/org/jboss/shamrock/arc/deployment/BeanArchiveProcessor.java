@@ -22,9 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
-
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget.Kind;
 import org.jboss.jandex.CompositeIndex;
@@ -40,65 +38,62 @@ import org.jboss.shamrock.deployment.builditem.ApplicationArchivesBuildItem;
 
 public class BeanArchiveProcessor {
 
-    @Inject
-    BuildProducer<BeanArchiveIndexBuildItem> beanArchiveIndexBuildProducer;
+  @Inject BuildProducer<BeanArchiveIndexBuildItem> beanArchiveIndexBuildProducer;
 
-    @Inject
-    ApplicationArchivesBuildItem applicationArchivesBuildItem;
+  @Inject ApplicationArchivesBuildItem applicationArchivesBuildItem;
 
-    @Inject
-    List<BeanDefiningAnnotationBuildItem> additionalBeanDefiningAnnotations;
+  @Inject List<BeanDefiningAnnotationBuildItem> additionalBeanDefiningAnnotations;
 
-    @BuildStep
-    public void build() throws Exception {
+  @BuildStep
+  public void build() throws Exception {
 
-        Set<ApplicationArchive> archives = applicationArchivesBuildItem.getAllApplicationArchives();
+    Set<ApplicationArchive> archives = applicationArchivesBuildItem.getAllApplicationArchives();
 
-        Set<DotName> stereotypes = new HashSet<>();
-        for (ApplicationArchive archive : archives) {
-            Collection<AnnotationInstance> annotations = archive.getIndex()
-                    .getAnnotations(DotNames.STEREOTYPE);
-            if (!annotations.isEmpty()) {
-                for (AnnotationInstance annotationInstance : annotations) {
-                    if (annotationInstance.target()
-                            .kind() == Kind.CLASS) {
-                        stereotypes.add(annotationInstance.target()
-                                .asClass()
-                                .name());
-                    }
-                }
-            }
+    Set<DotName> stereotypes = new HashSet<>();
+    for (ApplicationArchive archive : archives) {
+      Collection<AnnotationInstance> annotations =
+          archive.getIndex().getAnnotations(DotNames.STEREOTYPE);
+      if (!annotations.isEmpty()) {
+        for (AnnotationInstance annotationInstance : annotations) {
+          if (annotationInstance.target().kind() == Kind.CLASS) {
+            stereotypes.add(annotationInstance.target().asClass().name());
+          }
         }
-
-        Collection<DotName> beanDefiningAnnotations = BeanDeployment.initBeanDefiningAnnotations(additionalBeanDefiningAnnotations.stream()
-                .map(bda -> new BeanDefiningAnnotation(bda.getName(), bda.getDefaultScope()))
-                .collect(Collectors.toList()), stereotypes);
-
-        List<IndexView> indexes = new ArrayList<>();
-
-        for (ApplicationArchive archive : applicationArchivesBuildItem.getApplicationArchives()) {
-            IndexView index = archive.getIndex();
-
-            if (archive.getChildPath("META-INF/beans.xml") != null) {
-                indexes.add(index);
-            } else if (archive.getChildPath("WEB-INF/beans.xml") != null) {
-                indexes.add(index);
-            } else {
-                // Implicit bean archive without beans.xml - contains one or more bean classes with a bean defining annotation and no extension
-                if (index.getAllKnownImplementors(DotNames.EXTENSION)
-                        .isEmpty()) {
-                    for (DotName beanDefiningAnnotation : beanDefiningAnnotations) {
-                        if (!index.getAnnotations(beanDefiningAnnotation)
-                                .isEmpty()) {
-                            indexes.add(index);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        indexes.add(applicationArchivesBuildItem.getRootArchive().getIndex());
-        beanArchiveIndexBuildProducer.produce(new BeanArchiveIndexBuildItem(CompositeIndex.create(indexes)));
+      }
     }
 
+    Collection<DotName> beanDefiningAnnotations =
+        BeanDeployment.initBeanDefiningAnnotations(
+            additionalBeanDefiningAnnotations
+                .stream()
+                .map(bda -> new BeanDefiningAnnotation(bda.getName(), bda.getDefaultScope()))
+                .collect(Collectors.toList()),
+            stereotypes);
+
+    List<IndexView> indexes = new ArrayList<>();
+
+    for (ApplicationArchive archive : applicationArchivesBuildItem.getApplicationArchives()) {
+      IndexView index = archive.getIndex();
+
+      if (archive.getChildPath("META-INF/beans.xml") != null) {
+        indexes.add(index);
+      } else if (archive.getChildPath("WEB-INF/beans.xml") != null) {
+        indexes.add(index);
+      } else {
+        // Implicit bean archive without beans.xml - contains one or more bean classes with a bean
+        // defining annotation and no extension
+        if (index.getAllKnownImplementors(DotNames.EXTENSION).isEmpty()) {
+          for (DotName beanDefiningAnnotation : beanDefiningAnnotations) {
+            if (!index.getAnnotations(beanDefiningAnnotation).isEmpty()) {
+              indexes.add(index);
+              break;
+            }
+          }
+        }
+      }
+    }
+    indexes.add(applicationArchivesBuildItem.getRootArchive().getIndex());
+    beanArchiveIndexBuildProducer.produce(
+        new BeanArchiveIndexBuildItem(CompositeIndex.create(indexes)));
+  }
 }

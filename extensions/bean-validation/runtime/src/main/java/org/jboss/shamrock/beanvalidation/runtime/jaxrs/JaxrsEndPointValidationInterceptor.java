@@ -3,7 +3,6 @@ package org.jboss.shamrock.beanvalidation.runtime.jaxrs;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
-
 import javax.annotation.Priority;
 import javax.interceptor.AroundConstruct;
 import javax.interceptor.AroundInvoke;
@@ -11,7 +10,6 @@ import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
 import javax.validation.ConstraintViolationException;
 import javax.ws.rs.core.MediaType;
-
 import org.jboss.resteasy.util.MediaTypeHelper;
 import org.jboss.shamrock.beanvalidation.runtime.interceptor.AbstractMethodValidationInterceptor;
 
@@ -20,23 +18,24 @@ import org.jboss.shamrock.beanvalidation.runtime.interceptor.AbstractMethodValid
 @Priority(Interceptor.Priority.PLATFORM_AFTER + 800)
 public class JaxrsEndPointValidationInterceptor extends AbstractMethodValidationInterceptor {
 
-    @AroundInvoke
-    @Override
-    public Object validateMethodInvocation(InvocationContext ctx) throws Exception {
-        try {
-            return super.validateMethodInvocation(ctx);
-        } catch (ConstraintViolationException e) {
-            throw new ResteasyViolationExceptionImpl(e.getConstraintViolations(), getAccept(ctx.getMethod()));
-        }
+  @AroundInvoke
+  @Override
+  public Object validateMethodInvocation(InvocationContext ctx) throws Exception {
+    try {
+      return super.validateMethodInvocation(ctx);
+    } catch (ConstraintViolationException e) {
+      throw new ResteasyViolationExceptionImpl(
+          e.getConstraintViolations(), getAccept(ctx.getMethod()));
     }
+  }
 
-    @AroundConstruct
-    @Override
-    public void validateConstructorInvocation(InvocationContext ctx) throws Exception {
-        super.validateConstructorInvocation(ctx);
-    }
+  @AroundConstruct
+  @Override
+  public void validateConstructorInvocation(InvocationContext ctx) throws Exception {
+    super.validateConstructorInvocation(ctx);
+  }
 
-    private List<MediaType> getAccept(Method method) {
-        return Arrays.asList(MediaTypeHelper.getProduces(method.getDeclaringClass(), method));
-    }
+  private List<MediaType> getAccept(Method method) {
+    return Arrays.asList(MediaTypeHelper.getProduces(method.getDeclaringClass(), method));
+  }
 }

@@ -21,13 +21,13 @@ import org.jboss.jandex.IndexView;
 
 public final class CombinedIndexBuildItem extends SimpleBuildItem {
 
-    private final IndexView index;
+  private final IndexView index;
 
-    public CombinedIndexBuildItem(IndexView index) {
-        this.index = index;
-    }
+  public CombinedIndexBuildItem(IndexView index) {
+    this.index = index;
+  }
 
-    public IndexView getIndex() {
-        return index;
-    }
+  public IndexView getIndex() {
+    return index;
+  }
 }

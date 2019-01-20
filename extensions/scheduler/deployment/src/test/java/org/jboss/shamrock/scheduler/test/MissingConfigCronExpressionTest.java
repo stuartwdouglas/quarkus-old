@@ -27,22 +27,18 @@ import org.junit.runner.RunWith;
 @RunWith(ShamrockUnitTest.class)
 public class MissingConfigCronExpressionTest {
 
-    @ShouldFail(IllegalStateException.class)
-    @Deployment
-    public static JavaArchive deploy() {
-        return ShrinkWrap.create(JavaArchive.class).addClasses(InvalidBean.class);
-    }
+  @ShouldFail(IllegalStateException.class)
+  @Deployment
+  public static JavaArchive deploy() {
+    return ShrinkWrap.create(JavaArchive.class).addClasses(InvalidBean.class);
+  }
 
-    @Test
-    public void test() throws InterruptedException {
-    }
+  @Test
+  public void test() throws InterruptedException {}
 
-    static class InvalidBean {
+  static class InvalidBean {
 
-        @Scheduled(cron = "{my.cron}")
-        void wrong() {
-        }
-
-    }
-
+    @Scheduled(cron = "{my.cron}")
+    void wrong() {}
+  }
 }

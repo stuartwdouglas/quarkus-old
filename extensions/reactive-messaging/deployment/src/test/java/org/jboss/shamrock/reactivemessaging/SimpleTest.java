@@ -13,18 +13,17 @@ import org.junit.runner.RunWith;
 @RunWith(ShamrockUnitTest.class)
 public class SimpleTest {
 
-    @Deployment
-    public static JavaArchive deploy() {
-        return ShrinkWrap.create(JavaArchive.class)
-                .addClasses(SimpleBean.class);
-    }
+  @Deployment
+  public static JavaArchive deploy() {
+    return ShrinkWrap.create(JavaArchive.class).addClasses(SimpleBean.class);
+  }
 
-    @Test
-    public void testSimpleBean() {
-        assertEquals(4, SimpleBean.RESULT.size());
-        assertTrue(SimpleBean.RESULT.contains("HELLO"));
-        assertTrue(SimpleBean.RESULT.contains("SMALLRYE"));
-        assertTrue(SimpleBean.RESULT.contains("REACTIVE"));
-        assertTrue(SimpleBean.RESULT.contains("MESSAGE"));
-    }
+  @Test
+  public void testSimpleBean() {
+    assertEquals(4, SimpleBean.RESULT.size());
+    assertTrue(SimpleBean.RESULT.contains("HELLO"));
+    assertTrue(SimpleBean.RESULT.contains("SMALLRYE"));
+    assertTrue(SimpleBean.RESULT.contains("REACTIVE"));
+    assertTrue(SimpleBean.RESULT.contains("MESSAGE"));
+  }
 }

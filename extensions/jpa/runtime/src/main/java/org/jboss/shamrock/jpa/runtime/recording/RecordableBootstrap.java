@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.hibernate.boot.cfgxml.internal.CfgXmlAccessServiceInitiator;
 import org.hibernate.boot.cfgxml.internal.ConfigLoader;
 import org.hibernate.boot.cfgxml.spi.LoadedConfig;
@@ -68,351 +67,337 @@ import org.jboss.shamrock.jpa.runtime.service.DialectFactoryInitiator;
 import org.jboss.shamrock.jpa.runtime.service.DisabledJMXInitiator;
 
 /**
- * Has to extend StandardServiceRegistryBuilder even if we don't want: needs to
- * be assignable to it.
+ * Has to extend StandardServiceRegistryBuilder even if we don't want: needs to be assignable to it.
  */
 public final class RecordableBootstrap extends StandardServiceRegistryBuilder {
-    /**
-     * The default resource name for a hibernate configuration xml file.
-     */
-    public static final String DEFAULT_CFG_RESOURCE_NAME = "hibernate.cfg.xml";
+  /** The default resource name for a hibernate configuration xml file. */
+  public static final String DEFAULT_CFG_RESOURCE_NAME = "hibernate.cfg.xml";
 
-    private final Map settings;
-    private final List<StandardServiceInitiator> initiators = standardInitiatorList();
-    private final List<ProvidedService> providedServices = new ArrayList<ProvidedService>();
+  private final Map settings;
+  private final List<StandardServiceInitiator> initiators = standardInitiatorList();
+  private final List<ProvidedService> providedServices = new ArrayList<ProvidedService>();
 
-    private boolean autoCloseRegistry = true;
+  private boolean autoCloseRegistry = true;
 
-    private final BootstrapServiceRegistry bootstrapServiceRegistry;
-    private final ConfigLoader configLoader;
-    private final LoadedConfig aggregatedCfgXml;
+  private final BootstrapServiceRegistry bootstrapServiceRegistry;
+  private final ConfigLoader configLoader;
+  private final LoadedConfig aggregatedCfgXml;
 
-    public RecordableBootstrap(BootstrapServiceRegistry bootstrapServiceRegistry) {
-        this(bootstrapServiceRegistry, LoadedConfig.baseline());
+  public RecordableBootstrap(BootstrapServiceRegistry bootstrapServiceRegistry) {
+    this(bootstrapServiceRegistry, LoadedConfig.baseline());
+  }
+
+  public RecordableBootstrap(
+      BootstrapServiceRegistry bootstrapServiceRegistry, LoadedConfig loadedConfigBaseline) {
+    this.settings = Environment.getProperties();
+    this.bootstrapServiceRegistry = bootstrapServiceRegistry;
+    this.configLoader = new ConfigLoader(bootstrapServiceRegistry);
+    this.aggregatedCfgXml = loadedConfigBaseline;
+  }
+
+  /** Intended for internal testing use only!! */
+  @Override
+  public LoadedConfig getAggregatedCfgXml() {
+    return aggregatedCfgXml;
+  }
+
+  // WARNING: this is a customized list: we started from a copy of ORM's standard
+  // list, then changes have evolved.
+  private static List<StandardServiceInitiator> standardInitiatorList() {
+    final ArrayList<StandardServiceInitiator> serviceInitiators =
+        new ArrayList<StandardServiceInitiator>();
+
+    serviceInitiators.add(CfgXmlAccessServiceInitiator.INSTANCE);
+    serviceInitiators.add(ConfigurationServiceInitiator.INSTANCE);
+    serviceInitiators.add(PropertyAccessStrategyResolverInitiator.INSTANCE);
+
+    serviceInitiators.add(ImportSqlCommandExtractorInitiator.INSTANCE);
+    serviceInitiators.add(SchemaManagementToolInitiator.INSTANCE);
+
+    serviceInitiators.add(JdbcEnvironmentInitiator.INSTANCE);
+    serviceInitiators.add(JndiServiceInitiator.INSTANCE);
+
+    // Custom one!
+    serviceInitiators.add(DisabledJMXInitiator.INSTANCE);
+
+    serviceInitiators.add(PersisterClassResolverInitiator.INSTANCE);
+    serviceInitiators.add(PersisterFactoryInitiator.INSTANCE);
+
+    serviceInitiators.add(ConnectionProviderInitiator.INSTANCE);
+    serviceInitiators.add(MultiTenantConnectionProviderInitiator.INSTANCE);
+    serviceInitiators.add(DialectResolverInitiator.INSTANCE);
+
+    // Custom one!
+    serviceInitiators.add(DialectFactoryInitiator.INSTANCE);
+    serviceInitiators.add(BatchBuilderInitiator.INSTANCE);
+    serviceInitiators.add(JdbcServicesInitiator.INSTANCE);
+    serviceInitiators.add(RefCursorSupportInitiator.INSTANCE);
+
+    serviceInitiators.add(QueryTranslatorFactoryInitiator.INSTANCE);
+    serviceInitiators.add(MutableIdentifierGeneratorFactoryInitiator.INSTANCE);
+
+    serviceInitiators.add(JtaPlatformResolverInitiator.INSTANCE);
+    serviceInitiators.add(JtaPlatformInitiator.INSTANCE);
+
+    serviceInitiators.add(SessionFactoryServiceRegistryFactoryInitiator.INSTANCE);
+
+    serviceInitiators.add(RegionFactoryInitiator.INSTANCE);
+
+    serviceInitiators.add(TransactionCoordinatorBuilderInitiator.INSTANCE);
+
+    serviceInitiators.add(ManagedBeanRegistryInitiator.INSTANCE);
+
+    serviceInitiators.add(EntityCopyObserverFactoryInitiator.INSTANCE);
+
+    serviceInitiators.trimToSize();
+
+    return Collections.unmodifiableList(serviceInitiators);
+  }
+
+  @Override
+  public BootstrapServiceRegistry getBootstrapServiceRegistry() {
+    return bootstrapServiceRegistry;
+  }
+
+  /**
+   * Read settings from a {@link java.util.Properties} file by resource name.
+   *
+   * <p>Differs from {@link #configure()} and {@link #configure(String)} in that here we expect to
+   * read a {@link java.util.Properties} file while for {@link #configure} we read the XML variant.
+   *
+   * @param resourceName The name by which to perform a resource look up for the properties file.
+   * @return this, for method chaining
+   * @see #configure()
+   * @see #configure(String)
+   */
+  @Override
+  @SuppressWarnings({"unchecked"})
+  public StandardServiceRegistryBuilder loadProperties(String resourceName) {
+    settings.putAll(configLoader.loadProperties(resourceName));
+    return this;
+  }
+
+  /**
+   * Read settings from a {@link java.util.Properties} file by File reference
+   *
+   * <p>Differs from {@link #configure()} and {@link #configure(String)} in that here we expect to
+   * read a {@link java.util.Properties} file while for {@link #configure} we read the XML variant.
+   *
+   * @param file The properties File reference
+   * @return this, for method chaining
+   * @see #configure()
+   * @see #configure(String)
+   */
+  @Override
+  @SuppressWarnings({"unchecked"})
+  public StandardServiceRegistryBuilder loadProperties(File file) {
+    settings.putAll(configLoader.loadProperties(file));
+    return this;
+  }
+
+  /**
+   * Read setting information from an XML file using the standard resource location.
+   *
+   * @return this, for method chaining
+   * @see #DEFAULT_CFG_RESOURCE_NAME
+   * @see #configure(String)
+   * @see #loadProperties(String)
+   */
+  @Override
+  public StandardServiceRegistryBuilder configure() {
+    return configure(DEFAULT_CFG_RESOURCE_NAME);
+  }
+
+  /**
+   * Read setting information from an XML file using the named resource location.
+   *
+   * @param resourceName The named resource
+   * @return this, for method chaining
+   */
+  @Override
+  public StandardServiceRegistryBuilder configure(String resourceName) {
+    return configure(configLoader.loadConfigXmlResource(resourceName));
+  }
+
+  @Override
+  public StandardServiceRegistryBuilder configure(File configurationFile) {
+    return configure(configLoader.loadConfigXmlFile(configurationFile));
+  }
+
+  @Override
+  public StandardServiceRegistryBuilder configure(URL url) {
+    return configure(configLoader.loadConfigXmlUrl(url));
+  }
+
+  @Override
+  @SuppressWarnings({"unchecked"})
+  public StandardServiceRegistryBuilder configure(LoadedConfig loadedConfig) {
+    aggregatedCfgXml.merge(loadedConfig);
+    settings.putAll(loadedConfig.getConfigurationValues());
+
+    return this;
+  }
+
+  /**
+   * Apply a setting value.
+   *
+   * @param settingName The name of the setting
+   * @param value The value to use.
+   * @return this, for method chaining
+   */
+  @Override
+  @SuppressWarnings({"unchecked", "UnusedDeclaration"})
+  public StandardServiceRegistryBuilder applySetting(String settingName, Object value) {
+    settings.put(settingName, value);
+    return this;
+  }
+
+  /**
+   * Apply a groups of setting values.
+   *
+   * @param settings The incoming settings to apply
+   * @return this, for method chaining
+   */
+  @Override
+  @SuppressWarnings({"unchecked", "UnusedDeclaration"})
+  public StandardServiceRegistryBuilder applySettings(Map settings) {
+    this.settings.putAll(settings);
+    return this;
+  }
+
+  @Override
+  public void clearSettings() {
+    settings.clear();
+  }
+
+  /**
+   * Adds a service initiator.
+   *
+   * @param initiator The initiator to be added
+   * @return this, for method chaining
+   */
+  @Override
+  @SuppressWarnings({"UnusedDeclaration"})
+  public StandardServiceRegistryBuilder addInitiator(StandardServiceInitiator initiator) {
+    initiators.add(initiator);
+    return this;
+  }
+
+  /**
+   * Adds a user-provided service.
+   *
+   * @param serviceRole The role of the service being added
+   * @param service The service implementation
+   * @return this, for method chaining
+   */
+  @Override
+  @SuppressWarnings({"unchecked"})
+  public StandardServiceRegistryBuilder addService(final Class serviceRole, final Service service) {
+    providedServices.add(new ProvidedService(serviceRole, service));
+    return this;
+  }
+
+  /**
+   * By default, when a ServiceRegistry is no longer referenced by any other registries as a parent
+   * it will be closed.
+   *
+   * <p>Some applications that explicitly build "shared registries" may want to circumvent that
+   * behavior.
+   *
+   * <p>This method indicates that the registry being built should not be automatically closed. The
+   * caller agrees to take responsibility to close it themselves.
+   *
+   * @return this, for method chaining
+   */
+  @Override
+  public StandardServiceRegistryBuilder disableAutoClose() {
+    this.autoCloseRegistry = false;
+    return this;
+  }
+
+  /**
+   * See the discussion on {@link #disableAutoClose}. This method enables the auto-closing.
+   *
+   * @return this, for method chaining
+   */
+  @Override
+  public StandardServiceRegistryBuilder enableAutoClose() {
+    this.autoCloseRegistry = true;
+    return this;
+  }
+
+  /**
+   * Build the StandardServiceRegistry.
+   *
+   * @return The StandardServiceRegistry.
+   */
+  @Override
+  @SuppressWarnings("unchecked")
+  public StandardServiceRegistry build() {
+    applyServiceContributingIntegrators();
+    applyServiceContributors();
+
+    final Map settingsCopy = new HashMap();
+    settingsCopy.putAll(settings);
+    settingsCopy.put(
+        org.hibernate.boot.cfgxml.spi.CfgXmlAccessService.LOADED_CONFIG_KEY, aggregatedCfgXml);
+    Environment.verifyProperties(settingsCopy);
+    ConfigurationHelper.resolvePlaceHolders(settingsCopy);
+
+    return new StandardServiceRegistryImpl(
+        autoCloseRegistry, bootstrapServiceRegistry, initiators, providedServices, settingsCopy);
+  }
+
+  @SuppressWarnings("deprecation")
+  private void applyServiceContributingIntegrators() {
+    for (Integrator integrator :
+        bootstrapServiceRegistry.getService(IntegratorService.class).getIntegrators()) {
+      if (org.hibernate.integrator.spi.ServiceContributingIntegrator.class.isInstance(integrator)) {
+        org.hibernate.integrator.spi.ServiceContributingIntegrator.class
+            .cast(integrator)
+            .prepareServices(this);
+      }
+    }
+  }
+
+  private void applyServiceContributors() {
+    final Iterable<ServiceContributor> serviceContributors =
+        bootstrapServiceRegistry
+            .getService(ClassLoaderService.class)
+            .loadJavaServices(ServiceContributor.class);
+
+    for (ServiceContributor serviceContributor : serviceContributors) {
+      serviceContributor.contribute(this);
+    }
+  }
+
+  /**
+   * Temporarily exposed since Configuration is still around and much code still uses Configuration.
+   * This allows code to configure the builder and access that to configure Configuration object
+   * (used from HEM atm).
+   *
+   * @return The settings map.
+   * @deprecated Temporarily exposed since Configuration is still around and much code still uses
+   *     Configuration. This allows code to configure the builder and access that to configure
+   *     Configuration object.
+   */
+  @Override
+  @Deprecated
+  public Map getSettings() {
+    return settings;
+  }
+
+  /**
+   * Destroy a service registry. Applications should only destroy registries they have explicitly
+   * created.
+   *
+   * @param serviceRegistry The registry to be closed.
+   */
+  public static void destroy(ServiceRegistry serviceRegistry) {
+    if (serviceRegistry == null) {
+      return;
     }
 
-    public RecordableBootstrap(BootstrapServiceRegistry bootstrapServiceRegistry, LoadedConfig loadedConfigBaseline) {
-        this.settings = Environment.getProperties();
-        this.bootstrapServiceRegistry = bootstrapServiceRegistry;
-        this.configLoader = new ConfigLoader(bootstrapServiceRegistry);
-        this.aggregatedCfgXml = loadedConfigBaseline;
-    }
-
-    /**
-     * Intended for internal testing use only!!
-     */
-    @Override
-    public LoadedConfig getAggregatedCfgXml() {
-        return aggregatedCfgXml;
-    }
-
-    // WARNING: this is a customized list: we started from a copy of ORM's standard
-    // list, then changes have evolved.
-    private static List<StandardServiceInitiator> standardInitiatorList() {
-        final ArrayList<StandardServiceInitiator> serviceInitiators = new ArrayList<StandardServiceInitiator>();
-
-        serviceInitiators.add(CfgXmlAccessServiceInitiator.INSTANCE);
-        serviceInitiators.add(ConfigurationServiceInitiator.INSTANCE);
-        serviceInitiators.add(PropertyAccessStrategyResolverInitiator.INSTANCE);
-
-        serviceInitiators.add(ImportSqlCommandExtractorInitiator.INSTANCE);
-        serviceInitiators.add(SchemaManagementToolInitiator.INSTANCE);
-
-        serviceInitiators.add(JdbcEnvironmentInitiator.INSTANCE);
-        serviceInitiators.add(JndiServiceInitiator.INSTANCE);
-
-        // Custom one!
-        serviceInitiators.add(DisabledJMXInitiator.INSTANCE);
-
-        serviceInitiators.add(PersisterClassResolverInitiator.INSTANCE);
-        serviceInitiators.add(PersisterFactoryInitiator.INSTANCE);
-
-        serviceInitiators.add(ConnectionProviderInitiator.INSTANCE);
-        serviceInitiators.add(MultiTenantConnectionProviderInitiator.INSTANCE);
-        serviceInitiators.add(DialectResolverInitiator.INSTANCE);
-
-        // Custom one!
-        serviceInitiators.add(DialectFactoryInitiator.INSTANCE);
-        serviceInitiators.add(BatchBuilderInitiator.INSTANCE);
-        serviceInitiators.add(JdbcServicesInitiator.INSTANCE);
-        serviceInitiators.add(RefCursorSupportInitiator.INSTANCE);
-
-        serviceInitiators.add(QueryTranslatorFactoryInitiator.INSTANCE);
-        serviceInitiators.add(MutableIdentifierGeneratorFactoryInitiator.INSTANCE);
-
-        serviceInitiators.add(JtaPlatformResolverInitiator.INSTANCE);
-        serviceInitiators.add(JtaPlatformInitiator.INSTANCE);
-
-        serviceInitiators.add(SessionFactoryServiceRegistryFactoryInitiator.INSTANCE);
-
-        serviceInitiators.add(RegionFactoryInitiator.INSTANCE);
-
-        serviceInitiators.add(TransactionCoordinatorBuilderInitiator.INSTANCE);
-
-        serviceInitiators.add(ManagedBeanRegistryInitiator.INSTANCE);
-
-        serviceInitiators.add(EntityCopyObserverFactoryInitiator.INSTANCE);
-
-        serviceInitiators.trimToSize();
-
-        return Collections.unmodifiableList(serviceInitiators);
-    }
-
-    @Override
-    public BootstrapServiceRegistry getBootstrapServiceRegistry() {
-        return bootstrapServiceRegistry;
-    }
-
-    /**
-     * Read settings from a {@link java.util.Properties} file by resource name.
-     * <p>
-     * Differs from {@link #configure()} and {@link #configure(String)} in that here
-     * we expect to read a {@link java.util.Properties} file while for
-     * {@link #configure} we read the XML variant.
-     *
-     * @param resourceName The name by which to perform a resource look up for the
-     *                     properties file.
-     *
-     * @return this, for method chaining
-     *
-     * @see #configure()
-     * @see #configure(String)
-     */
-    @Override
-    @SuppressWarnings({ "unchecked" })
-    public StandardServiceRegistryBuilder loadProperties(String resourceName) {
-        settings.putAll(configLoader.loadProperties(resourceName));
-        return this;
-    }
-
-    /**
-     * Read settings from a {@link java.util.Properties} file by File reference
-     * <p>
-     * Differs from {@link #configure()} and {@link #configure(String)} in that here
-     * we expect to read a {@link java.util.Properties} file while for
-     * {@link #configure} we read the XML variant.
-     *
-     * @param file The properties File reference
-     *
-     * @return this, for method chaining
-     *
-     * @see #configure()
-     * @see #configure(String)
-     */
-    @Override
-    @SuppressWarnings({ "unchecked" })
-    public StandardServiceRegistryBuilder loadProperties(File file) {
-        settings.putAll(configLoader.loadProperties(file));
-        return this;
-    }
-
-    /**
-     * Read setting information from an XML file using the standard resource
-     * location.
-     *
-     * @return this, for method chaining
-     *
-     * @see #DEFAULT_CFG_RESOURCE_NAME
-     * @see #configure(String)
-     * @see #loadProperties(String)
-     */
-    @Override
-    public StandardServiceRegistryBuilder configure() {
-        return configure(DEFAULT_CFG_RESOURCE_NAME);
-    }
-
-    /**
-     * Read setting information from an XML file using the named resource location.
-     *
-     * @param resourceName The named resource
-     *
-     * @return this, for method chaining
-     */
-    @Override
-    public StandardServiceRegistryBuilder configure(String resourceName) {
-        return configure(configLoader.loadConfigXmlResource(resourceName));
-    }
-
-    @Override
-    public StandardServiceRegistryBuilder configure(File configurationFile) {
-        return configure(configLoader.loadConfigXmlFile(configurationFile));
-    }
-
-    @Override
-    public StandardServiceRegistryBuilder configure(URL url) {
-        return configure(configLoader.loadConfigXmlUrl(url));
-    }
-
-    @Override
-    @SuppressWarnings({ "unchecked" })
-    public StandardServiceRegistryBuilder configure(LoadedConfig loadedConfig) {
-        aggregatedCfgXml.merge(loadedConfig);
-        settings.putAll(loadedConfig.getConfigurationValues());
-
-        return this;
-    }
-
-    /**
-     * Apply a setting value.
-     *
-     * @param settingName The name of the setting
-     * @param value       The value to use.
-     *
-     * @return this, for method chaining
-     */
-    @Override
-    @SuppressWarnings({ "unchecked", "UnusedDeclaration" })
-    public StandardServiceRegistryBuilder applySetting(String settingName, Object value) {
-        settings.put(settingName, value);
-        return this;
-    }
-
-    /**
-     * Apply a groups of setting values.
-     *
-     * @param settings The incoming settings to apply
-     *
-     * @return this, for method chaining
-     */
-    @Override
-    @SuppressWarnings({ "unchecked", "UnusedDeclaration" })
-    public StandardServiceRegistryBuilder applySettings(Map settings) {
-        this.settings.putAll(settings);
-        return this;
-    }
-
-    @Override
-    public void clearSettings() {
-        settings.clear();
-    }
-
-    /**
-     * Adds a service initiator.
-     *
-     * @param initiator The initiator to be added
-     *
-     * @return this, for method chaining
-     */
-    @Override
-    @SuppressWarnings({ "UnusedDeclaration" })
-    public StandardServiceRegistryBuilder addInitiator(StandardServiceInitiator initiator) {
-        initiators.add(initiator);
-        return this;
-    }
-
-    /**
-     * Adds a user-provided service.
-     *
-     * @param serviceRole The role of the service being added
-     * @param service     The service implementation
-     *
-     * @return this, for method chaining
-     */
-    @Override
-    @SuppressWarnings({ "unchecked" })
-    public StandardServiceRegistryBuilder addService(final Class serviceRole, final Service service) {
-        providedServices.add(new ProvidedService(serviceRole, service));
-        return this;
-    }
-
-    /**
-     * By default, when a ServiceRegistry is no longer referenced by any other
-     * registries as a parent it will be closed.
-     * <p/>
-     * Some applications that explicitly build "shared registries" may want to
-     * circumvent that behavior.
-     * <p/>
-     * This method indicates that the registry being built should not be
-     * automatically closed. The caller agrees to take responsibility to close it
-     * themselves.
-     *
-     * @return this, for method chaining
-     */
-    @Override
-    public StandardServiceRegistryBuilder disableAutoClose() {
-        this.autoCloseRegistry = false;
-        return this;
-    }
-
-    /**
-     * See the discussion on {@link #disableAutoClose}. This method enables the
-     * auto-closing.
-     *
-     * @return this, for method chaining
-     */
-    @Override
-    public StandardServiceRegistryBuilder enableAutoClose() {
-        this.autoCloseRegistry = true;
-        return this;
-    }
-
-    /**
-     * Build the StandardServiceRegistry.
-     *
-     * @return The StandardServiceRegistry.
-     */
-    @Override
-    @SuppressWarnings("unchecked")
-    public StandardServiceRegistry build() {
-        applyServiceContributingIntegrators();
-        applyServiceContributors();
-
-        final Map settingsCopy = new HashMap();
-        settingsCopy.putAll(settings);
-        settingsCopy.put(org.hibernate.boot.cfgxml.spi.CfgXmlAccessService.LOADED_CONFIG_KEY, aggregatedCfgXml);
-        Environment.verifyProperties(settingsCopy);
-        ConfigurationHelper.resolvePlaceHolders(settingsCopy);
-
-        return new StandardServiceRegistryImpl(autoCloseRegistry, bootstrapServiceRegistry, initiators,
-                providedServices, settingsCopy);
-    }
-
-    @SuppressWarnings("deprecation")
-    private void applyServiceContributingIntegrators() {
-        for (Integrator integrator : bootstrapServiceRegistry.getService(IntegratorService.class).getIntegrators()) {
-            if (org.hibernate.integrator.spi.ServiceContributingIntegrator.class.isInstance(integrator)) {
-                org.hibernate.integrator.spi.ServiceContributingIntegrator.class.cast(integrator).prepareServices(this);
-            }
-        }
-    }
-
-    private void applyServiceContributors() {
-        final Iterable<ServiceContributor> serviceContributors = bootstrapServiceRegistry
-                .getService(ClassLoaderService.class).loadJavaServices(ServiceContributor.class);
-
-        for (ServiceContributor serviceContributor : serviceContributors) {
-            serviceContributor.contribute(this);
-        }
-    }
-
-    /**
-     * Temporarily exposed since Configuration is still around and much code still
-     * uses Configuration. This allows code to configure the builder and access that
-     * to configure Configuration object (used from HEM atm).
-     *
-     * @return The settings map.
-     *
-     * @deprecated Temporarily exposed since Configuration is still around and much
-     *             code still uses Configuration. This allows code to configure the
-     *             builder and access that to configure Configuration object.
-     */
-    @Override
-    @Deprecated
-    public Map getSettings() {
-        return settings;
-    }
-
-    /**
-     * Destroy a service registry. Applications should only destroy registries they
-     * have explicitly created.
-     *
-     * @param serviceRegistry The registry to be closed.
-     */
-    public static void destroy(ServiceRegistry serviceRegistry) {
-        if (serviceRegistry == null) {
-            return;
-        }
-
-        ((StandardServiceRegistryImpl) serviceRegistry).destroy();
-    }
+    ((StandardServiceRegistryImpl) serviceRegistry).destroy();
+  }
 }

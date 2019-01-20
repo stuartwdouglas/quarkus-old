@@ -18,8 +18,5 @@ package org.jboss.logmanager.handlers;
 
 import org.jboss.logmanager.ExtHandler;
 
-/**
- * A handler which performs no action other than to run any attached filter.
- */
-public final class NullHandler extends ExtHandler {
-}
+/** A handler which performs no action other than to run any attached filter. */
+public final class NullHandler extends ExtHandler {}

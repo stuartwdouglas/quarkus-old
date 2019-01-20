@@ -22,17 +22,17 @@ import org.jboss.shamrock.deployment.builditem.AdditionalApplicationArchiveMarke
 
 public class ApplicationArchiveMarkerBuildStep implements BuildStep {
 
-    private final String marker;
+  private final String marker;
 
-    public ApplicationArchiveMarkerBuildStep(String marker) {
-        if(marker == null) {
-            throw new IllegalArgumentException("marker cannot be null");
-        }
-        this.marker = marker;
+  public ApplicationArchiveMarkerBuildStep(String marker) {
+    if (marker == null) {
+      throw new IllegalArgumentException("marker cannot be null");
     }
+    this.marker = marker;
+  }
 
-    @Override
-    public void execute(BuildContext context) {
-        context.produce(new AdditionalApplicationArchiveMarkerBuildItem(marker));
-    }
+  @Override
+  public void execute(BuildContext context) {
+    context.produce(new AdditionalApplicationArchiveMarkerBuildItem(marker));
+  }
 }

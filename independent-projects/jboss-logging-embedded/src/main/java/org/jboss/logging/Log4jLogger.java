@@ -20,53 +20,77 @@ import java.text.MessageFormat;
 
 final class Log4jLogger extends Logger {
 
-    private static final long serialVersionUID = -5446154366955151335L;
+  private static final long serialVersionUID = -5446154366955151335L;
 
-    private final org.apache.log4j.Logger logger;
+  private final org.apache.log4j.Logger logger;
 
-    Log4jLogger(final String name) {
-        super(name);
-        logger = org.apache.log4j.Logger.getLogger(name);
+  Log4jLogger(final String name) {
+    super(name);
+    logger = org.apache.log4j.Logger.getLogger(name);
+  }
+
+  public boolean isEnabled(final Level level) {
+    final org.apache.log4j.Level l = translate(level);
+    return logger.isEnabledFor(l) && l.isGreaterOrEqual(logger.getEffectiveLevel());
+  }
+
+  protected void doLog(
+      final Level level,
+      final String loggerClassName,
+      final Object message,
+      final Object[] parameters,
+      final Throwable thrown) {
+    final org.apache.log4j.Level translatedLevel = translate(level);
+    if (logger.isEnabledFor(translatedLevel))
+      try {
+        logger.log(
+            loggerClassName,
+            translatedLevel,
+            parameters == null || parameters.length == 0
+                ? message
+                : MessageFormat.format(String.valueOf(message), parameters),
+            thrown);
+      } catch (Throwable ignored) {
+      }
+  }
+
+  protected void doLogf(
+      final Level level,
+      final String loggerClassName,
+      final String format,
+      final Object[] parameters,
+      final Throwable thrown) {
+    final org.apache.log4j.Level translatedLevel = translate(level);
+    if (logger.isEnabledFor(translatedLevel))
+      try {
+        logger.log(
+            loggerClassName,
+            translatedLevel,
+            parameters == null ? String.format(format) : String.format(format, parameters),
+            thrown);
+      } catch (Throwable ignored) {
+      }
+  }
+
+  private static org.apache.log4j.Level translate(final Level level) {
+    if (level == Level.TRACE) {
+      return org.apache.log4j.Level.TRACE;
+    } else if (level == Level.DEBUG) {
+      return org.apache.log4j.Level.DEBUG;
     }
+    return infoOrHigher(level);
+  }
 
-    public boolean isEnabled(final Level level) {
-        final org.apache.log4j.Level l = translate(level);
-        return logger.isEnabledFor(l) && l.isGreaterOrEqual(logger.getEffectiveLevel());
+  private static org.apache.log4j.Level infoOrHigher(final Level level) {
+    if (level == Level.INFO) {
+      return org.apache.log4j.Level.INFO;
+    } else if (level == Level.WARN) {
+      return org.apache.log4j.Level.WARN;
+    } else if (level == Level.ERROR) {
+      return org.apache.log4j.Level.ERROR;
+    } else if (level == Level.FATAL) {
+      return org.apache.log4j.Level.FATAL;
     }
-
-    protected void doLog(final Level level, final String loggerClassName, final Object message, final Object[] parameters, final Throwable thrown) {
-        final org.apache.log4j.Level translatedLevel = translate(level);
-        if (logger.isEnabledFor(translatedLevel)) try {
-            logger.log(loggerClassName, translatedLevel, parameters == null || parameters.length == 0 ? message : MessageFormat.format(String.valueOf(message), parameters), thrown);
-        } catch (Throwable ignored) {}
-    }
-
-    protected void doLogf(final Level level, final String loggerClassName, final String format, final Object[] parameters, final Throwable thrown) {
-        final org.apache.log4j.Level translatedLevel = translate(level);
-        if (logger.isEnabledFor(translatedLevel)) try {
-            logger.log(loggerClassName, translatedLevel, parameters == null ? String.format(format) : String.format(format, parameters), thrown);
-        } catch (Throwable ignored) {}
-    }
-
-    private static org.apache.log4j.Level translate(final Level level) {
-        if (level == Level.TRACE) {
-            return org.apache.log4j.Level.TRACE;
-        } else if (level == Level.DEBUG) {
-            return org.apache.log4j.Level.DEBUG;
-        }
-        return infoOrHigher(level);
-    }
-
-    private static org.apache.log4j.Level infoOrHigher(final Level level) {
-        if (level == Level.INFO) {
-            return org.apache.log4j.Level.INFO;
-        } else if (level == Level.WARN) {
-            return org.apache.log4j.Level.WARN;
-        } else if (level == Level.ERROR) {
-            return org.apache.log4j.Level.ERROR;
-        } else if (level == Level.FATAL) {
-            return org.apache.log4j.Level.FATAL;
-        }
-        return org.apache.log4j.Level.ALL;
-    }
+    return org.apache.log4j.Level.ALL;
+  }
 }

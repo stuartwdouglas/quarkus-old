@@ -19,7 +19,6 @@ package org.jboss.shamrock.arc.runtime;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.function.Supplier;
-
 import org.jboss.protean.arc.Arc;
 import org.jboss.protean.arc.ArcContainer;
 import org.jboss.protean.arc.InstanceHandle;
@@ -29,88 +28,89 @@ import org.jboss.shamrock.runtime.InjectionInstance;
 import org.jboss.shamrock.runtime.ShutdownContext;
 import org.jboss.shamrock.runtime.Template;
 
-/**
- * @author Martin Kouba
- */
+/** @author Martin Kouba */
 @Template
 public class ArcDeploymentTemplate {
 
-    public ArcContainer getContainer(ShutdownContext shutdown) throws Exception {
-        ArcContainer container = Arc.initialize();
-        shutdown.addShutdownTask(new Runnable() {
-            @Override
-            public void run() {
-                Arc.shutdown();
-            }
+  public ArcContainer getContainer(ShutdownContext shutdown) throws Exception {
+    ArcContainer container = Arc.initialize();
+    shutdown.addShutdownTask(
+        new Runnable() {
+          @Override
+          public void run() {
+            Arc.shutdown();
+          }
         });
-        return container;
-    }
+    return container;
+  }
 
-    public BeanContainer initBeanContainer(ArcContainer container, List<BeanContainerListener> listeners) throws Exception {
-        BeanContainer beanContainer = new BeanContainer() {
+  public BeanContainer initBeanContainer(
+      ArcContainer container, List<BeanContainerListener> listeners) throws Exception {
+    BeanContainer beanContainer =
+        new BeanContainer() {
 
-            @Override
-            public <T> Factory<T> instanceFactory(Class<T> type, Annotation... qualifiers) {
-                Supplier<InstanceHandle<T>> handle = container.instanceSupplier(type, qualifiers);
-                if (handle == null) {
-                    return null;
-                }
-                return new Factory<T>() {
-                    @Override
-                    public T get() {
-                        return handle.get().get();
-                    }
-                };
+          @Override
+          public <T> Factory<T> instanceFactory(Class<T> type, Annotation... qualifiers) {
+            Supplier<InstanceHandle<T>> handle = container.instanceSupplier(type, qualifiers);
+            if (handle == null) {
+              return null;
             }
+            return new Factory<T>() {
+              @Override
+              public T get() {
+                return handle.get().get();
+              }
+            };
+          }
 
-            @Override
-            public ManagedContext requestContext() {
-                return container.requestContext();
-            }
+          @Override
+          public ManagedContext requestContext() {
+            return container.requestContext();
+          }
         };
-        for (BeanContainerListener listener : listeners) {
-            listener.created(beanContainer);
+    for (BeanContainerListener listener : listeners) {
+      listener.created(beanContainer);
+    }
+    return beanContainer;
+  }
+
+  public InjectionFactory setupInjection(ArcContainer container) {
+    return new InjectionFactory() {
+      @Override
+      public <T> InjectionInstance<T> create(Class<T> type) {
+        Supplier<InstanceHandle<T>> instance = container.instanceSupplier(type);
+        if (instance != null) {
+          return new InjectionInstance<T>() {
+            @Override
+            public T newInstance() {
+              return instance.get().get();
+            }
+          };
+        } else {
+          return new InjectionInstance<T>() {
+            @Override
+            public T newInstance() {
+              try {
+                return type.newInstance();
+              } catch (Exception e) {
+                throw new RuntimeException(e);
+              }
+            }
+          };
         }
-        return beanContainer;
-    }
+      }
+    };
+  }
 
-    public InjectionFactory setupInjection(ArcContainer container) {
-        return new InjectionFactory() {
-            @Override
-            public <T> InjectionInstance<T> create(Class<T> type) {
-                Supplier<InstanceHandle<T>> instance = container.instanceSupplier(type);
-                if (instance != null) {
-                    return new InjectionInstance<T>() {
-                        @Override
-                        public T newInstance() {
-                            return instance.get().get();
-                        }
-                    };
-                } else {
-                    return new InjectionInstance<T>() {
-                        @Override
-                        public T newInstance() {
-                            try {
-                                return type.newInstance();
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
-                            }
-                        }
-                    };
-                }
-            }
-        };
-    }
-
-    public void handleLifecycleEvents(ShutdownContext context, BeanContainer beanContainer) {
-        LifecycleEventRunner instance = beanContainer.instance(LifecycleEventRunner.class);
-        instance.fireStartupEvent();
-        context.addShutdownTask(new Runnable() {
-            @Override
-            public void run() {
-                instance.fireShutdownEvent();
-            }
+  public void handleLifecycleEvents(ShutdownContext context, BeanContainer beanContainer) {
+    LifecycleEventRunner instance = beanContainer.instance(LifecycleEventRunner.class);
+    instance.fireStartupEvent();
+    context.addShutdownTask(
+        new Runnable() {
+          @Override
+          public void run() {
+            instance.fireShutdownEvent();
+          }
         });
-    }
-
+  }
 }

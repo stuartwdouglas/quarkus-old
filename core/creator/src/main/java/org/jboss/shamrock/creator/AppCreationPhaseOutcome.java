@@ -22,6 +22,4 @@ package org.jboss.shamrock.creator;
  *
  * @author Alexey Loubyansky
  */
-public interface AppCreationPhaseOutcome {
-
-}
+public interface AppCreationPhaseOutcome {}

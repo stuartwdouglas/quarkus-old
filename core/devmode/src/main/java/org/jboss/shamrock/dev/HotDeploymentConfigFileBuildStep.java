@@ -19,21 +19,24 @@ package org.jboss.shamrock.dev;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.deployment.builditem.HotDeploymentConfigFileBuildItem;
 import org.jboss.shamrock.deployment.builditem.ServiceStartBuildItem;
 
 public class HotDeploymentConfigFileBuildStep {
 
-    @BuildStep
-    ServiceStartBuildItem setupConfigFileHotDeployment(List<HotDeploymentConfigFileBuildItem> files) {
-        //TODO: this should really be an output of the RuntimeRunner
-        Set<String> fileSet = files.stream().map(HotDeploymentConfigFileBuildItem::getLocation).collect(Collectors.toSet());
-        RuntimeUpdatesProcessor processor = DevModeMain.runtimeUpdatesProcessor;
-        if (processor != null) {
-            processor.setConfigFilePaths(fileSet);
-        }
-        return null;
+  @BuildStep
+  ServiceStartBuildItem setupConfigFileHotDeployment(List<HotDeploymentConfigFileBuildItem> files) {
+    // TODO: this should really be an output of the RuntimeRunner
+    Set<String> fileSet =
+        files
+            .stream()
+            .map(HotDeploymentConfigFileBuildItem::getLocation)
+            .collect(Collectors.toSet());
+    RuntimeUpdatesProcessor processor = DevModeMain.runtimeUpdatesProcessor;
+    if (processor != null) {
+      processor.setConfigFilePaths(fileSet);
     }
+    return null;
+  }
 }

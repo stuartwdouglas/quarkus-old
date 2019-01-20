@@ -16,10 +16,8 @@
 
 package org.jboss.logmanager.handlers;
 
-import java.io.Flushable;
 import java.io.Closeable;
+import java.io.Flushable;
 
-/**
- * A resource which is flushable and closeable.
- */
+/** A resource which is flushable and closeable. */
 public interface FlushableCloseable extends Flushable, Closeable {}

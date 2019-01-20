@@ -16,19 +16,18 @@
 
 package org.jboss.shamrock.undertow;
 
-import org.jboss.builder.item.MultiBuildItem;
-
 import io.undertow.server.HandlerWrapper;
+import org.jboss.builder.item.MultiBuildItem;
 
 public final class HttpHandlerWrapperBuildItem extends MultiBuildItem {
 
-    private final HandlerWrapper value;
+  private final HandlerWrapper value;
 
-    public HttpHandlerWrapperBuildItem(HandlerWrapper value) {
-        this.value = value;
-    }
+  public HttpHandlerWrapperBuildItem(HandlerWrapper value) {
+    this.value = value;
+  }
 
-    public HandlerWrapper getValue() {
-        return value;
-    }
+  public HandlerWrapper getValue() {
+    return value;
+  }
 }

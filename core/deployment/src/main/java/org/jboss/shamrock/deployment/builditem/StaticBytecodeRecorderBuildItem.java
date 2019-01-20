@@ -21,13 +21,13 @@ import org.jboss.shamrock.deployment.recording.BytecodeRecorderImpl;
 
 public final class StaticBytecodeRecorderBuildItem extends MultiBuildItem {
 
-    private final BytecodeRecorderImpl bytecodeRecorder;
+  private final BytecodeRecorderImpl bytecodeRecorder;
 
-    public StaticBytecodeRecorderBuildItem(BytecodeRecorderImpl bytecodeRecorder) {
-        this.bytecodeRecorder = bytecodeRecorder;
-    }
+  public StaticBytecodeRecorderBuildItem(BytecodeRecorderImpl bytecodeRecorder) {
+    this.bytecodeRecorder = bytecodeRecorder;
+  }
 
-    public BytecodeRecorderImpl getBytecodeRecorder() {
-        return bytecodeRecorder;
-    }
+  public BytecodeRecorderImpl getBytecodeRecorder() {
+    return bytecodeRecorder;
+  }
 }

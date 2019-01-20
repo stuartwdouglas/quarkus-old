@@ -1,13 +1,8 @@
-/**
- *
- */
+/** */
 package org.jboss.shamrock.creator.config.reader;
 
-/**
- *
- * @author Alexey Loubyansky
- */
+/** @author Alexey Loubyansky */
 public interface UnrecognizedPropertyHandler {
 
-    void unrecognizedProperty(PropertyLine line) throws PropertiesConfigReaderException;
+  void unrecognizedProperty(PropertyLine line) throws PropertiesConfigReaderException;
 }

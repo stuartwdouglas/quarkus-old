@@ -28,13 +28,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface RegisterForReflection {
 
-    /**
-     * If the methods should be registered
-     */
-    boolean methods() default true;
+  /** If the methods should be registered */
+  boolean methods() default true;
 
-    /**
-     * If the fields should be registered
-     */
-    boolean fields() default true;
+  /** If the fields should be registered */
+  boolean fields() default true;
 }

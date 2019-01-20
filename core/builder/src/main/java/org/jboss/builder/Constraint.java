@@ -16,10 +16,9 @@
 
 package org.jboss.builder;
 
-/**
- */
+/** */
 enum Constraint {
-    REAL,
-    ORDER_ONLY,
-    ;
+  REAL,
+  ORDER_ONLY,
+  ;
 }

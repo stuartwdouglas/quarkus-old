@@ -16,12 +16,11 @@
 
 package org.jboss.shamrock.test;
 
-import static org.jboss.shamrock.test.PathTestHelper.getTestClassesLocation;
 import static org.jboss.shamrock.test.PathTestHelper.getAppClassLocation;
+import static org.jboss.shamrock.test.PathTestHelper.getTestClassesLocation;
 
 import java.io.IOException;
 import java.util.Collections;
-
 import org.jboss.shamrock.runner.RuntimeRunner;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
@@ -30,34 +29,43 @@ import org.junit.runners.model.InitializationError;
 
 public class ShamrockTest extends AbstractShamrockTestRunner {
 
-    public ShamrockTest(Class<?> klass) throws InitializationError {
-        super(klass, (c, n) -> new ShamrockRunListener(c, n));
+  public ShamrockTest(Class<?> klass) throws InitializationError {
+    super(klass, (c, n) -> new ShamrockRunListener(c, n));
+  }
+
+  private static class ShamrockRunListener extends AbstractShamrockRunListener {
+
+    private RuntimeRunner runtimeRunner;
+
+    ShamrockRunListener(Class<?> testClass, RunNotifier runNotifier) {
+      super(testClass, runNotifier);
     }
 
-    private static class ShamrockRunListener extends AbstractShamrockRunListener {
+    @Override
+    protected void startShamrock() {
+      if (ShamrockUnitTest.started) {
+        getRunNotifier()
+            .fireTestFailure(
+                new Failure(
+                    Description.createSuiteDescription(ShamrockTest.class),
+                    new RuntimeException(
+                        "Cannot mix ShamrockTest and ShamrockUnitTest in the same test suite")));
+        return;
+      }
 
-        private RuntimeRunner runtimeRunner;
-
-        ShamrockRunListener(Class<?> testClass, RunNotifier runNotifier) {
-            super(testClass, runNotifier);
-        }
-
-        @Override
-        protected void startShamrock() {
-            if (ShamrockUnitTest.started) {
-                getRunNotifier().fireTestFailure(new Failure(Description.createSuiteDescription(ShamrockTest.class),
-                        new RuntimeException("Cannot mix ShamrockTest and ShamrockUnitTest in the same test suite")));
-                return;
-            }
-
-            runtimeRunner = new RuntimeRunner(getClass().getClassLoader(), getAppClassLocation(getTestClass()),
-                    getTestClassesLocation(getTestClass()), null, Collections.emptyList());
-            runtimeRunner.run();
-        }
-
-        @Override
-        protected void stopShamrock() throws IOException {
-            runtimeRunner.close();
-        }
+      runtimeRunner =
+          new RuntimeRunner(
+              getClass().getClassLoader(),
+              getAppClassLocation(getTestClass()),
+              getTestClassesLocation(getTestClass()),
+              null,
+              Collections.emptyList());
+      runtimeRunner.run();
     }
+
+    @Override
+    protected void stopShamrock() throws IOException {
+      runtimeRunner.close();
+    }
+  }
 }

@@ -19,14 +19,13 @@ package org.jboss.shamrock.runtime;
 @Template
 public class InjectionFactoryTemplate {
 
-    private static volatile InjectionFactory factory;
+  private static volatile InjectionFactory factory;
 
-    public void setFactory(InjectionFactory f) {
-        factory = f;
-    }
+  public void setFactory(InjectionFactory f) {
+    factory = f;
+  }
 
-    public static InjectionFactory currentFactory() {
-        return factory;
-    }
-
+  public static InjectionFactory currentFactory() {
+    return factory;
+  }
 }

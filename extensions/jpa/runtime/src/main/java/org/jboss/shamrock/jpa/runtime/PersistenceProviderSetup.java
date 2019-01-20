@@ -18,12 +18,12 @@ package org.jboss.shamrock.jpa.runtime;
 
 public final class PersistenceProviderSetup {
 
-    private PersistenceProviderSetup() {
-        // not to be constructed
-    }
+  private PersistenceProviderSetup() {
+    // not to be constructed
+  }
 
-    public static void registerPersistenceProvider() {
-        javax.persistence.spi.PersistenceProviderResolverHolder.setPersistenceProviderResolver(new FastBootHibernatePersistenceProviderResolver());
-    }
-
+  public static void registerPersistenceProvider() {
+    javax.persistence.spi.PersistenceProviderResolverHolder.setPersistenceProviderResolver(
+        new FastBootHibernatePersistenceProviderResolver());
+  }
 }

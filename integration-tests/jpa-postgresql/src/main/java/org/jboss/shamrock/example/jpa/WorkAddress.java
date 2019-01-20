@@ -25,13 +25,13 @@ import javax.persistence.Embeddable;
  */
 @Embeddable
 public class WorkAddress {
-    private String company;
+  private String company;
 
-    public String getCompany() {
-        return company;
-    }
+  public String getCompany() {
+    return company;
+  }
 
-    public void setCompany(String company) {
-        this.company = company;
-    }
+  public void setCompany(String company) {
+    this.company = company;
+  }
 }

@@ -19,10 +19,10 @@ package org.jboss.shamrock.jpa;
 import java.util.Set;
 
 /**
- * Internal model to represent which objects are likely needing enhancement
- * via HibernateEntityEnhancer.
+ * Internal model to represent which objects are likely needing enhancement via
+ * HibernateEntityEnhancer.
  */
 public interface KnownDomainObjects {
 
-    Set<String> getClassNames();
+  Set<String> getClassNames();
 }

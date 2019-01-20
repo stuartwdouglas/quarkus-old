@@ -21,10 +21,9 @@ import javax.enterprise.inject.spi.DefinitionException;
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
-
-import org.jboss.shamrock.test.ShouldFail;
 import org.jboss.shamrock.test.Deployment;
 import org.jboss.shamrock.test.ShamrockUnitTest;
+import org.jboss.shamrock.test.ShouldFail;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Test;
@@ -33,27 +32,24 @@ import org.junit.runner.RunWith;
 @RunWith(ShamrockUnitTest.class)
 public class InterceptorNoBindingsTest {
 
-    @ShouldFail(DefinitionException.class)
-    @Deployment
-    public static JavaArchive deploy() {
-        return ShrinkWrap.create(JavaArchive.class)
-                .addClasses(InterceptorWithoutBindings.class);
+  @ShouldFail(DefinitionException.class)
+  @Deployment
+  public static JavaArchive deploy() {
+    return ShrinkWrap.create(JavaArchive.class).addClasses(InterceptorWithoutBindings.class);
+  }
+
+  @Test
+  public void testDeploymentFailed() {
+    // This method should not be invoked
+  }
+
+  @Priority(1)
+  @Interceptor
+  static class InterceptorWithoutBindings {
+
+    @AroundInvoke
+    Object aroundInvoke(InvocationContext ctx) throws Exception {
+      return ctx.proceed();
     }
-
-    @Test
-    public void testDeploymentFailed() {
-        // This method should not be invoked
-    }
-
-    @Priority(1)
-    @Interceptor
-    static class InterceptorWithoutBindings {
-
-        @AroundInvoke
-        Object aroundInvoke(InvocationContext ctx) throws Exception {
-            return ctx.proceed();
-        }
-
-    }
-
+  }
 }

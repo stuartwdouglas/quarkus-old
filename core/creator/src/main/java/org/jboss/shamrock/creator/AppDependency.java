@@ -24,55 +24,48 @@ package org.jboss.shamrock.creator;
  */
 public class AppDependency {
 
-    private final AppArtifact artifact;
-    private final String scope;
+  private final AppArtifact artifact;
+  private final String scope;
 
-    public AppDependency(AppArtifact artifact, String scope) {
-        this.artifact = artifact;
-        this.scope = scope;
-    }
+  public AppDependency(AppArtifact artifact, String scope) {
+    this.artifact = artifact;
+    this.scope = scope;
+  }
 
-    public AppArtifact getArtifact() {
-        return artifact;
-    }
+  public AppArtifact getArtifact() {
+    return artifact;
+  }
 
-    public String getScope() {
-        return scope;
-    }
+  public String getScope() {
+    return scope;
+  }
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((artifact == null) ? 0 : artifact.hashCode());
-        result = prime * result + ((scope == null) ? 0 : scope.hashCode());
-        return result;
-    }
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((artifact == null) ? 0 : artifact.hashCode());
+    result = prime * result + ((scope == null) ? 0 : scope.hashCode());
+    return result;
+  }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        AppDependency other = (AppDependency) obj;
-        if (artifact == null) {
-            if (other.artifact != null)
-                return false;
-        } else if (!artifact.equals(other.artifact))
-            return false;
-        if (scope == null) {
-            if (other.scope != null)
-                return false;
-        } else if (!scope.equals(other.scope))
-            return false;
-        return true;
-    }
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
+    AppDependency other = (AppDependency) obj;
+    if (artifact == null) {
+      if (other.artifact != null) return false;
+    } else if (!artifact.equals(other.artifact)) return false;
+    if (scope == null) {
+      if (other.scope != null) return false;
+    } else if (!scope.equals(other.scope)) return false;
+    return true;
+  }
 
-    @Override
-    public String toString() {
-        return artifact.toString() + '(' + scope + ')';
-    }
+  @Override
+  public String toString() {
+    return artifact.toString() + '(' + scope + ')';
+  }
 }

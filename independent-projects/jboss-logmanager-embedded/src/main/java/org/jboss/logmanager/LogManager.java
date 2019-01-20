@@ -22,91 +22,85 @@ import java.io.InputStream;
 import java.util.Enumeration;
 
 /**
- * Simplified log manager.  Designed to work around the (many) design flaws of the JDK platform log manager.
+ * Simplified log manager. Designed to work around the (many) design flaws of the JDK platform log
+ * manager.
  */
 public final class LogManager extends java.util.logging.LogManager {
 
-    /**
-     * Construct a new logmanager instance.  Attempts to plug a known memory leak in {@link java.util.logging.Level} as
-     * well.
-     */
-    public LogManager() {
-    }
+  /**
+   * Construct a new logmanager instance. Attempts to plug a known memory leak in {@link
+   * java.util.logging.Level} as well.
+   */
+  public LogManager() {}
 
-    // Configuration
+  // Configuration
 
-    /**
-     * Configure the log manager one time.
-     */
-    public void readConfiguration() throws IOException, SecurityException {
-    }
+  /** Configure the log manager one time. */
+  public void readConfiguration() throws IOException, SecurityException {}
 
-    /**
-     * Configure the log manager.
-     *
-     * @param inputStream the input stream from which the logmanager should be configured
-     */
-    public void readConfiguration(InputStream inputStream) throws IOException, SecurityException {
-    }
+  /**
+   * Configure the log manager.
+   *
+   * @param inputStream the input stream from which the logmanager should be configured
+   */
+  public void readConfiguration(InputStream inputStream) throws IOException, SecurityException {}
 
-    /**
-     * Do nothing.  Properties and their listeners are not supported.
-     *
-     * @param l ignored
-     */
-    public void addPropertyChangeListener(PropertyChangeListener l) {
-        // no operation - properties are never changed
-    }
+  /**
+   * Do nothing. Properties and their listeners are not supported.
+   *
+   * @param l ignored
+   */
+  public void addPropertyChangeListener(PropertyChangeListener l) {
+    // no operation - properties are never changed
+  }
 
-    /**
-     * Do nothing.  Properties and their listeners are not supported.
-     *
-     * @param l ignored
-     */
-    public void removePropertyChangeListener(PropertyChangeListener l) {
-        // no operation - properties are never changed
-    }
+  /**
+   * Do nothing. Properties and their listeners are not supported.
+   *
+   * @param l ignored
+   */
+  public void removePropertyChangeListener(PropertyChangeListener l) {
+    // no operation - properties are never changed
+  }
 
-    /**
-     * Does nothing.  Properties are not supported.
-     *
-     * @param name ignored
-     * @return {@code null}
-     */
-    public String getProperty(String name) {
-        // no properties
-        return null;
-    }
+  /**
+   * Does nothing. Properties are not supported.
+   *
+   * @param name ignored
+   * @return {@code null}
+   */
+  public String getProperty(String name) {
+    // no properties
+    return null;
+  }
 
-    /**
-     * Does nothing.  This method only causes trouble.
-     */
-    public void reset() {
-        // no operation!
-    }
+  /** Does nothing. This method only causes trouble. */
+  public void reset() {
+    // no operation!
+  }
 
-    @Override
-    public Enumeration<String> getLoggerNames() {
-        return LogContext.getInstance().getLoggerNames();
-    }
+  @Override
+  public Enumeration<String> getLoggerNames() {
+    return LogContext.getInstance().getLoggerNames();
+  }
 
-    /**
-     * Do nothing.  Loggers are only added/acquired via {@link #getLogger(String)}.
-     *
-     * @param logger ignored
-     * @return {@code false}
-     */
-    public boolean addLogger(java.util.logging.Logger logger) {
-        return false;
-    }
+  /**
+   * Do nothing. Loggers are only added/acquired via {@link #getLogger(String)}.
+   *
+   * @param logger ignored
+   * @return {@code false}
+   */
+  public boolean addLogger(java.util.logging.Logger logger) {
+    return false;
+  }
 
-    /**
-     * Get or create a logger with the given name.
-     *
-     * @param name the logger name
-     * @return the corresponding logger
-     */
-    public Logger getLogger(String name) {
-        return LogContext.getInstance().getLogger(name);
-    }
+  /**
+   * Get or create a logger with the given name.
+   *
+   * @param name the logger name
+   * @return the corresponding logger
+   */
+  public Logger getLogger(String name) {
+    return LogContext.getInstance().getLogger(name);
+  }
 }

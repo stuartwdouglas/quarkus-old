@@ -24,35 +24,33 @@ import javax.transaction.Transaction;
 import javax.transaction.TransactionManager;
 import javax.transaction.Transactional;
 
-/**
- * @author paul.robinson@redhat.com 25/05/2013
- */
-
+/** @author paul.robinson@redhat.com 25/05/2013 */
 @Interceptor
 @Transactional(Transactional.TxType.NOT_SUPPORTED)
 @Priority(Interceptor.Priority.PLATFORM_BEFORE + 200)
 public class TransactionalInterceptorNotSupported extends TransactionalInterceptorBase {
-    public TransactionalInterceptorNotSupported() {
-        super(true);
-    }
+  public TransactionalInterceptorNotSupported() {
+    super(true);
+  }
 
-    @Override
-    @AroundInvoke
-    public Object intercept(InvocationContext ic) throws Exception {
-        return super.intercept(ic);
-    }
+  @Override
+  @AroundInvoke
+  public Object intercept(InvocationContext ic) throws Exception {
+    return super.intercept(ic);
+  }
 
-    @Override
-    protected Object doIntercept(TransactionManager tm, Transaction tx, InvocationContext ic) throws Exception {
-        if (tx != null) {
-            tm.suspend();
-            try {
-                return invokeInNoTx(ic);
-            } finally {
-                tm.resume(tx);
-            }
-        } else {
-            return invokeInNoTx(ic);
-        }
+  @Override
+  protected Object doIntercept(TransactionManager tm, Transaction tx, InvocationContext ic)
+      throws Exception {
+    if (tx != null) {
+      tm.suspend();
+      try {
+        return invokeInNoTx(ic);
+      } finally {
+        tm.resume(tx);
+      }
+    } else {
+      return invokeInNoTx(ic);
     }
+  }
 }

@@ -19,9 +19,7 @@ package org.jboss.shamrock.jaxrs.runtime.graal;
 import java.lang.reflect.Constructor;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
-
 import javax.ws.rs.WebApplicationException;
-
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.core.InjectorFactoryImpl;
 import org.jboss.resteasy.spi.ApplicationException;
@@ -37,51 +35,58 @@ import org.jboss.shamrock.arc.runtime.BeanContainer;
 
 public class ShamrockInjectorFactory extends InjectorFactoryImpl {
 
-    private static final Logger log = Logger.getLogger("org.jboss.shamrock.jaxrs.runtime");
-    static volatile BeanContainer CONTAINER = null;
-    static volatile Function<Object, Object> PROXY_UNWRAPPER;
+  private static final Logger log = Logger.getLogger("org.jboss.shamrock.jaxrs.runtime");
+  static volatile BeanContainer CONTAINER = null;
+  static volatile Function<Object, Object> PROXY_UNWRAPPER;
 
-    @SuppressWarnings("rawtypes")
-    @Override
-    public ConstructorInjector createConstructor(Constructor constructor, ResteasyProviderFactory providerFactory) {
-        log.debugf("Create constructor: %s", constructor);
-        return super.createConstructor(constructor, providerFactory);
+  @SuppressWarnings("rawtypes")
+  @Override
+  public ConstructorInjector createConstructor(
+      Constructor constructor, ResteasyProviderFactory providerFactory) {
+    log.debugf("Create constructor: %s", constructor);
+    return super.createConstructor(constructor, providerFactory);
+  }
+
+  @Override
+  public ConstructorInjector createConstructor(
+      ResourceConstructor constructor, ResteasyProviderFactory providerFactory) {
+    log.debugf("Create resource constructor: %s", constructor.getConstructor());
+    return new ShamrockConstructorInjector(
+        constructor.getConstructor(), super.createConstructor(constructor, providerFactory));
+  }
+
+  @SuppressWarnings("rawtypes")
+  @Override
+  public PropertyInjector createPropertyInjector(
+      Class resourceClass, ResteasyProviderFactory providerFactory) {
+    PropertyInjector delegate = super.createPropertyInjector(resourceClass, providerFactory);
+    return new UnwrappingPropertyInjector(delegate);
+  }
+
+  @Override
+  public PropertyInjector createPropertyInjector(
+      ResourceClass resourceClass, ResteasyProviderFactory providerFactory) {
+    PropertyInjector delegate = super.createPropertyInjector(resourceClass, providerFactory);
+    return new UnwrappingPropertyInjector(delegate);
+  }
+
+  private static class UnwrappingPropertyInjector implements PropertyInjector {
+    private final PropertyInjector delegate;
+
+    public UnwrappingPropertyInjector(PropertyInjector delegate) {
+      this.delegate = delegate;
     }
 
     @Override
-    public ConstructorInjector createConstructor(ResourceConstructor constructor, ResteasyProviderFactory providerFactory) {
-        log.debugf("Create resource constructor: %s", constructor.getConstructor());
-        return new ShamrockConstructorInjector(constructor.getConstructor(), super.createConstructor(constructor, providerFactory));
-    }
-
-    @SuppressWarnings("rawtypes")
-    @Override
-    public PropertyInjector createPropertyInjector(Class resourceClass, ResteasyProviderFactory providerFactory) {
-        PropertyInjector delegate = super.createPropertyInjector(resourceClass, providerFactory);
-        return new UnwrappingPropertyInjector(delegate);
+    public CompletionStage<Void> inject(Object target, boolean unwrapAsync) {
+      return delegate.inject(PROXY_UNWRAPPER.apply(target), unwrapAsync);
     }
 
     @Override
-    public PropertyInjector createPropertyInjector(ResourceClass resourceClass, ResteasyProviderFactory providerFactory) {
-        PropertyInjector delegate = super.createPropertyInjector(resourceClass, providerFactory);
-        return new UnwrappingPropertyInjector(delegate);
+    public CompletionStage<Void> inject(
+        HttpRequest request, HttpResponse response, Object target, boolean unwrapAsync)
+        throws Failure, WebApplicationException, ApplicationException {
+      return delegate.inject(request, response, PROXY_UNWRAPPER.apply(target), unwrapAsync);
     }
-
-    private static class UnwrappingPropertyInjector implements PropertyInjector {
-        private final PropertyInjector delegate;
-
-        public UnwrappingPropertyInjector(PropertyInjector delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public CompletionStage<Void> inject(Object target, boolean unwrapAsync) {
-            return delegate.inject(PROXY_UNWRAPPER.apply(target), unwrapAsync);
-        }
-
-        @Override
-        public CompletionStage<Void> inject(HttpRequest request, HttpResponse response, Object target, boolean unwrapAsync) throws Failure, WebApplicationException, ApplicationException {
-            return delegate.inject(request, response, PROXY_UNWRAPPER.apply(target), unwrapAsync);
-        }
-    }
+  }
 }

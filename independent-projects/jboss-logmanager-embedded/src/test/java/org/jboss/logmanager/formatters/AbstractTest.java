@@ -20,27 +20,26 @@ import org.jboss.logmanager.ExtLogRecord;
 import org.jboss.logmanager.ExtLogRecord.FormatStyle;
 import org.jboss.logmanager.MapTestUtils;
 
-/**
- * @author <a href="mailto:jperkins@redhat.com">James R. Perkins</a>
- */
+/** @author <a href="mailto:jperkins@redhat.com">James R. Perkins</a> */
 abstract class AbstractTest extends MapTestUtils {
 
-    ExtLogRecord createLogRecord(final String msg) {
-        return createLogRecord(org.jboss.logmanager.Level.INFO, msg);
-    }
+  ExtLogRecord createLogRecord(final String msg) {
+    return createLogRecord(org.jboss.logmanager.Level.INFO, msg);
+  }
 
-    ExtLogRecord createLogRecord(final String format, final Object... args) {
-        return createLogRecord(org.jboss.logmanager.Level.INFO, format, args);
-    }
+  ExtLogRecord createLogRecord(final String format, final Object... args) {
+    return createLogRecord(org.jboss.logmanager.Level.INFO, format, args);
+  }
 
-    private ExtLogRecord createLogRecord(final org.jboss.logmanager.Level level, final String msg) {
-        return new ExtLogRecord(level, msg, getClass().getName());
-    }
+  private ExtLogRecord createLogRecord(final org.jboss.logmanager.Level level, final String msg) {
+    return new ExtLogRecord(level, msg, getClass().getName());
+  }
 
-    ExtLogRecord createLogRecord(final org.jboss.logmanager.Level level, final String format, final Object... args) {
-        final ExtLogRecord record = new ExtLogRecord(level, format, FormatStyle.PRINTF, getClass().getName());
-        record.setParameters(args);
-        return record;
-    }
-
+  ExtLogRecord createLogRecord(
+      final org.jboss.logmanager.Level level, final String format, final Object... args) {
+    final ExtLogRecord record =
+        new ExtLogRecord(level, format, FormatStyle.PRINTF, getClass().getName());
+    record.setParameters(args);
+    return record;
+  }
 }

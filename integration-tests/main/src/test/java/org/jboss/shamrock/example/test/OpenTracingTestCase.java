@@ -18,24 +18,20 @@ package org.jboss.shamrock.example.test;
 
 import static org.hamcrest.Matchers.is;
 
+import io.restassured.RestAssured;
 import org.jboss.shamrock.test.ShamrockTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.restassured.RestAssured;
-
 @RunWith(ShamrockTest.class)
 public class OpenTracingTestCase {
 
+  @Test
+  public void testOpenTracing() {
+    invokeResource();
+  }
 
-    @Test
-    public void testOpenTracing() {
-        invokeResource();
-    }
-
-    public void invokeResource() {
-        RestAssured.when().get("/opentracing").then()
-                .body(is("TEST"));
-    }
-
+  public void invokeResource() {
+    RestAssured.when().get("/opentracing").then().body(is("TEST"));
+  }
 }

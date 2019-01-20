@@ -25,98 +25,101 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-
 import org.jboss.shamrock.creator.config.reader.PropertiesConfigReader;
 import org.jboss.shamrock.creator.config.reader.PropertiesHandler;
 import org.jboss.shamrock.creator.config.reader.PropertyLine;
 import org.jboss.shamrock.creator.util.IoUtils;
 import org.junit.Test;
 
-/**
- *
- * @author Alexey Loubyansky
- */
+/** @author Alexey Loubyansky */
 public abstract class PersonAddressTestBase {
 
-    private static final String FIRST_NAME = "First";
-    private static final String LAST_NAME = "Last";
+  private static final String FIRST_NAME = "First";
+  private static final String LAST_NAME = "Last";
 
-    private static final String HOME_STREET = "Home Street";
-    private static final String HOME_ZIP = "123";
-    private static final String HOME_CITY = "Homecity";
+  private static final String HOME_STREET = "Home Street";
+  private static final String HOME_ZIP = "123";
+  private static final String HOME_CITY = "Homecity";
 
-    private static final String WORK_STREET = "Work Street";
-    private static final String WORK_ZIP = "456";
-    private static final String WORK_CITY = "Workcity";
+  private static final String WORK_STREET = "Work Street";
+  private static final String WORK_ZIP = "456";
+  private static final String WORK_CITY = "Workcity";
 
-    @Test
-    public void runExample() throws Exception {
+  @Test
+  public void runExample() throws Exception {
 
-        /*
-         * Init example properties
-         */
-        final Properties props = new Properties();
-        props.setProperty("first-name", FIRST_NAME);
-        props.setProperty("last-name", LAST_NAME);
-        props.setProperty("home-address.street", HOME_STREET);
-        props.setProperty("home-address.zip", HOME_ZIP);
-        props.setProperty("home-address.city", HOME_CITY);
-        props.setProperty("work-address.street", WORK_STREET);
-        props.setProperty("work-address.zip", WORK_ZIP);
-        props.setProperty("work-address.city", WORK_CITY);
-        // properties that don't belong to a person
-        props.setProperty("other.prop1", "v1");
-        props.setProperty("other.prop2", "v2");
+    /*
+     * Init example properties
+     */
+    final Properties props = new Properties();
+    props.setProperty("first-name", FIRST_NAME);
+    props.setProperty("last-name", LAST_NAME);
+    props.setProperty("home-address.street", HOME_STREET);
+    props.setProperty("home-address.zip", HOME_ZIP);
+    props.setProperty("home-address.city", HOME_CITY);
+    props.setProperty("work-address.street", WORK_STREET);
+    props.setProperty("work-address.zip", WORK_ZIP);
+    props.setProperty("work-address.city", WORK_CITY);
+    // properties that don't belong to a person
+    props.setProperty("other.prop1", "v1");
+    props.setProperty("other.prop2", "v2");
 
-        final Path tmpDir = IoUtils.createRandomTmpDir();
-        final Person loaded;
-        final Map<String, String> loadedNotMapped = new HashMap<>();
-        try {
-            /*
-             * Store properties in a file
-             */
-            final Path propsFile = tmpDir.resolve("example.properties");
-            try(OutputStream out = Files.newOutputStream(propsFile)) {
-                props.store(out, "");
-            }
+    final Path tmpDir = IoUtils.createRandomTmpDir();
+    final Person loaded;
+    final Map<String, String> loadedNotMapped = new HashMap<>();
+    try {
+      /*
+       * Store properties in a file
+       */
+      final Path propsFile = tmpDir.resolve("example.properties");
+      try (OutputStream out = Files.newOutputStream(propsFile)) {
+        props.store(out, "");
+      }
 
-            /*
-             * Parse the properties file
-             */
-            loaded = PropertiesConfigReader.getInstance(
-                    getPropertiesHandler(), // properties handler
-                    (PropertyLine line) -> loadedNotMapped.put(line.getName(), line.getValue()) // what to do with the props not recognized by the handler
-                    )
-                    .read(propsFile);
-        } finally {
-            IoUtils.recursiveDelete(tmpDir);
-        }
-
-        /*
-         * Log result
-         *
-        System.out.println("Loaded config: " + loaded);
-        System.out.println("Not mapped");
-        for(Map.Entry<String, String> entry : loadedNotMapped.entrySet()) {
-            System.out.println("- " + entry.getKey() + "=" + entry.getValue());
-        }
-        */
-
-        /*
-         * Make sure the result is correct
-         */
-        final Person expected = new Person();
-        expected.setFirstName(FIRST_NAME);
-        expected.setLastName(LAST_NAME);
-        expected.setHomeAddress(Address.builder().setCity(HOME_CITY).setZip(HOME_ZIP).setStreet(HOME_STREET).build());
-        expected.setWorkAddress(Address.builder().setCity(WORK_CITY).setZip(WORK_ZIP).setStreet(WORK_STREET).build());
-        assertEquals(expected, loaded);
-
-        final Map<String, String> expectedNotMapped = new HashMap<>(2);
-        expectedNotMapped.put("other.prop1", "v1");
-        expectedNotMapped.put("other.prop2", "v2");
-        assertEquals(expectedNotMapped, loadedNotMapped);
+      /*
+       * Parse the properties file
+       */
+      loaded =
+          PropertiesConfigReader.getInstance(
+                  getPropertiesHandler(), // properties handler
+                  (PropertyLine line) ->
+                      loadedNotMapped.put(
+                          line.getName(),
+                          line.getValue()) // what to do with the props not recognized by the
+                  // handler
+                  )
+              .read(propsFile);
+    } finally {
+      IoUtils.recursiveDelete(tmpDir);
     }
 
-    protected abstract PropertiesHandler<Person> getPropertiesHandler();
+    /*
+     * Log result
+     *
+    System.out.println("Loaded config: " + loaded);
+    System.out.println("Not mapped");
+    for(Map.Entry<String, String> entry : loadedNotMapped.entrySet()) {
+        System.out.println("- " + entry.getKey() + "=" + entry.getValue());
+    }
+    */
+
+    /*
+     * Make sure the result is correct
+     */
+    final Person expected = new Person();
+    expected.setFirstName(FIRST_NAME);
+    expected.setLastName(LAST_NAME);
+    expected.setHomeAddress(
+        Address.builder().setCity(HOME_CITY).setZip(HOME_ZIP).setStreet(HOME_STREET).build());
+    expected.setWorkAddress(
+        Address.builder().setCity(WORK_CITY).setZip(WORK_ZIP).setStreet(WORK_STREET).build());
+    assertEquals(expected, loaded);
+
+    final Map<String, String> expectedNotMapped = new HashMap<>(2);
+    expectedNotMapped.put("other.prop1", "v1");
+    expectedNotMapped.put("other.prop2", "v2");
+    assertEquals(expectedNotMapped, loadedNotMapped);
+  }
+
+  protected abstract PropertiesHandler<Person> getPropertiesHandler();
 }

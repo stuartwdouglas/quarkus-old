@@ -18,11 +18,10 @@ package org.jboss.shamrock.example.test;
 
 import static org.hamcrest.Matchers.is;
 
+import io.restassured.RestAssured;
 import org.jboss.shamrock.test.SubstrateTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import io.restassured.RestAssured;
 
 /**
  * Test reflection around JPA entities
@@ -32,10 +31,8 @@ import io.restassured.RestAssured;
 @RunWith(SubstrateTest.class)
 public class JPAReflectionInGraalITCase {
 
-    @Test
-    public void testFieldAndGetterReflectionOnEntityFromServlet() throws Exception {
-        RestAssured.when().get("/jpa/testreflection").then()
-                .body(is("OK"));
-    }
-
+  @Test
+  public void testFieldAndGetterReflectionOnEntityFromServlet() throws Exception {
+    RestAssured.when().get("/jpa/testreflection").then().body(is("OK"));
+  }
 }

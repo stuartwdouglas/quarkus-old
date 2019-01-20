@@ -21,20 +21,18 @@ import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.deployment.builditem.substrate.ReflectiveClassBuildItem;
 
 /**
- * Registers the {@code org.h2.Driver} so that it can be loaded
- * by reflection, as commonly expected.
+ * Registers the {@code org.h2.Driver} so that it can be loaded by reflection, as commonly expected.
  *
  * @author Sanne Grinovero <sanne@hibernate.org>
  */
 public final class H2JDBCReflections {
 
-	@BuildStep
-	void build(BuildProducer<ReflectiveClassBuildItem> reflectiveClass) {
-		//Not strictly necessary when using Agroal, as it also registers
-		//any JDBC driver being configured explicitly through its configuration.
-		//We register it for the sake of people not using Agroal.
-		final String driverName = "org.h2.Driver";
-		reflectiveClass.produce(new ReflectiveClassBuildItem(false, false, driverName));
-	}
-
+  @BuildStep
+  void build(BuildProducer<ReflectiveClassBuildItem> reflectiveClass) {
+    // Not strictly necessary when using Agroal, as it also registers
+    // any JDBC driver being configured explicitly through its configuration.
+    // We register it for the sake of people not using Agroal.
+    final String driverName = "org.h2.Driver";
+    reflectiveClass.produce(new ReflectiveClassBuildItem(false, false, driverName));
+  }
 }

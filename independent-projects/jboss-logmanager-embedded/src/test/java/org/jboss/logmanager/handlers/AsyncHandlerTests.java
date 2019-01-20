@@ -19,7 +19,6 @@ package org.jboss.logmanager.handlers;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
-
 import org.jboss.logmanager.ExtHandler;
 import org.jboss.logmanager.ExtLogRecord;
 import org.jboss.logmanager.Level;
@@ -32,94 +31,92 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-/**
- * @author <a href="mailto:jperkins@redhat.com">James R. Perkins</a>
- */
+/** @author <a href="mailto:jperkins@redhat.com">James R. Perkins</a> */
 public class AsyncHandlerTests {
 
-    private BlockingQueueHandler handler;
-    private AsyncHandler asyncHandler;
+  private BlockingQueueHandler handler;
+  private AsyncHandler asyncHandler;
 
-    @Before
-    public void setup() {
-        handler = new BlockingQueueHandler();
+  @Before
+  public void setup() {
+    handler = new BlockingQueueHandler();
 
-        asyncHandler = new AsyncHandler();
-        asyncHandler.setOverflowAction(OverflowAction.DISCARD);
-        asyncHandler.addHandler(handler);
+    asyncHandler = new AsyncHandler();
+    asyncHandler.setOverflowAction(OverflowAction.DISCARD);
+    asyncHandler.addHandler(handler);
+  }
+
+  @After
+  public void tearDown() {
+    asyncHandler.close();
+    handler.close();
+    NDC.clear();
+    MDC.clear();
+  }
+
+  @Test
+  public void testNdc() throws Exception {
+    handler.setFormatter(new PatternFormatter("%x"));
+    String ndcValue = "Test NDC value";
+    NDC.push(ndcValue);
+    asyncHandler.doPublish(createRecord());
+    Assert.assertEquals(ndcValue, NDC.pop());
+    Assert.assertEquals(ndcValue, handler.getFirst());
+
+    // Next value should be blank
+    asyncHandler.doPublish(createRecord());
+    Assert.assertEquals("", handler.getFirst());
+
+    ndcValue = "New test NDC value";
+    NDC.push(ndcValue);
+    asyncHandler.doPublish(createRecord());
+    NDC.push("invalid");
+    Assert.assertEquals(ndcValue, handler.getFirst());
+  }
+
+  @Test
+  public void testMdc() throws Exception {
+    handler.setFormatter(new PatternFormatter("%X{key}"));
+    String mdcValue = "Test MDC value";
+    MDC.put("key", mdcValue);
+    asyncHandler.doPublish(createRecord());
+    MDC.remove("key");
+    Assert.assertEquals(mdcValue, handler.getFirst());
+
+    asyncHandler.doPublish(createRecord());
+    Assert.assertEquals("", handler.getFirst());
+
+    mdcValue = "New test MDC value";
+    MDC.put("key", mdcValue);
+    asyncHandler.doPublish(createRecord());
+    MDC.put("key", "invalid");
+    Assert.assertEquals(mdcValue, handler.getFirst());
+  }
+
+  static ExtLogRecord createRecord() {
+    return new ExtLogRecord(Level.INFO, "Test message", AsyncHandlerTests.class.getName());
+  }
+
+  static class BlockingQueueHandler extends ExtHandler {
+    private final BlockingDeque<String> queue;
+
+    BlockingQueueHandler() {
+      queue = new LinkedBlockingDeque<String>();
     }
 
-    @After
-    public void tearDown() {
-        asyncHandler.close();
-        handler.close();
-        NDC.clear();
-        MDC.clear();
+    @Override
+    protected void doPublish(final ExtLogRecord record) {
+      queue.addLast(getFormatter().format(record));
+      super.doPublish(record);
     }
 
-    @Test
-    public void testNdc() throws Exception {
-        handler.setFormatter(new PatternFormatter("%x"));
-        String ndcValue = "Test NDC value";
-        NDC.push(ndcValue);
-        asyncHandler.doPublish(createRecord());
-        Assert.assertEquals(ndcValue, NDC.pop());
-        Assert.assertEquals(ndcValue, handler.getFirst());
-
-        // Next value should be blank
-        asyncHandler.doPublish(createRecord());
-        Assert.assertEquals("", handler.getFirst());
-
-        ndcValue = "New test NDC value";
-        NDC.push(ndcValue);
-        asyncHandler.doPublish(createRecord());
-        NDC.push("invalid");
-        Assert.assertEquals(ndcValue, handler.getFirst());
+    String getFirst() throws InterruptedException {
+      return queue.pollFirst(5, TimeUnit.SECONDS);
     }
 
-    @Test
-    public void testMdc() throws Exception {
-        handler.setFormatter(new PatternFormatter("%X{key}"));
-        String mdcValue = "Test MDC value";
-        MDC.put("key", mdcValue);
-        asyncHandler.doPublish(createRecord());
-        MDC.remove("key");
-        Assert.assertEquals(mdcValue, handler.getFirst());
-
-        asyncHandler.doPublish(createRecord());
-        Assert.assertEquals("", handler.getFirst());
-
-        mdcValue = "New test MDC value";
-        MDC.put("key", mdcValue);
-        asyncHandler.doPublish(createRecord());
-        MDC.put("key", "invalid");
-        Assert.assertEquals(mdcValue, handler.getFirst());
+    @Override
+    public void close() throws SecurityException {
+      queue.clear();
     }
-
-    static ExtLogRecord createRecord() {
-        return new ExtLogRecord(Level.INFO, "Test message", AsyncHandlerTests.class.getName());
-    }
-
-    static class BlockingQueueHandler extends ExtHandler {
-        private final BlockingDeque<String> queue;
-
-        BlockingQueueHandler() {
-            queue = new LinkedBlockingDeque<String>();
-        }
-
-        @Override
-        protected void doPublish(final ExtLogRecord record) {
-            queue.addLast(getFormatter().format(record));
-            super.doPublish(record);
-        }
-
-        String getFirst() throws InterruptedException {
-            return queue.pollFirst(5, TimeUnit.SECONDS);
-        }
-
-        @Override
-        public void close() throws SecurityException {
-            queue.clear();
-        }
-    }
+  }
 }

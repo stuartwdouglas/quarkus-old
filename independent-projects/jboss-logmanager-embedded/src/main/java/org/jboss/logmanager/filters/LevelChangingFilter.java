@@ -21,30 +21,30 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
 /**
- * A filter which modifies the log record with a new level if the nested filter evaluates {@code true} for that
- * record.
+ * A filter which modifies the log record with a new level if the nested filter evaluates {@code
+ * true} for that record.
  */
 public final class LevelChangingFilter implements Filter {
 
-    private final Level newLevel;
+  private final Level newLevel;
 
-    /**
-     * Construct a new instance.
-     *
-     * @param newLevel the level to change to
-     */
-    public LevelChangingFilter(final Level newLevel) {
-        this.newLevel = newLevel;
-    }
+  /**
+   * Construct a new instance.
+   *
+   * @param newLevel the level to change to
+   */
+  public LevelChangingFilter(final Level newLevel) {
+    this.newLevel = newLevel;
+  }
 
-    /**
-     * Apply the filter to this log record.
-     *
-     * @param record the record to inspect and possibly update
-     * @return {@code true} always
-     */
-    public boolean isLoggable(final LogRecord record) {
-        record.setLevel(newLevel);
-        return true;
-    }
+  /**
+   * Apply the filter to this log record.
+   *
+   * @param record the record to inspect and possibly update
+   * @return {@code true} always
+   */
+  public boolean isLoggable(final LogRecord record) {
+    record.setLevel(newLevel);
+    return true;
+  }
 }

@@ -16,36 +16,34 @@
 
 package org.jboss.logmanager.handlers;
 
-import java.io.OutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
-/**
- * An output stream wrapper which drops calls to the {@code close()} method.
- */
+/** An output stream wrapper which drops calls to the {@code close()} method. */
 public final class UncloseableOutputStream extends OutputStream {
-    private final OutputStream delegate;
+  private final OutputStream delegate;
 
-    public UncloseableOutputStream(final OutputStream delegate) {
-        this.delegate = delegate;
-    }
+  public UncloseableOutputStream(final OutputStream delegate) {
+    this.delegate = delegate;
+  }
 
-    public void write(final int b) throws IOException {
-        delegate.write(b);
-    }
+  public void write(final int b) throws IOException {
+    delegate.write(b);
+  }
 
-    public void write(final byte[] b) throws IOException {
-        delegate.write(b);
-    }
+  public void write(final byte[] b) throws IOException {
+    delegate.write(b);
+  }
 
-    public void write(final byte[] b, final int off, final int len) throws IOException {
-        delegate.write(b, off, len);
-    }
+  public void write(final byte[] b, final int off, final int len) throws IOException {
+    delegate.write(b, off, len);
+  }
 
-    public void flush() throws IOException {
-        delegate.flush();
-    }
+  public void flush() throws IOException {
+    delegate.flush();
+  }
 
-    public void close() {
-        // ignore
-    }
+  public void close() {
+    // ignore
+  }
 }

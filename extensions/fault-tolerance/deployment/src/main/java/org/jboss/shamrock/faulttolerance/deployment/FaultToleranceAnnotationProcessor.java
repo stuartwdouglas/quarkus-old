@@ -16,12 +16,17 @@
 
 package org.jboss.shamrock.faulttolerance.deployment;
 
+import com.netflix.hystrix.HystrixCircuitBreaker;
+import io.smallrye.faulttolerance.DefaultCommandListenersProvider;
+import io.smallrye.faulttolerance.DefaultHystrixConcurrencyStrategy;
+import io.smallrye.faulttolerance.HystrixCommandBinding;
+import io.smallrye.faulttolerance.HystrixCommandInterceptor;
+import io.smallrye.faulttolerance.HystrixInitializer;
+import io.smallrye.faulttolerance.MetricsCollectorFactory;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.inject.Inject;
-
 import org.eclipse.microprofile.faulttolerance.Asynchronous;
 import org.eclipse.microprofile.faulttolerance.Bulkhead;
 import org.eclipse.microprofile.faulttolerance.CircuitBreaker;
@@ -46,88 +51,95 @@ import org.jboss.shamrock.deployment.builditem.substrate.SubstrateSystemProperty
 import org.jboss.shamrock.faulttolerance.runtime.ShamrockFallbackHandlerProvider;
 import org.jboss.shamrock.faulttolerance.runtime.ShamrockFaultToleranceOperationProvider;
 
-import com.netflix.hystrix.HystrixCircuitBreaker;
-
-import io.smallrye.faulttolerance.DefaultCommandListenersProvider;
-import io.smallrye.faulttolerance.DefaultHystrixConcurrencyStrategy;
-import io.smallrye.faulttolerance.HystrixCommandBinding;
-import io.smallrye.faulttolerance.HystrixCommandInterceptor;
-import io.smallrye.faulttolerance.HystrixInitializer;
-import io.smallrye.faulttolerance.MetricsCollectorFactory;
-
 public class FaultToleranceAnnotationProcessor {
 
-    private static final DotName[] FT_ANNOTATIONS = { DotName.createSimple(Asynchronous.class.getName()), DotName.createSimple(Bulkhead.class.getName()),
-            DotName.createSimple(CircuitBreaker.class.getName()), DotName.createSimple(Fallback.class.getName()), DotName.createSimple(Retry.class.getName()),
-            DotName.createSimple(Timeout.class.getName()) };
+  private static final DotName[] FT_ANNOTATIONS = {
+    DotName.createSimple(Asynchronous.class.getName()),
+    DotName.createSimple(Bulkhead.class.getName()),
+    DotName.createSimple(CircuitBreaker.class.getName()),
+    DotName.createSimple(Fallback.class.getName()),
+    DotName.createSimple(Retry.class.getName()),
+    DotName.createSimple(Timeout.class.getName())
+  };
 
-    @Inject
-    BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
+  @Inject BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
 
-    @Inject
-    BuildProducer<SubstrateSystemPropertyBuildItem> nativeImageSystemProperty;
+  @Inject BuildProducer<SubstrateSystemPropertyBuildItem> nativeImageSystemProperty;
 
-    @Inject
-    BuildProducer<AdditionalBeanBuildItem> additionalBean;
+  @Inject BuildProducer<AdditionalBeanBuildItem> additionalBean;
 
-    @Inject
-    CombinedIndexBuildItem combinedIndexBuildItem;
+  @Inject CombinedIndexBuildItem combinedIndexBuildItem;
 
-    SubstrateSystemPropertyBuildItem disableJmx() {
-        return new SubstrateSystemPropertyBuildItem("archaius.dynamicPropertyFactory.registerConfigWithJMX", "false");
+  SubstrateSystemPropertyBuildItem disableJmx() {
+    return new SubstrateSystemPropertyBuildItem(
+        "archaius.dynamicPropertyFactory.registerConfigWithJMX", "false");
+  }
+
+  @BuildStep
+  public void build(
+      BuildProducer<AnnotationsTransformerBuildItem> annotationsTransformer,
+      BuildProducer<FeatureBuildItem> feature)
+      throws Exception {
+
+    feature.produce(new FeatureBuildItem(FeatureBuildItem.MP_FAULT_TOLERANCE));
+
+    IndexView index = combinedIndexBuildItem.getIndex();
+
+    // Make sure rx.internal.util.unsafe.UnsafeAccess.DISABLED_BY_USER is set.
+    nativeImageSystemProperty.produce(
+        new SubstrateSystemPropertyBuildItem("rx.unsafe-disable", "true"));
+
+    // Add reflective acccess to fallback handlers
+    Collection<ClassInfo> fallbackHandlers =
+        index.getAllKnownImplementors(DotName.createSimple(FallbackHandler.class.getName()));
+    for (ClassInfo fallbackHandler : fallbackHandlers) {
+      reflectiveClass.produce(
+          new ReflectiveClassBuildItem(true, false, fallbackHandler.name().toString()));
+    }
+    reflectiveClass.produce(
+        new ReflectiveClassBuildItem(false, true, HystrixCircuitBreaker.Factory.class.getName()));
+    for (DotName annotation : FT_ANNOTATIONS) {
+      reflectiveClass.produce(new ReflectiveClassBuildItem(true, false, annotation.toString()));
     }
 
-    @BuildStep
-    public void build(BuildProducer<AnnotationsTransformerBuildItem> annotationsTransformer, BuildProducer<FeatureBuildItem> feature) throws Exception {
-
-        feature.produce(new FeatureBuildItem(FeatureBuildItem.MP_FAULT_TOLERANCE));
-        
-        IndexView index = combinedIndexBuildItem.getIndex();
-
-        // Make sure rx.internal.util.unsafe.UnsafeAccess.DISABLED_BY_USER is set.
-        nativeImageSystemProperty.produce(new SubstrateSystemPropertyBuildItem("rx.unsafe-disable", "true"));
-
-        // Add reflective acccess to fallback handlers
-        Collection<ClassInfo> fallbackHandlers = index.getAllKnownImplementors(DotName.createSimple(FallbackHandler.class.getName()));
-        for (ClassInfo fallbackHandler : fallbackHandlers) {
-            reflectiveClass.produce(new ReflectiveClassBuildItem(true, false, fallbackHandler.name().toString()));
+    // Add HystrixCommandBinding to app classes
+    Set<String> ftClasses = new HashSet<>();
+    for (DotName annotation : FT_ANNOTATIONS) {
+      Collection<AnnotationInstance> annotationInstances = index.getAnnotations(annotation);
+      for (AnnotationInstance instance : annotationInstances) {
+        if (instance.target().kind() == Kind.CLASS) {
+          ftClasses.add(instance.target().asClass().toString());
+        } else if (instance.target().kind() == Kind.METHOD) {
+          ftClasses.add(instance.target().asMethod().declaringClass().toString());
         }
-        reflectiveClass.produce(new ReflectiveClassBuildItem(false, true, HystrixCircuitBreaker.Factory.class.getName()));
-        for (DotName annotation : FT_ANNOTATIONS) {
-            reflectiveClass.produce(new ReflectiveClassBuildItem(true, false, annotation.toString()));
-        }
-
-        // Add HystrixCommandBinding to app classes
-        Set<String> ftClasses = new HashSet<>();
-        for (DotName annotation : FT_ANNOTATIONS) {
-            Collection<AnnotationInstance> annotationInstances = index.getAnnotations(annotation);
-            for (AnnotationInstance instance : annotationInstances) {
-                if (instance.target().kind() == Kind.CLASS) {
-                    ftClasses.add(instance.target().asClass().toString());
-                } else if (instance.target().kind() == Kind.METHOD) {
-                    ftClasses.add(instance.target().asMethod().declaringClass().toString());
-                }
-            }
-        }
-        if (!ftClasses.isEmpty()) {
-            annotationsTransformer.produce(new AnnotationsTransformerBuildItem(new AnnotationsTransformer() {
+      }
+    }
+    if (!ftClasses.isEmpty()) {
+      annotationsTransformer.produce(
+          new AnnotationsTransformerBuildItem(
+              new AnnotationsTransformer() {
                 @Override
                 public boolean appliesTo(Kind kind) {
-                    return kind == Kind.CLASS;
+                  return kind == Kind.CLASS;
                 }
 
                 @Override
                 public void transform(TransformationContext context) {
-                    if (ftClasses.contains(context.getTarget().asClass().name().toString())) {
-                        context.transform().add(HystrixCommandBinding.class).done();
-                    }
+                  if (ftClasses.contains(context.getTarget().asClass().name().toString())) {
+                    context.transform().add(HystrixCommandBinding.class).done();
+                  }
                 }
-            }));
-        }
-        // Register bean classes
-        additionalBean.produce(new AdditionalBeanBuildItem(HystrixCommandInterceptor.class, HystrixInitializer.class, DefaultHystrixConcurrencyStrategy.class,
-                ShamrockFaultToleranceOperationProvider.class, ShamrockFallbackHandlerProvider.class, DefaultCommandListenersProvider.class,
-                MetricsCollectorFactory.class));
+              }));
     }
-
+    // Register bean classes
+    additionalBean.produce(
+        new AdditionalBeanBuildItem(
+            HystrixCommandInterceptor.class,
+            HystrixInitializer.class,
+            DefaultHystrixConcurrencyStrategy.class,
+            ShamrockFaultToleranceOperationProvider.class,
+            ShamrockFallbackHandlerProvider.class,
+            DefaultCommandListenersProvider.class,
+            MetricsCollectorFactory.class));
+  }
 }

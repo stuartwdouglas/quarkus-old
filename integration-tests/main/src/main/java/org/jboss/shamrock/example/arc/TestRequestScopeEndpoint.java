@@ -23,17 +23,13 @@ import javax.ws.rs.Path;
 @Path("/request-scoped")
 public class TestRequestScopeEndpoint {
 
-    @Inject
-    RequestScopedBean requestScopedBean;
+  @Inject RequestScopedBean requestScopedBean;
 
-    @GET
-    public String manualValidation() {
+  @GET
+  public String manualValidation() {
 
-        requestScopedBean.incrementAndGet();
-        requestScopedBean.incrementAndGet();
-        return "" + requestScopedBean.incrementAndGet();
-
-    }
-
-
+    requestScopedBean.incrementAndGet();
+    requestScopedBean.incrementAndGet();
+    return "" + requestScopedBean.incrementAndGet();
+  }
 }

@@ -21,13 +21,13 @@ import org.jboss.shamrock.arc.runtime.BeanContainerListener;
 
 public final class BeanContainerListenerBuildItem extends MultiBuildItem {
 
-    private final BeanContainerListener beanContainerListener;
+  private final BeanContainerListener beanContainerListener;
 
-    public BeanContainerListenerBuildItem(BeanContainerListener beanContainerListener) {
-        this.beanContainerListener = beanContainerListener;
-    }
+  public BeanContainerListenerBuildItem(BeanContainerListener beanContainerListener) {
+    this.beanContainerListener = beanContainerListener;
+  }
 
-    public BeanContainerListener getBeanContainerListener() {
-        return beanContainerListener;
-    }
+  public BeanContainerListener getBeanContainerListener() {
+    return beanContainerListener;
+  }
 }

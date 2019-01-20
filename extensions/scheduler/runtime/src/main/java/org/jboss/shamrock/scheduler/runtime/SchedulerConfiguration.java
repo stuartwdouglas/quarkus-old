@@ -19,43 +19,43 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import javax.enterprise.context.ApplicationScoped;
-
 import org.jboss.shamrock.scheduler.api.Scheduled;
 
-/**
- *
- * @author Martin Kouba
- */
+/** @author Martin Kouba */
 @ApplicationScoped
 public class SchedulerConfiguration {
 
-    private final Map<String, List<Scheduled>> schedules = new ConcurrentHashMap<>();
+  private final Map<String, List<Scheduled>> schedules = new ConcurrentHashMap<>();
 
-    private final Map<String, String> descriptions = new ConcurrentHashMap<>();
+  private final Map<String, String> descriptions = new ConcurrentHashMap<>();
 
-    void register(String invokerClassName, String description, List<Scheduled> schedules) {
-        this.schedules.put(invokerClassName, schedules);
-        this.descriptions.put(invokerClassName, description);
+  void register(String invokerClassName, String description, List<Scheduled> schedules) {
+    this.schedules.put(invokerClassName, schedules);
+    this.descriptions.put(invokerClassName, description);
+  }
+
+  Map<String, List<Scheduled>> getSchedules() {
+    return schedules;
+  }
+
+  String getDescription(String invokerClassName) {
+    return descriptions.get(invokerClassName);
+  }
+
+  @SuppressWarnings("unchecked")
+  ScheduledInvoker createInvoker(String invokerClassName) {
+    try {
+      Class<? extends ScheduledInvoker> invokerClazz =
+          (Class<? extends ScheduledInvoker>)
+              Thread.currentThread().getContextClassLoader().loadClass(invokerClassName);
+      return invokerClazz.getDeclaredConstructor().newInstance();
+    } catch (InstantiationException
+        | IllegalAccessException
+        | ClassNotFoundException
+        | NoSuchMethodException
+        | InvocationTargetException e) {
+      throw new IllegalStateException("Unable to create invoker: " + invokerClassName, e);
     }
-
-    Map<String, List<Scheduled>> getSchedules() {
-        return schedules;
-    }
-
-    String getDescription(String invokerClassName) {
-        return descriptions.get(invokerClassName);
-    }
-
-    @SuppressWarnings("unchecked")
-    ScheduledInvoker createInvoker(String invokerClassName) {
-        try {
-            Class<? extends ScheduledInvoker> invokerClazz = (Class<? extends ScheduledInvoker>) Thread.currentThread().getContextClassLoader().loadClass(invokerClassName);
-            return invokerClazz.getDeclaredConstructor().newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | InvocationTargetException e) {
-            throw new IllegalStateException("Unable to create invoker: " + invokerClassName, e);
-        }
-    }
-
+  }
 }

@@ -21,7 +21,6 @@ package org.jboss.shamrock.deployment.steps;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
-
 import org.graalvm.nativeimage.ImageInfo;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.deployment.builditem.BytecodeTransformerBuildItem;
@@ -32,41 +31,61 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 /**
- * This build step introduces a small blurb into the top of every run-time initialized class that will throw an {@code Error}
- * with a useful stack trace if that class is somehow initialized during native image build time, as the GraalVM native image
- * tool does not give a usage point for such errors.
+ * This build step introduces a small blurb into the top of every run-time initialized class that
+ * will throw an {@code Error} with a useful stack trace if that class is somehow initialized during
+ * native image build time, as the GraalVM native image tool does not give a usage point for such
+ * errors.
  */
 public class StaticInitDebugStep {
 
-    private static final BiFunction<String, ClassVisitor, ClassVisitor> TRANSFORMER = new BiFunction<String, ClassVisitor, ClassVisitor>() {
+  private static final BiFunction<String, ClassVisitor, ClassVisitor> TRANSFORMER =
+      new BiFunction<String, ClassVisitor, ClassVisitor>() {
         @Override
         public ClassVisitor apply(final String className, final ClassVisitor classVisitor) {
-            return new ClassVisitor(Opcodes.ASM6, classVisitor) {
-                @Override
-                public MethodVisitor visitMethod(final int access, final String name, final String descriptor, final String signature, final String[] exceptions) {
-                    final MethodVisitor outer = super.visitMethod(access, name, descriptor, signature, exceptions);
-                    if (name.equals("<clinit>")) {
-                        outer.visitMethodInsn(Opcodes.INVOKESTATIC, ImageInfo.class.getName(), "inImageBuildtimeCode", "()Z", false);
-                        Label ok = new Label();
-                        outer.visitJumpInsn(Opcodes.IFEQ, ok);
-                        // construct an error - todo this could go on some core runtime class to save a few bytes of repeated string
-                        outer.visitTypeInsn(Opcodes.NEW, "java/lang/Error");
-                        outer.visitLdcInsn("Class initialized during build");
-                        outer.visitMethodInsn(Opcodes.INVOKESPECIAL, Error.class.getName(), "<init>", "(Ljava/lang/String;)V", false);
-                        outer.visitInsn(Opcodes.ATHROW);
-                    }
-                    return outer;
-                }
-            };
+          return new ClassVisitor(Opcodes.ASM6, classVisitor) {
+            @Override
+            public MethodVisitor visitMethod(
+                final int access,
+                final String name,
+                final String descriptor,
+                final String signature,
+                final String[] exceptions) {
+              final MethodVisitor outer =
+                  super.visitMethod(access, name, descriptor, signature, exceptions);
+              if (name.equals("<clinit>")) {
+                outer.visitMethodInsn(
+                    Opcodes.INVOKESTATIC,
+                    ImageInfo.class.getName(),
+                    "inImageBuildtimeCode",
+                    "()Z",
+                    false);
+                Label ok = new Label();
+                outer.visitJumpInsn(Opcodes.IFEQ, ok);
+                // construct an error - todo this could go on some core runtime class to save a few
+                // bytes of repeated string
+                outer.visitTypeInsn(Opcodes.NEW, "java/lang/Error");
+                outer.visitLdcInsn("Class initialized during build");
+                outer.visitMethodInsn(
+                    Opcodes.INVOKESPECIAL,
+                    Error.class.getName(),
+                    "<init>",
+                    "(Ljava/lang/String;)V",
+                    false);
+                outer.visitInsn(Opcodes.ATHROW);
+              }
+              return outer;
+            }
+          };
         }
-    };
+      };
 
-    @BuildStep
-    public List<BytecodeTransformerBuildItem> addStaticInitDebug(List<RuntimeInitializedClassBuildItem> classes) {
-        final ArrayList<BytecodeTransformerBuildItem> outputList = new ArrayList<>(classes.size());
-        for (RuntimeInitializedClassBuildItem classBuildItem : classes) {
-            outputList.add(new BytecodeTransformerBuildItem(classBuildItem.getClassName(), TRANSFORMER));
-        }
-        return outputList;
+  @BuildStep
+  public List<BytecodeTransformerBuildItem> addStaticInitDebug(
+      List<RuntimeInitializedClassBuildItem> classes) {
+    final ArrayList<BytecodeTransformerBuildItem> outputList = new ArrayList<>(classes.size());
+    for (RuntimeInitializedClassBuildItem classBuildItem : classes) {
+      outputList.add(new BytecodeTransformerBuildItem(classBuildItem.getClassName(), TRANSFORMER));
     }
+    return outputList;
+  }
 }

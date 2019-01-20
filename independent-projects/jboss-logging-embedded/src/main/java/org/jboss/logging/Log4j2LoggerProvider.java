@@ -18,77 +18,76 @@ package org.jboss.logging;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.logging.log4j.ThreadContext;
 
 final class Log4j2LoggerProvider implements LoggerProvider {
 
-    @Override
-    public Log4j2Logger getLogger(String name) {
-        return new Log4j2Logger(name);
-    }
+  @Override
+  public Log4j2Logger getLogger(String name) {
+    return new Log4j2Logger(name);
+  }
 
-    @Override
-    public void clearMdc() {
-        ThreadContext.clearMap();
-    }
+  @Override
+  public void clearMdc() {
+    ThreadContext.clearMap();
+  }
 
-    @Override
-    public Object putMdc(String key, Object value) {
-        try {
-            return ThreadContext.get(key);
-        } finally {
-            ThreadContext.put(key, String.valueOf(value));
-        }
+  @Override
+  public Object putMdc(String key, Object value) {
+    try {
+      return ThreadContext.get(key);
+    } finally {
+      ThreadContext.put(key, String.valueOf(value));
     }
+  }
 
-    @Override
-    public Object getMdc(String key) {
-        return ThreadContext.get(key);
-    }
+  @Override
+  public Object getMdc(String key) {
+    return ThreadContext.get(key);
+  }
 
-    @Override
-    public void removeMdc(String key) {
-        ThreadContext.remove(key);
-    }
+  @Override
+  public void removeMdc(String key) {
+    ThreadContext.remove(key);
+  }
 
-    @Override
-    public Map<String, Object> getMdcMap() {
-        return new HashMap<String, Object>(ThreadContext.getImmutableContext());
-    }
+  @Override
+  public Map<String, Object> getMdcMap() {
+    return new HashMap<String, Object>(ThreadContext.getImmutableContext());
+  }
 
-    @Override
-    public void clearNdc() {
-        ThreadContext.clearStack();
-    }
+  @Override
+  public void clearNdc() {
+    ThreadContext.clearStack();
+  }
 
-    @Override
-    public String getNdc() {
-        return ThreadContext.peek();
-    }
+  @Override
+  public String getNdc() {
+    return ThreadContext.peek();
+  }
 
-    @Override
-    public int getNdcDepth() {
-        return ThreadContext.getDepth();
-    }
+  @Override
+  public int getNdcDepth() {
+    return ThreadContext.getDepth();
+  }
 
-    @Override
-    public String popNdc() {
-        return ThreadContext.pop();
-    }
+  @Override
+  public String popNdc() {
+    return ThreadContext.pop();
+  }
 
-    @Override
-    public String peekNdc() {
-        return ThreadContext.peek();
-    }
+  @Override
+  public String peekNdc() {
+    return ThreadContext.peek();
+  }
 
-    @Override
-    public void pushNdc(String message) {
-        ThreadContext.push(message);
-    }
+  @Override
+  public void pushNdc(String message) {
+    ThreadContext.push(message);
+  }
 
-    @Override
-    public void setNdcMaxDepth(int maxDepth) {
-        ThreadContext.trim(maxDepth);
-    }
+  @Override
+  public void setNdcMaxDepth(int maxDepth) {
+    ThreadContext.trim(maxDepth);
+  }
 }

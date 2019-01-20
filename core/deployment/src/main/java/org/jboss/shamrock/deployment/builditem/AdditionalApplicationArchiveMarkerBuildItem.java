@@ -19,18 +19,18 @@ package org.jboss.shamrock.deployment.builditem;
 import org.jboss.builder.item.MultiBuildItem;
 
 /**
- * A marker file that if present indicates that a given archive should be treated as an
- * application archive
+ * A marker file that if present indicates that a given archive should be treated as an application
+ * archive
  */
 public final class AdditionalApplicationArchiveMarkerBuildItem extends MultiBuildItem {
 
-    private final String file;
+  private final String file;
 
-    public AdditionalApplicationArchiveMarkerBuildItem(String file) {
-        this.file = file;
-    }
+  public AdditionalApplicationArchiveMarkerBuildItem(String file) {
+    this.file = file;
+  }
 
-    public String getFile() {
-        return file;
-    }
+  public String getFile() {
+    return file;
+  }
 }

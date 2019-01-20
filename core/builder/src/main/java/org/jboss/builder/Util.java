@@ -18,14 +18,14 @@ package org.jboss.builder;
 
 import org.wildfly.common.annotation.NotNull;
 
-/**
- */
+/** */
 final class Util {
-    private Util() {}
+  private Util() {}
 
-    static void checkNotGeneric(@NotNull Class<?> clz) {
-        if (clz.getTypeParameters().length != 0) {
-            throw new IllegalArgumentException("A generic type is not allowed here; try creating a subclass with concrete type arguments instead");
-        }
+  static void checkNotGeneric(@NotNull Class<?> clz) {
+    if (clz.getTypeParameters().length != 0) {
+      throw new IllegalArgumentException(
+          "A generic type is not allowed here; try creating a subclass with concrete type arguments instead");
     }
+  }
 }

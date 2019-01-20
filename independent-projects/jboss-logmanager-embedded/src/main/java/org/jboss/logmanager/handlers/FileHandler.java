@@ -23,166 +23,162 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.logging.Formatter;
 
-/**
- * A simple file handler.
- */
+/** A simple file handler. */
 public class FileHandler extends OutputStreamHandler {
 
-    private File file;
-    private boolean append;
+  private File file;
+  private boolean append;
 
-    /**
-     * Construct a new instance with no formatter and no output file.
-     */
-    public FileHandler() {
+  /** Construct a new instance with no formatter and no output file. */
+  public FileHandler() {}
+
+  /**
+   * Construct a new instance with the given formatter and no output file.
+   *
+   * @param formatter the formatter
+   */
+  public FileHandler(final Formatter formatter) {
+    super(formatter);
+  }
+
+  /**
+   * Construct a new instance with the given formatter and output file.
+   *
+   * @param formatter the formatter
+   * @param file the file
+   * @throws FileNotFoundException if the file could not be found on open
+   */
+  public FileHandler(final Formatter formatter, final File file) throws FileNotFoundException {
+    super(formatter);
+    setFile(file);
+  }
+
+  /**
+   * Construct a new instance with the given formatter, output file, and append setting.
+   *
+   * @param formatter the formatter
+   * @param file the file
+   * @param append {@code true} to append, {@code false} to overwrite
+   * @throws FileNotFoundException if the file could not be found on open
+   */
+  public FileHandler(final Formatter formatter, final File file, final boolean append)
+      throws FileNotFoundException {
+    super(formatter);
+    this.append = append;
+    setFile(file);
+  }
+
+  /**
+   * Construct a new instance with the given output file.
+   *
+   * @param file the file
+   * @throws FileNotFoundException if the file could not be found on open
+   */
+  public FileHandler(final File file) throws FileNotFoundException {
+    setFile(file);
+  }
+
+  /**
+   * Construct a new instance with the given output file and append setting.
+   *
+   * @param file the file
+   * @param append {@code true} to append, {@code false} to overwrite
+   * @throws FileNotFoundException if the file could not be found on open
+   */
+  public FileHandler(final File file, final boolean append) throws FileNotFoundException {
+    this.append = append;
+    setFile(file);
+  }
+
+  /**
+   * Construct a new instance with the given output file.
+   *
+   * @param fileName the file name
+   * @throws FileNotFoundException if the file could not be found on open
+   */
+  public FileHandler(final String fileName) throws FileNotFoundException {
+    setFileName(fileName);
+  }
+
+  /**
+   * Construct a new instance with the given output file and append setting.
+   *
+   * @param fileName the file name
+   * @param append {@code true} to append, {@code false} to overwrite
+   * @throws FileNotFoundException if the file could not be found on open
+   */
+  public FileHandler(final String fileName, final boolean append) throws FileNotFoundException {
+    this.append = append;
+    setFileName(fileName);
+  }
+
+  /**
+   * Specify whether to append to the target file.
+   *
+   * @param append {@code true} to append, {@code false} to overwrite
+   */
+  public void setAppend(final boolean append) {
+    synchronized (outputLock) {
+      this.append = append;
     }
+  }
 
-    /**
-     * Construct a new instance with the given formatter and no output file.
-     *
-     * @param formatter the formatter
-     */
-    public FileHandler(final Formatter formatter) {
-        super(formatter);
-    }
-
-    /**
-     * Construct a new instance with the given formatter and output file.
-     *
-     * @param formatter the formatter
-     * @param file the file
-     * @throws FileNotFoundException if the file could not be found on open
-     */
-    public FileHandler(final Formatter formatter, final File file) throws FileNotFoundException {
-        super(formatter);
-        setFile(file);
-    }
-
-    /**
-     * Construct a new instance with the given formatter, output file, and append setting.
-     *
-     * @param formatter the formatter
-     * @param file the file
-     * @param append {@code true} to append, {@code false} to overwrite
-     * @throws FileNotFoundException if the file could not be found on open
-     */
-    public FileHandler(final Formatter formatter, final File file, final boolean append) throws FileNotFoundException {
-        super(formatter);
-        this.append = append;
-        setFile(file);
-    }
-
-    /**
-     * Construct a new instance with the given output file.
-     *
-     * @param file the file
-     * @throws FileNotFoundException if the file could not be found on open
-     */
-    public FileHandler(final File file) throws FileNotFoundException {
-        setFile(file);
-    }
-
-    /**
-     * Construct a new instance with the given output file and append setting.
-     *
-     * @param file the file
-     * @param append {@code true} to append, {@code false} to overwrite
-     * @throws FileNotFoundException if the file could not be found on open
-     */
-    public FileHandler(final File file, final boolean append) throws FileNotFoundException {
-        this.append = append;
-        setFile(file);
-    }
-
-    /**
-     * Construct a new instance with the given output file.
-     *
-     * @param fileName the file name
-     * @throws FileNotFoundException if the file could not be found on open
-     */
-    public FileHandler(final String fileName) throws FileNotFoundException {
-        setFileName(fileName);
-    }
-
-    /**
-     * Construct a new instance with the given output file and append setting.
-     *
-     * @param fileName the file name
-     * @param append {@code true} to append, {@code false} to overwrite
-     * @throws FileNotFoundException if the file could not be found on open
-     */
-    public FileHandler(final String fileName, final boolean append) throws FileNotFoundException {
-        this.append = append;
-        setFileName(fileName);
-    }
-
-    /**
-     * Specify whether to append to the target file.
-     *
-     * @param append {@code true} to append, {@code false} to overwrite
-     */
-    public void setAppend(final boolean append) {
-        synchronized (outputLock) {
-            this.append = append;
+  /**
+   * Set the output file.
+   *
+   * @param file the file
+   * @throws FileNotFoundException if an error occurs opening the file
+   */
+  public void setFile(File file) throws FileNotFoundException {
+    synchronized (outputLock) {
+      if (file == null) {
+        this.file = null;
+        setOutputStream(null);
+        return;
+      }
+      final File parentFile = file.getParentFile();
+      if (parentFile != null) {
+        parentFile.mkdirs();
+      }
+      boolean ok = false;
+      final FileOutputStream fos = new FileOutputStream(file, append);
+      try {
+        final OutputStream bos = new BufferedOutputStream(fos);
+        try {
+          setOutputStream(bos);
+          this.file = file;
+          ok = true;
+        } finally {
+          if (!ok) {
+            safeClose(bos);
+          }
         }
-    }
-
-    /**
-     * Set the output file.
-     *
-     * @param file the file
-     * @throws FileNotFoundException if an error occurs opening the file
-     */
-    public void setFile(File file) throws FileNotFoundException {
-        synchronized (outputLock) {
-            if (file == null) {
-                this.file = null;
-                setOutputStream(null);
-                return;
-            }
-            final File parentFile = file.getParentFile();
-            if (parentFile != null) {
-                parentFile.mkdirs();
-            }
-            boolean ok = false;
-            final FileOutputStream fos = new FileOutputStream(file, append);
-            try {
-                final OutputStream bos = new BufferedOutputStream(fos);
-                try {
-                    setOutputStream(bos);
-                    this.file = file;
-                    ok = true;
-                } finally {
-                    if (! ok) {
-                        safeClose(bos);
-                    }
-                }
-            } finally {
-                if (! ok) {
-                    safeClose(fos);
-                }
-            }
+      } finally {
+        if (!ok) {
+          safeClose(fos);
         }
+      }
     }
+  }
 
-    /**
-     * Get the current output file.
-     *
-     * @return the file
-     */
-    public File getFile() {
-        synchronized (outputLock) {
-            return file;
-        }
+  /**
+   * Get the current output file.
+   *
+   * @return the file
+   */
+  public File getFile() {
+    synchronized (outputLock) {
+      return file;
     }
+  }
 
-    /**
-     * Set the output file by name.
-     *
-     * @param fileName the file name
-     * @throws FileNotFoundException if an error occurs opening the file
-     */
-    public void setFileName(String fileName) throws FileNotFoundException {
-        setFile(fileName == null ? null : new File(fileName));
-    }
+  /**
+   * Set the output file by name.
+   *
+   * @param fileName the file name
+   * @throws FileNotFoundException if an error occurs opening the file
+   */
+  public void setFileName(String fileName) throws FileNotFoundException {
+    setFile(fileName == null ? null : new File(fileName));
+  }
 }

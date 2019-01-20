@@ -18,44 +18,39 @@ package org.jboss.shamrock.jpa.runtime;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.transaction.TransactionManager;
 import javax.transaction.TransactionSynchronizationRegistry;
-
 import org.jboss.shamrock.jpa.runtime.entitymanager.TransactionScopedEntityManager;
 
 @RequestScoped
 public class TransactionEntityManagers {
 
-    @Inject
-    TransactionSynchronizationRegistry tsr;
+  @Inject TransactionSynchronizationRegistry tsr;
 
-    @Inject
-    TransactionManager tm;
+  @Inject TransactionManager tm;
 
-    @Inject
-    JPAConfig jpaConfig;
+  @Inject JPAConfig jpaConfig;
 
-    private final Map<String, TransactionScopedEntityManager> managers;
+  private final Map<String, TransactionScopedEntityManager> managers;
 
-    public TransactionEntityManagers() {
-        this.managers = new HashMap<>();
+  public TransactionEntityManagers() {
+    this.managers = new HashMap<>();
+  }
+
+  public EntityManager getEntityManager(String unitName) {
+    return managers.computeIfAbsent(
+        unitName,
+        un -> new TransactionScopedEntityManager(tm, tsr, jpaConfig.getEntityManagerFactory(un)));
+  }
+
+  @PreDestroy
+  public void destroy() {
+    for (TransactionScopedEntityManager manager : managers.values()) {
+      manager.requestDone();
     }
-
-    public EntityManager getEntityManager(String unitName) {
-        return managers.computeIfAbsent(unitName,
-                un -> new TransactionScopedEntityManager(tm, tsr, jpaConfig.getEntityManagerFactory(un)));
-    }
-
-    @PreDestroy
-    public void destroy() {
-        for (TransactionScopedEntityManager manager : managers.values()) {
-            manager.requestDone();
-        }
-    }
-
+  }
 }

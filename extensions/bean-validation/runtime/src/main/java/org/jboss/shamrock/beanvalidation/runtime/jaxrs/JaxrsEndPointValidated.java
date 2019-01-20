@@ -5,16 +5,11 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
 import javax.interceptor.InterceptorBinding;
 
-/**
- * Marker class to indicate a JAX-RS end point should be validated.
- */
+/** Marker class to indicate a JAX-RS end point should be validated. */
 @Inherited
 @InterceptorBinding
 @Retention(value = RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE, ElementType.METHOD })
-public @interface JaxrsEndPointValidated {
-
-}
+@Target({ElementType.TYPE, ElementType.METHOD})
+public @interface JaxrsEndPointValidated {}

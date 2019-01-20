@@ -19,30 +19,33 @@ package org.jboss.logmanager;
 import java.io.Serializable;
 
 /**
- * A marker class for loggers.  After read, the {@link #readResolve()} method will return a logger with the given name.
+ * A marker class for loggers. After read, the {@link #readResolve()} method will return a logger
+ * with the given name.
  */
 public final class SerializedLogger implements Serializable {
 
-    private static final long serialVersionUID = 8266206989821750874L;
+  private static final long serialVersionUID = 8266206989821750874L;
 
-    private final String name;
+  private final String name;
 
-    /**
-     * Construct an instance.
-     *
-     * @param name the logger name
-     */
-    public SerializedLogger(final String name) {
-        this.name = name;
-    }
+  /**
+   * Construct an instance.
+   *
+   * @param name the logger name
+   */
+  public SerializedLogger(final String name) {
+    this.name = name;
+  }
 
-    /**
-     * Get the actual logger for this marker.
-     *
-     * @return the logger
-     * @see <a href="http://java.sun.com/javase/6/docs/platform/serialization/spec/input.html#5903">Serialization spec, 3.7</a>
-     */
-    public Object readResolve() {
-        return java.util.logging.Logger.getLogger(name);
-    }
+  /**
+   * Get the actual logger for this marker.
+   *
+   * @return the logger
+   * @see <a
+   *     href="http://java.sun.com/javase/6/docs/platform/serialization/spec/input.html#5903">Serialization
+   *     spec, 3.7</a>
+   */
+  public Object readResolve() {
+    return java.util.logging.Logger.getLogger(name);
+  }
 }

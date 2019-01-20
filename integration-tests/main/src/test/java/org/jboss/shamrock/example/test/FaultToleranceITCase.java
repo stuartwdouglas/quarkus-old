@@ -20,6 +20,4 @@ import org.jboss.shamrock.test.SubstrateTest;
 import org.junit.runner.RunWith;
 
 @RunWith(SubstrateTest.class)
-public class FaultToleranceITCase extends FaultToleranceTestCase {
-
-}
+public class FaultToleranceITCase extends FaultToleranceTestCase {}

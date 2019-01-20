@@ -19,43 +19,37 @@ package org.jboss.shamrock.example.test;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 
+import io.restassured.RestAssured;
 import org.jboss.shamrock.test.ShamrockTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.restassured.RestAssured;
-
 @RunWith(ShamrockTest.class)
 public class ServletTestCase {
 
-    @Test
-    public void testServlet() {
-        RestAssured.when().get("/testservlet").then()
-                .body(is("A message"));
-    }
+  @Test
+  public void testServlet() {
+    RestAssured.when().get("/testservlet").then().body(is("A message"));
+  }
 
-    @Test
-    public void testFilter() {
-        RestAssured.when().get("/filter").then()
-                .body(is("A Filter"));
-    }
+  @Test
+  public void testFilter() {
+    RestAssured.when().get("/filter").then().body(is("A Filter"));
+  }
 
-    @Test
-    public void testStaticResource() {
-        RestAssured.when().get("/filter").then()
-                .body(containsString("A Filter"));
-    }
+  @Test
+  public void testStaticResource() {
+    RestAssured.when().get("/filter").then().body(containsString("A Filter"));
+  }
 
-    @Test
-    public void testWelcomeFile() {
-        RestAssured.when().get("/").then()
-                .body(containsString("A HTML page"));
-    }
+  @Test
+  public void testWelcomeFile() {
+    RestAssured.when().get("/").then().body(containsString("A HTML page"));
+  }
 
-    // Basic @ServletSecurity test
-    @Test()
-    public void testSecureAccessFailure() {
-        RestAssured.when().get("/secure-test").then()
-                .statusCode(403);
-    }
+  // Basic @ServletSecurity test
+  @Test()
+  public void testSecureAccessFailure() {
+    RestAssured.when().get("/secure-test").then().statusCode(403);
+  }
 }

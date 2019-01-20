@@ -18,25 +18,20 @@ package org.jboss.shamrock.example.test;
 
 import static org.hamcrest.Matchers.is;
 
+import io.restassured.RestAssured;
 import org.jboss.shamrock.test.ShamrockTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.restassured.RestAssured;
-
 @RunWith(ShamrockTest.class)
 public class DataSourceTransactionTestCase {
 
-    @Test
-    public void testTransactionalAnnotation() {
-        RestAssured.when().get("/datasource/txninterceptor0").then()
-                .body(is("PASSED"));
+  @Test
+  public void testTransactionalAnnotation() {
+    RestAssured.when().get("/datasource/txninterceptor0").then().body(is("PASSED"));
 
-        RestAssured.when().get("/datasource/txninterceptor1").then()
-                .statusCode(500);
+    RestAssured.when().get("/datasource/txninterceptor1").then().statusCode(500);
 
-        RestAssured.when().get("/datasource/txninterceptor2").then()
-                .body(is("PASSED"));
-    }
-
+    RestAssured.when().get("/datasource/txninterceptor2").then().body(is("PASSED"));
+  }
 }

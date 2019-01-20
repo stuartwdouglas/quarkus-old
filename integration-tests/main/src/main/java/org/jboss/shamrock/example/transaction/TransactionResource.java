@@ -17,7 +17,6 @@
 package org.jboss.shamrock.example.transaction;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import javax.inject.Inject;
 import javax.transaction.Synchronization;
 import javax.transaction.TransactionSynchronizationRegistry;
@@ -28,30 +27,26 @@ import javax.ws.rs.Path;
 @Path("/txn")
 public class TransactionResource {
 
-    @Inject
-    UserTransaction userTransaction;
+  @Inject UserTransaction userTransaction;
 
-    @Inject
-    TransactionSynchronizationRegistry trs;
+  @Inject TransactionSynchronizationRegistry trs;
 
-    @GET
-    public boolean tryTxn() throws Exception {
-        final AtomicBoolean res = new AtomicBoolean();
-        userTransaction.begin();
-        trs.registerInterposedSynchronization(new Synchronization() {
-            @Override
-            public void beforeCompletion() {
-                res.set(true);
-            }
+  @GET
+  public boolean tryTxn() throws Exception {
+    final AtomicBoolean res = new AtomicBoolean();
+    userTransaction.begin();
+    trs.registerInterposedSynchronization(
+        new Synchronization() {
+          @Override
+          public void beforeCompletion() {
+            res.set(true);
+          }
 
-            @Override
-            public void afterCompletion(int status) {
-
-            }
+          @Override
+          public void afterCompletion(int status) {}
         });
-        userTransaction.commit();
+    userTransaction.commit();
 
-        return res.get();
-    }
-
+    return res.get();
+  }
 }

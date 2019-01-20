@@ -18,6 +18,4 @@ package org.jboss.shamrock.deployment.builditem.substrate;
 
 import org.jboss.builder.item.MultiBuildItem;
 
-public final class SubstrateOutputBuildItem extends MultiBuildItem {
-
-}
+public final class SubstrateOutputBuildItem extends MultiBuildItem {}

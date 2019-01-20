@@ -41,98 +41,123 @@ import org.jboss.shamrock.creator.AppArtifactResolverBase;
 import org.jboss.shamrock.creator.AppCreatorException;
 import org.jboss.shamrock.creator.AppDependency;
 
-/**
- *
- * @author Alexey Loubyansky
- */
+/** @author Alexey Loubyansky */
 public class AetherArtifactResolver extends AppArtifactResolverBase<AetherArtifactResolver> {
 
-    protected final RepositorySystem repoSystem;
-    protected final RepositorySystemSession repoSession;
-    protected final List<RemoteRepository> remoteRepos;
-    protected AppCreatorLocalRepositoryManager localRepoManager;
+  protected final RepositorySystem repoSystem;
+  protected final RepositorySystemSession repoSession;
+  protected final List<RemoteRepository> remoteRepos;
+  protected AppCreatorLocalRepositoryManager localRepoManager;
 
-    public AetherArtifactResolver() throws AppCreatorException {
-        this(MavenRepoInitializer.getRepositorySystem(), MavenRepoInitializer.newSession(MavenRepoInitializer.getRepositorySystem()), MavenRepoInitializer.getRemoteRepos());
+  public AetherArtifactResolver() throws AppCreatorException {
+    this(
+        MavenRepoInitializer.getRepositorySystem(),
+        MavenRepoInitializer.newSession(MavenRepoInitializer.getRepositorySystem()),
+        MavenRepoInitializer.getRemoteRepos());
+  }
+
+  public AetherArtifactResolver(
+      RepositorySystem repoSystem,
+      RepositorySystemSession repoSession,
+      List<RemoteRepository> remoteRepos) {
+    super();
+    this.repoSystem = repoSystem;
+    this.repoSession = repoSession;
+    this.remoteRepos = remoteRepos;
+  }
+
+  public void setLocalRepositoryManager(AppCreatorLocalRepositoryManager localRepoManager) {
+    this.localRepoManager = localRepoManager;
+  }
+
+  @Override
+  public void relink(AppArtifact artifact, Path path) throws AppCreatorException {
+    if (localRepoManager == null) {
+      throw new AppCreatorException(
+          "Failed to (re-)link "
+              + artifact
+              + " to "
+              + path
+              + ": AppCreatorLocalRepositoryManager has not been initialized");
+    }
+    localRepoManager.relink(
+        artifact.getGroupId(),
+        artifact.getArtifactId(),
+        artifact.getClassifier(),
+        artifact.getType(),
+        artifact.getVersion(),
+        path);
+    setPath(artifact, path);
+  }
+
+  @Override
+  protected void doResolve(AppArtifact artifact) throws AppCreatorException {
+    final ArtifactRequest artifactRequest = new ArtifactRequest();
+    artifactRequest.setArtifact(toAetherArtifact(artifact));
+    artifactRequest.setRepositories(remoteRepos);
+    ArtifactResult artifactResult;
+    try {
+      artifactResult = repoSystem.resolveArtifact(repoSession, artifactRequest);
+    } catch (ArtifactResolutionException e) {
+      throw new AppCreatorException("Failed to resolve artifact " + artifact, e);
+    }
+    setPath(artifact, artifactResult.getArtifact().getFile().toPath());
+  }
+
+  @Override
+  public List<AppDependency> collectDependencies(AppArtifact coords) throws AppCreatorException {
+    final CollectRequest collectRequest = new CollectRequest();
+    collectRequest.setRoot(new Dependency(toAetherArtifact(coords), "runtime"));
+    collectRequest.setRepositories(remoteRepos);
+
+    final DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, null);
+
+    final DependencyResult depResult;
+    try {
+      depResult = repoSystem.resolveDependencies(repoSession, dependencyRequest);
+    } catch (DependencyResolutionException e) {
+      throw new AppCreatorException("Failed to collect dependencies for " + coords, e);
     }
 
-    public AetherArtifactResolver(RepositorySystem repoSystem, RepositorySystemSession repoSession,
-            List<RemoteRepository> remoteRepos) {
-        super();
-        this.repoSystem = repoSystem;
-        this.repoSession = repoSession;
-        this.remoteRepos = remoteRepos;
+    final List<DependencyNode> depNodes = depResult.getRoot().getChildren();
+    if (depNodes.isEmpty()) {
+      return Collections.emptyList();
     }
 
-    public void setLocalRepositoryManager(AppCreatorLocalRepositoryManager localRepoManager) {
-        this.localRepoManager = localRepoManager;
+    final List<AppDependency> appDeps = new ArrayList<>();
+    collect(depNodes, appDeps);
+    return appDeps;
+  }
+
+  private static void collect(List<DependencyNode> nodes, List<AppDependency> appDeps) {
+    for (DependencyNode node : nodes) {
+      collect(node.getChildren(), appDeps);
+      appDeps.add(
+          new AppDependency(toAppArtifact(node.getArtifact()), node.getDependency().getScope()));
     }
+  }
 
-    @Override
-    public void relink(AppArtifact artifact, Path path) throws AppCreatorException {
-        if(localRepoManager == null) {
-            throw new AppCreatorException("Failed to (re-)link " + artifact + " to " + path + ": AppCreatorLocalRepositoryManager has not been initialized");
-        }
-        localRepoManager.relink(artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(), artifact.getType(), artifact.getVersion(), path);
-        setPath(artifact, path);
+  private static Artifact toAetherArtifact(AppArtifact artifact) {
+    return new DefaultArtifact(
+        artifact.getGroupId(),
+        artifact.getArtifactId(),
+        artifact.getClassifier(),
+        artifact.getType(),
+        artifact.getVersion());
+  }
+
+  private static AppArtifact toAppArtifact(Artifact artifact) {
+    final AppArtifact mvn =
+        new AppArtifact(
+            artifact.getGroupId(),
+            artifact.getArtifactId(),
+            artifact.getClassifier(),
+            artifact.getExtension(),
+            artifact.getVersion());
+    final File file = artifact.getFile();
+    if (file != null) {
+      setPath(mvn, file.toPath());
     }
-
-    @Override
-    protected void doResolve(AppArtifact artifact) throws AppCreatorException {
-        final ArtifactRequest artifactRequest = new ArtifactRequest();
-        artifactRequest.setArtifact(toAetherArtifact(artifact));
-        artifactRequest.setRepositories(remoteRepos);
-        ArtifactResult artifactResult;
-        try {
-            artifactResult = repoSystem.resolveArtifact(repoSession, artifactRequest);
-        } catch (ArtifactResolutionException e) {
-            throw new AppCreatorException("Failed to resolve artifact " + artifact, e);
-        }
-        setPath(artifact, artifactResult.getArtifact().getFile().toPath());
-    }
-
-    @Override
-    public List<AppDependency> collectDependencies(AppArtifact coords) throws AppCreatorException {
-        final CollectRequest collectRequest = new CollectRequest();
-        collectRequest.setRoot(new Dependency(toAetherArtifact(coords), "runtime"));
-        collectRequest.setRepositories(remoteRepos);
-
-        final DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, null);
-
-        final DependencyResult depResult;
-        try {
-            depResult = repoSystem.resolveDependencies(repoSession, dependencyRequest);
-        } catch (DependencyResolutionException e) {
-            throw new AppCreatorException("Failed to collect dependencies for " + coords, e);
-        }
-
-        final List<DependencyNode> depNodes = depResult.getRoot().getChildren();
-        if(depNodes.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        final List<AppDependency> appDeps =  new ArrayList<>();
-        collect(depNodes, appDeps);
-        return appDeps;
-    }
-
-    private static void collect(List<DependencyNode> nodes, List<AppDependency> appDeps) {
-        for(DependencyNode node : nodes) {
-            collect(node.getChildren(), appDeps);
-            appDeps.add(new AppDependency(toAppArtifact(node.getArtifact()), node.getDependency().getScope()));
-        }
-    }
-
-    private static Artifact toAetherArtifact(AppArtifact artifact) {
-        return new DefaultArtifact(artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(), artifact.getType(), artifact.getVersion());
-    }
-
-    private static AppArtifact toAppArtifact(Artifact artifact) {
-        final AppArtifact mvn = new AppArtifact(artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(), artifact.getExtension(), artifact.getVersion());
-        final File file = artifact.getFile();
-        if(file != null) {
-            setPath(mvn, file.toPath());
-        }
-        return mvn;
-    }
+    return mvn;
+  }
 }

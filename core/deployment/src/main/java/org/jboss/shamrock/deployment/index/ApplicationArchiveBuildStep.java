@@ -39,7 +39,6 @@ import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
-
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.IndexReader;
@@ -55,163 +54,182 @@ import org.jboss.shamrock.deployment.builditem.ArchiveRootBuildItem;
 
 public class ApplicationArchiveBuildStep {
 
-    private static final String JANDEX_INDEX = "META-INF/jandex.idx";
+  private static final String JANDEX_INDEX = "META-INF/jandex.idx";
 
-    /**
-     * Artifacts on the class path that should also be indexed, which will allow classes in the index to be
-     * processed by shamrocks processors
-     */
-    @ConfigProperty(name = "shamrock.index-dependency")
-    Map<String, IndexDependencyConfig> depsToIndex;
+  /**
+   * Artifacts on the class path that should also be indexed, which will allow classes in the index
+   * to be processed by shamrocks processors
+   */
+  @ConfigProperty(name = "shamrock.index-dependency")
+  Map<String, IndexDependencyConfig> depsToIndex;
 
+  @BuildStep
+  ApplicationArchivesBuildItem build(
+      ArchiveRootBuildItem root,
+      ApplicationIndexBuildItem appindex,
+      List<AdditionalApplicationArchiveMarkerBuildItem> appMarkers)
+      throws IOException {
 
-    @BuildStep
-    ApplicationArchivesBuildItem build(ArchiveRootBuildItem root, ApplicationIndexBuildItem appindex, List<AdditionalApplicationArchiveMarkerBuildItem> appMarkers) throws IOException {
+    Set<String> markerFiles = new HashSet<>();
+    for (AdditionalApplicationArchiveMarkerBuildItem i : appMarkers) {
+      markerFiles.add(i.getFile());
+    }
 
-        Set<String> markerFiles = new HashSet<>();
-        for (AdditionalApplicationArchiveMarkerBuildItem i : appMarkers) {
-            markerFiles.add(i.getFile());
+    List<ApplicationArchive> applicationArchives =
+        scanForOtherIndexes(
+            Thread.currentThread().getContextClassLoader(),
+            markerFiles,
+            root.getPath(),
+            Collections.emptyList());
+    return new ApplicationArchivesBuildItem(
+        new ApplicationArchiveImpl(appindex.getIndex(), root.getPath(), null), applicationArchives);
+  }
+
+  private List<ApplicationArchive> scanForOtherIndexes(
+      ClassLoader classLoader,
+      Set<String> applicationArchiveFiles,
+      Path appRoot,
+      List<Path> additionalApplicationArchives)
+      throws IOException {
+
+    Set<Path> dependenciesToIndex = new HashSet<>();
+    // get paths that are included via index-dependencies
+    dependenciesToIndex.addAll(getIndexDependencyPaths(depsToIndex, classLoader));
+    // get paths that are included via marker files
+    Set<String> markers = new HashSet<>(applicationArchiveFiles);
+    markers.add(JANDEX_INDEX);
+    dependenciesToIndex.addAll(getMarkerFilePaths(classLoader, markers));
+
+    // we don't index the application root, this is handled elsewhere
+    dependenciesToIndex.remove(appRoot);
+
+    dependenciesToIndex.addAll(additionalApplicationArchives);
+
+    return indexPaths(dependenciesToIndex, classLoader);
+  }
+
+  public List<Path> getIndexDependencyPaths(
+      Map<String, IndexDependencyConfig> config, ClassLoader classLoader) {
+    ArtifactIndex artifactIndex = new ArtifactIndex(new ClassPathArtifactResolver(classLoader));
+    try {
+      List<Path> ret = new ArrayList<>();
+
+      for (Map.Entry<String, IndexDependencyConfig> entry : depsToIndex.entrySet()) {
+        Path path;
+        if (entry.getValue().classifier.isEmpty()) {
+          path = artifactIndex.getPath(entry.getValue().groupId, entry.getValue().artifactId, null);
+        } else {
+          path =
+              artifactIndex.getPath(
+                  entry.getValue().groupId,
+                  entry.getValue().artifactId,
+                  entry.getValue().classifier);
         }
+        ret.add(path);
+      }
+      return ret;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
 
-        List<ApplicationArchive> applicationArchives = scanForOtherIndexes(Thread.currentThread().getContextClassLoader(), markerFiles, root.getPath(), Collections.emptyList());
-        return new ApplicationArchivesBuildItem(new ApplicationArchiveImpl(appindex.getIndex(), root.getPath(), null), applicationArchives);
+  private static List<ApplicationArchive> indexPaths(
+      Set<Path> dependenciesToIndex, ClassLoader classLoader) throws IOException {
+    List<ApplicationArchive> ret = new ArrayList<>();
+
+    for (final Path dep : dependenciesToIndex) {
+      if (Files.isDirectory(dep)) {
+        IndexView indexView = handleFilePath(dep);
+        ret.add(new ApplicationArchiveImpl(indexView, dep, null));
+      } else {
+        IndexView index = handleJarPath(dep);
+        FileSystem fs = FileSystems.newFileSystem(dep, classLoader);
+        ret.add(new ApplicationArchiveImpl(index, fs.getRootDirectories().iterator().next(), fs));
+      }
     }
 
-    private List<ApplicationArchive> scanForOtherIndexes(ClassLoader classLoader, Set<String> applicationArchiveFiles, Path appRoot, List<Path> additionalApplicationArchives) throws IOException {
+    return ret;
+  }
 
-
-        Set<Path> dependenciesToIndex = new HashSet<>();
-        //get paths that are included via index-dependencies
-        dependenciesToIndex.addAll(getIndexDependencyPaths(depsToIndex, classLoader));
-        //get paths that are included via marker files
-        Set<String> markers = new HashSet<>(applicationArchiveFiles);
-        markers.add(JANDEX_INDEX);
-        dependenciesToIndex.addAll(getMarkerFilePaths(classLoader, markers));
-
-        //we don't index the application root, this is handled elsewhere
-        dependenciesToIndex.remove(appRoot);
-
-        dependenciesToIndex.addAll(additionalApplicationArchives);
-
-        return indexPaths(dependenciesToIndex, classLoader);
+  private static Collection<? extends Path> getMarkerFilePaths(
+      ClassLoader classLoader, Set<String> applicationArchiveFiles) throws IOException {
+    List<Path> ret = new ArrayList<>();
+    for (String file : applicationArchiveFiles) {
+      Enumeration<URL> e = classLoader.getResources(file);
+      while (e.hasMoreElements()) {
+        URL url = e.nextElement();
+        ret.add(urlToPath(url));
+      }
     }
 
-    public List<Path> getIndexDependencyPaths(Map<String, IndexDependencyConfig> config, ClassLoader classLoader) {
-        ArtifactIndex artifactIndex = new ArtifactIndex(new ClassPathArtifactResolver(classLoader));
-        try {
-            List<Path> ret = new ArrayList<>();
+    return ret;
+  }
 
-            for (Map.Entry<String, IndexDependencyConfig> entry : depsToIndex.entrySet()) {
-                Path path;
-                if (entry.getValue().classifier.isEmpty()) {
-                    path = artifactIndex.getPath(entry.getValue().groupId, entry.getValue().artifactId, null);
-                } else {
-                    path = artifactIndex.getPath(entry.getValue().groupId, entry.getValue().artifactId, entry.getValue().classifier);
-                }
-                ret.add(path);
-            }
-            return ret;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+  private static Path urlToPath(URL url) {
+    try {
+      if (url.getProtocol().equals("jar")) {
+        String jarPath = url.getPath().substring(0, url.getPath().lastIndexOf('!'));
+        return Paths.get(new URI(jarPath));
+      } else if (url.getProtocol().equals("file")) {
+        int index = url.getPath().lastIndexOf("/META-INF");
+        String pathString = url.getPath().substring(0, index);
+        Path path = Paths.get(new URI(url.getProtocol(), url.getHost(), pathString, null));
+        return path;
+      }
+      throw new RuntimeException("Unkown URL type " + url.getProtocol());
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private static Index handleFilePath(Path path) throws IOException {
+    Path existing = path.resolve(JANDEX_INDEX);
+    if (Files.exists(existing)) {
+      try (FileInputStream in = new FileInputStream(existing.toFile())) {
+        IndexReader r = new IndexReader(in);
+        return r.read();
+      }
     }
 
-    private static List<ApplicationArchive> indexPaths(Set<Path> dependenciesToIndex, ClassLoader classLoader) throws IOException {
-        List<ApplicationArchive> ret = new ArrayList<>();
-
-        for (final Path dep : dependenciesToIndex) {
-            if (Files.isDirectory(dep)) {
-                IndexView indexView = handleFilePath(dep);
-                ret.add(new ApplicationArchiveImpl(indexView, dep, null));
-            } else {
-                IndexView index = handleJarPath(dep);
-                FileSystem fs = FileSystems.newFileSystem(dep, classLoader);
-                ret.add(new ApplicationArchiveImpl(index, fs.getRootDirectories().iterator().next(), fs));
-            }
-        }
-
-
-        return ret;
-    }
-
-    private static Collection<? extends Path> getMarkerFilePaths(ClassLoader classLoader, Set<String> applicationArchiveFiles) throws IOException {
-        List<Path> ret = new ArrayList<>();
-        for (String file : applicationArchiveFiles) {
-            Enumeration<URL> e = classLoader.getResources(file);
-            while (e.hasMoreElements()) {
-                URL url = e.nextElement();
-                ret.add(urlToPath(url));
-            }
-        }
-
-        return ret;
-    }
-
-
-    private static Path urlToPath(URL url) {
-        try {
-			if (url.getProtocol().equals("jar")) {
-			    String jarPath = url.getPath().substring(0, url.getPath().lastIndexOf('!'));
-			    return Paths.get(new URI(jarPath));
-			} else if (url.getProtocol().equals("file")) {
-			    int index = url.getPath().lastIndexOf("/META-INF");
-			    String pathString = url.getPath().substring(0, index);
-			    Path path = Paths.get(new URI(url.getProtocol(), url.getHost(), pathString, null));
-			    return path;
-			}
-			throw new RuntimeException("Unkown URL type " + url.getProtocol());
-		} catch (URISyntaxException e) {
-			throw new RuntimeException(e);
-		}
-    }
-
-
-    private static Index handleFilePath(Path path) throws IOException {
-        Path existing = path.resolve(JANDEX_INDEX);
-        if (Files.exists(existing)) {
-            try (FileInputStream in = new FileInputStream(existing.toFile())) {
-                IndexReader r = new IndexReader(in);
-                return r.read();
-            }
-        }
-
-        Indexer indexer = new Indexer();
-        Files.walk(path).forEach(new Consumer<Path>() {
-            @Override
-            public void accept(Path path) {
+    Indexer indexer = new Indexer();
+    Files.walk(path)
+        .forEach(
+            new Consumer<Path>() {
+              @Override
+              public void accept(Path path) {
                 if (path.toString().endsWith(".class")) {
-                    try (FileInputStream in = new FileInputStream(path.toFile())) {
-                        indexer.index(in);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+                  try (FileInputStream in = new FileInputStream(path.toFile())) {
+                    indexer.index(in);
+                  } catch (IOException e) {
+                    throw new RuntimeException(e);
+                  }
                 }
-            }
-        });
-        return indexer.complete();
-    }
+              }
+            });
+    return indexer.complete();
+  }
 
-    private static Index handleJarPath(Path path) throws IOException {
-        Indexer indexer = new Indexer();
-        try (JarFile file = new JarFile(path.toFile())) {
-            ZipEntry existing = file.getEntry(JANDEX_INDEX);
-            if (existing != null) {
-                try (InputStream in = file.getInputStream(existing)) {
-                    IndexReader r = new IndexReader(in);
-                    return r.read();
-                }
-            }
-
-            Enumeration<JarEntry> e = file.entries();
-            while (e.hasMoreElements()) {
-                JarEntry entry = e.nextElement();
-                if (entry.getName().endsWith(".class")) {
-                    try (InputStream inputStream = file.getInputStream(entry)) {
-                        indexer.index(inputStream);
-                    }
-                }
-            }
+  private static Index handleJarPath(Path path) throws IOException {
+    Indexer indexer = new Indexer();
+    try (JarFile file = new JarFile(path.toFile())) {
+      ZipEntry existing = file.getEntry(JANDEX_INDEX);
+      if (existing != null) {
+        try (InputStream in = file.getInputStream(existing)) {
+          IndexReader r = new IndexReader(in);
+          return r.read();
         }
-        return indexer.complete();
+      }
+
+      Enumeration<JarEntry> e = file.entries();
+      while (e.hasMoreElements()) {
+        JarEntry entry = e.nextElement();
+        if (entry.getName().endsWith(".class")) {
+          try (InputStream inputStream = file.getInputStream(entry)) {
+            indexer.index(inputStream);
+          }
+        }
+      }
     }
+    return indexer.complete();
+  }
 }

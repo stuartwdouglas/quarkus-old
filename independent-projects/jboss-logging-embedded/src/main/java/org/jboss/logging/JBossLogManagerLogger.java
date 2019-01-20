@@ -21,60 +21,82 @@ import org.jboss.logmanager.ExtLogRecord;
 
 final class JBossLogManagerLogger extends Logger {
 
-    private static final long serialVersionUID = 7429618317727584742L;
+  private static final long serialVersionUID = 7429618317727584742L;
 
-    private final org.jboss.logmanager.Logger logger;
+  private final org.jboss.logmanager.Logger logger;
 
-    JBossLogManagerLogger(final String name, final org.jboss.logmanager.Logger logger) {
-        super(name);
-        this.logger = logger;
+  JBossLogManagerLogger(final String name, final org.jboss.logmanager.Logger logger) {
+    super(name);
+    this.logger = logger;
+  }
+
+  @AlwaysInline("Fast level checks")
+  public boolean isEnabled(final Level level) {
+    return logger.isLoggable(translate(level));
+  }
+
+  protected void doLog(
+      final Level level,
+      final String loggerClassName,
+      final Object message,
+      final Object[] parameters,
+      final Throwable thrown) {
+    java.util.logging.Level translatedLevel = translate(level);
+    if (logger.isLoggable(translatedLevel)) {
+      if (parameters == null) {
+        logger.log(loggerClassName, translatedLevel, String.valueOf(message), thrown);
+      } else {
+        logger.log(
+            loggerClassName,
+            translatedLevel,
+            String.valueOf(message),
+            ExtLogRecord.FormatStyle.MESSAGE_FORMAT,
+            parameters,
+            thrown);
+      }
     }
+  }
 
-    @AlwaysInline("Fast level checks")
-    public boolean isEnabled(final Level level) {
-        return logger.isLoggable(translate(level));
+  protected void doLogf(
+      final Level level,
+      final String loggerClassName,
+      final String format,
+      final Object[] parameters,
+      final Throwable thrown) {
+    if (parameters == null) {
+      logger.log(loggerClassName, translate(level), format, thrown);
+    } else {
+      logger.log(
+          loggerClassName,
+          translate(level),
+          format,
+          ExtLogRecord.FormatStyle.PRINTF,
+          parameters,
+          thrown);
     }
+  }
 
-    protected void doLog(final Level level, final String loggerClassName, final Object message, final Object[] parameters, final Throwable thrown) {
-        java.util.logging.Level translatedLevel = translate(level);
-        if (logger.isLoggable(translatedLevel)) {
-          if (parameters == null) {
-            logger.log(loggerClassName, translatedLevel, String.valueOf(message), thrown);
-          } else {
-            logger.log(loggerClassName, translatedLevel, String.valueOf(message), ExtLogRecord.FormatStyle.MESSAGE_FORMAT, parameters, thrown);
-          }
-        }
+  @AlwaysInline("Fast level checks")
+  private static java.util.logging.Level translate(final Level level) {
+    if (level == Level.TRACE) {
+      return org.jboss.logmanager.Level.TRACE;
+    } else if (level == Level.DEBUG) {
+      return org.jboss.logmanager.Level.DEBUG;
     }
+    return infoOrHigher(level);
+  }
 
-    protected void doLogf(final Level level, final String loggerClassName, final String format, final Object[] parameters, final Throwable thrown) {
-        if (parameters == null) {
-            logger.log(loggerClassName, translate(level), format, thrown);
-        } else {
-            logger.log(loggerClassName, translate(level), format, ExtLogRecord.FormatStyle.PRINTF, parameters, thrown);
-        }
+  @AlwaysInline("Fast level checks")
+  private static java.util.logging.Level infoOrHigher(final Level level) {
+    if (level == Level.INFO) {
+      return org.jboss.logmanager.Level.INFO;
+    } else if (level == Level.WARN) {
+      return org.jboss.logmanager.Level.WARN;
+    } else if (level == Level.ERROR) {
+      return org.jboss.logmanager.Level.ERROR;
+    } else if (level == Level.FATAL) {
+      return org.jboss.logmanager.Level.FATAL;
     }
-
-    @AlwaysInline("Fast level checks")
-    private static java.util.logging.Level translate(final Level level) {
-        if (level == Level.TRACE) {
-            return org.jboss.logmanager.Level.TRACE;
-        } else if (level == Level.DEBUG) {
-            return org.jboss.logmanager.Level.DEBUG;
-        }
-        return infoOrHigher(level);
-    }
-
-    @AlwaysInline("Fast level checks")
-    private static java.util.logging.Level infoOrHigher(final Level level) {
-        if (level == Level.INFO) {
-            return org.jboss.logmanager.Level.INFO;
-        } else if (level == Level.WARN) {
-            return org.jboss.logmanager.Level.WARN;
-        } else if (level == Level.ERROR) {
-            return org.jboss.logmanager.Level.ERROR;
-        } else if (level == Level.FATAL) {
-            return org.jboss.logmanager.Level.FATAL;
-        }
-        return org.jboss.logmanager.Level.ALL;
-    }
+    return org.jboss.logmanager.Level.ALL;
+  }
 }

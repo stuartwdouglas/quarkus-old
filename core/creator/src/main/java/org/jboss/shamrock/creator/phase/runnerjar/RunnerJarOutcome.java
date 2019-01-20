@@ -18,16 +18,12 @@
 package org.jboss.shamrock.creator.phase.runnerjar;
 
 import java.nio.file.Path;
-
 import org.jboss.shamrock.creator.AppCreationPhaseOutcome;
 
-/**
- *
- * @author Alexey Loubyansky
- */
+/** @author Alexey Loubyansky */
 public interface RunnerJarOutcome extends AppCreationPhaseOutcome {
 
-    Path getRunnerJar();
+  Path getRunnerJar();
 
-    Path getLibDir();
+  Path getLibDir();
 }

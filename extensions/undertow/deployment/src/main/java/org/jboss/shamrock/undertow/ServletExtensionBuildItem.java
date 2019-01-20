@@ -16,19 +16,18 @@
 
 package org.jboss.shamrock.undertow;
 
-import org.jboss.builder.item.MultiBuildItem;
-
 import io.undertow.servlet.ServletExtension;
+import org.jboss.builder.item.MultiBuildItem;
 
 public final class ServletExtensionBuildItem extends MultiBuildItem {
 
-    private final ServletExtension value;
+  private final ServletExtension value;
 
-    public ServletExtensionBuildItem(ServletExtension value) {
-        this.value = value;
-    }
+  public ServletExtensionBuildItem(ServletExtension value) {
+    this.value = value;
+  }
 
-    public ServletExtension getValue() {
-        return value;
-    }
+  public ServletExtension getValue() {
+    return value;
+  }
 }

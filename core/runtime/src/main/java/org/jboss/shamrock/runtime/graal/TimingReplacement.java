@@ -16,21 +16,18 @@
 
 package org.jboss.shamrock.runtime.graal;
 
-import org.jboss.shamrock.runtime.Timing;
-
 import com.oracle.svm.core.annotate.Alias;
 import com.oracle.svm.core.annotate.Substitute;
 import com.oracle.svm.core.annotate.TargetClass;
+import org.jboss.shamrock.runtime.Timing;
 
 @TargetClass(Timing.class)
 final class TimingReplacement {
 
-    @Alias
-    private static volatile long bootStartTime;
+  @Alias private static volatile long bootStartTime;
 
-    @Substitute
-    public static void mainStarted() {
-        bootStartTime = System.nanoTime();
-    }
-
+  @Substitute
+  public static void mainStarted() {
+    bootStartTime = System.nanoTime();
+  }
 }

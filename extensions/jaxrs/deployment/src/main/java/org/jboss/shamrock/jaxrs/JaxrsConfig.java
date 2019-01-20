@@ -18,14 +18,12 @@ package org.jboss.shamrock.jaxrs;
 
 import org.jboss.builder.item.SimpleBuildItem;
 
-/**
- * A build item that represents a JAX-RS config.
- */
+/** A build item that represents a JAX-RS config. */
 public final class JaxrsConfig extends SimpleBuildItem {
 
-    public final String defaultPath;
+  public final String defaultPath;
 
-    public JaxrsConfig(String defaultPath) {
-        this.defaultPath = defaultPath;
-    }
+  public JaxrsConfig(String defaultPath) {
+    this.defaultPath = defaultPath;
+  }
 }

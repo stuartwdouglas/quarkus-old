@@ -21,12 +21,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-/**
- * @author Martin Kouba
- */
+/** @author Martin Kouba */
 @Target(METHOD)
 @Retention(RUNTIME)
 public @interface Scheduleds {
 
-    Scheduled[] value();
+  Scheduled[] value();
 }

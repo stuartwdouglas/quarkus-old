@@ -3,9 +3,6 @@ package org.shamrock.jpa.tests.configurationless;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 
-/**
- * @author Emmanuel Bernard emmanuel@hibernate.org
- */
+/** @author Emmanuel Bernard emmanuel@hibernate.org */
 @ApplicationPath("/jpa-test")
-public class ConfigurationlessApp extends Application {
-}
+public class ConfigurationlessApp extends Application {}

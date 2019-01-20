@@ -16,20 +16,19 @@
 
 package org.jboss.shamrock.undertow;
 
+import io.undertow.Undertow;
 import org.jboss.builder.item.SimpleBuildItem;
 import org.jboss.shamrock.runtime.RuntimeValue;
 
-import io.undertow.Undertow;
-
 public final class UndertowBuildItem extends SimpleBuildItem {
 
-    final RuntimeValue<Undertow> undertow;
+  final RuntimeValue<Undertow> undertow;
 
-    public UndertowBuildItem(RuntimeValue<Undertow> undertow) {
-        this.undertow = undertow;
-    }
+  public UndertowBuildItem(RuntimeValue<Undertow> undertow) {
+    this.undertow = undertow;
+  }
 
-    public RuntimeValue<Undertow> getUndertow() {
-        return undertow;
-    }
+  public RuntimeValue<Undertow> getUndertow() {
+    return undertow;
+  }
 }

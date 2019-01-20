@@ -16,64 +16,63 @@
 
 package org.jboss.logging;
 
+import java.util.Map;
 import org.jboss.logmanager.MDC;
 import org.jboss.logmanager.NDC;
 
-import java.util.Map;
-
 final class JBossLogManagerProvider implements LoggerProvider {
 
-    public Logger getLogger(final String name) {
-        return new JBossLogManagerLogger(name, org.jboss.logmanager.Logger.getLogger(name));
-    }
+  public Logger getLogger(final String name) {
+    return new JBossLogManagerLogger(name, org.jboss.logmanager.Logger.getLogger(name));
+  }
 
-    public void clearMdc() {
-        MDC.clear();
-    }
+  public void clearMdc() {
+    MDC.clear();
+  }
 
-    public Object putMdc(final String key, final Object value) {
-        return MDC.put(key, String.valueOf(value));
-    }
+  public Object putMdc(final String key, final Object value) {
+    return MDC.put(key, String.valueOf(value));
+  }
 
-    public Object getMdc(final String key) {
-        return MDC.get(key);
-    }
+  public Object getMdc(final String key) {
+    return MDC.get(key);
+  }
 
-    public void removeMdc(final String key) {
-        MDC.remove(key);
-    }
+  public void removeMdc(final String key) {
+    MDC.remove(key);
+  }
 
-    @SuppressWarnings({ "unchecked" })
-    public Map<String, Object> getMdcMap() {
-        // we can re-define the erasure of this map because MDC does not make further use of the copy
-        return (Map)MDC.copy();
-    }
+  @SuppressWarnings({"unchecked"})
+  public Map<String, Object> getMdcMap() {
+    // we can re-define the erasure of this map because MDC does not make further use of the copy
+    return (Map) MDC.copy();
+  }
 
-    public void clearNdc() {
-        NDC.clear();
-    }
+  public void clearNdc() {
+    NDC.clear();
+  }
 
-    public String getNdc() {
-        return NDC.get();
-    }
+  public String getNdc() {
+    return NDC.get();
+  }
 
-    public int getNdcDepth() {
-        return NDC.getDepth();
-    }
+  public int getNdcDepth() {
+    return NDC.getDepth();
+  }
 
-    public String popNdc() {
-        return NDC.pop();
-    }
+  public String popNdc() {
+    return NDC.pop();
+  }
 
-    public String peekNdc() {
-        return NDC.get();
-    }
+  public String peekNdc() {
+    return NDC.get();
+  }
 
-    public void pushNdc(final String message) {
-        NDC.push(message);
-    }
+  public void pushNdc(final String message) {
+    NDC.push(message);
+  }
 
-    public void setNdcMaxDepth(final int maxDepth) {
-        NDC.trimTo(maxDepth);
-    }
+  public void setNdcMaxDepth(final int maxDepth) {
+    NDC.trimTo(maxDepth);
+  }
 }

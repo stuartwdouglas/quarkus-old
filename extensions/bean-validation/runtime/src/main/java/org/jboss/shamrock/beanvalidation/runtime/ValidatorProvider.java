@@ -24,13 +24,13 @@ import javax.validation.ValidatorFactory;
 @ApplicationScoped
 public class ValidatorProvider {
 
-    @Produces
-    public ValidatorFactory factory() {
-        return ValidatorHolder.getValidatorFactory();
-    }
+  @Produces
+  public ValidatorFactory factory() {
+    return ValidatorHolder.getValidatorFactory();
+  }
 
-    @Produces
-    public Validator validator() {
-        return ValidatorHolder.getValidator();
-    }
+  @Produces
+  public Validator validator() {
+    return ValidatorHolder.getValidator();
+  }
 }

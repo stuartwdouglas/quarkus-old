@@ -20,5 +20,4 @@ import org.jboss.shamrock.test.SubstrateTest;
 import org.junit.runner.RunWith;
 
 @RunWith(SubstrateTest.class)
-public class MetricsITCase extends MetricsTestCase {
-}
+public class MetricsITCase extends MetricsTestCase {}

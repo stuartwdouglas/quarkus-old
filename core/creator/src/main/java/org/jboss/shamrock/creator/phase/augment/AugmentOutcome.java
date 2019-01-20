@@ -18,16 +18,12 @@
 package org.jboss.shamrock.creator.phase.augment;
 
 import java.nio.file.Path;
-
 import org.jboss.shamrock.creator.AppCreationPhaseOutcome;
 
-/**
- *
- * @author Alexey Loubyansky
- */
+/** @author Alexey Loubyansky */
 public interface AugmentOutcome extends AppCreationPhaseOutcome {
 
-    Path getAppClassesDir();
+  Path getAppClassesDir();
 
-    Path getWiringClassesDir();
+  Path getWiringClassesDir();
 }

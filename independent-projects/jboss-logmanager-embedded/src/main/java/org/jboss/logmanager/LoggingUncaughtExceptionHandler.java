@@ -16,30 +16,29 @@
 
 package org.jboss.logmanager;
 
-/**
- * Logging uncaught exception handler.
- */
+/** Logging uncaught exception handler. */
 public final class LoggingUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
 
-    private final Logger log;
+  private final Logger log;
 
-    /**
-     * Create a new instance.
-     *
-     * @param log the logger to log the uncaught exception to
-     */
-    public LoggingUncaughtExceptionHandler(final Logger log) {
-        this.log = log;
-    }
+  /**
+   * Create a new instance.
+   *
+   * @param log the logger to log the uncaught exception to
+   */
+  public LoggingUncaughtExceptionHandler(final Logger log) {
+    this.log = log;
+  }
 
-    /**
-     * Method invoked when the given thread terminates due to the given uncaught exception. <p>Any exception thrown by this
-     * method will be ignored by the Java Virtual Machine.
-     *
-     * @param t the thread
-     * @param e the exception
-     */
-    public void uncaughtException(final Thread t, final Throwable e) {
-        log.log(Level.ERROR, "Uncaught exception", e);
-    }
+  /**
+   * Method invoked when the given thread terminates due to the given uncaught exception.
+   *
+   * <p>Any exception thrown by this method will be ignored by the Java Virtual Machine.
+   *
+   * @param t the thread
+   * @param e the exception
+   */
+  public void uncaughtException(final Thread t, final Throwable e) {
+    log.log(Level.ERROR, "Uncaught exception", e);
+  }
 }

@@ -16,10 +16,6 @@
 
 package org.jboss.shamrock.jaeger;
 
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
-
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.ExecutionTime;
 import org.jboss.shamrock.annotations.Record;
@@ -27,10 +23,9 @@ import org.jboss.shamrock.jaeger.runtime.JaegerDeploymentTemplate;
 
 public class JaegerProcessor {
 
-    @BuildStep
-    @Record(ExecutionTime.RUNTIME_INIT)
-    void setupTracer(JaegerDeploymentTemplate jdt) {
-        jdt.registerTracer();
-    }
-
+  @BuildStep
+  @Record(ExecutionTime.RUNTIME_INIT)
+  void setupTracer(JaegerDeploymentTemplate jdt) {
+    jdt.registerTracer();
+  }
 }

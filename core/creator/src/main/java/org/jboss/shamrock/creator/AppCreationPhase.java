@@ -24,15 +24,14 @@ package org.jboss.shamrock.creator;
  */
 public interface AppCreationPhase {
 
-    /**
-     * Phase processing.
-     *
-     * <p>Phase processing may push an instance (or a few) of
-     * {@link AppCreationPhaseOutcome} to the context that other phases
-     * depend upon.
-     *
-     * @param ctx  application creation context
-     * @throws AppCreatorException  in case the phase could not be processed
-     */
-    void process(AppCreationContext ctx) throws AppCreatorException;
+  /**
+   * Phase processing.
+   *
+   * <p>Phase processing may push an instance (or a few) of {@link AppCreationPhaseOutcome} to the
+   * context that other phases depend upon.
+   *
+   * @param ctx application creation context
+   * @throws AppCreatorException in case the phase could not be processed
+   */
+  void process(AppCreationContext ctx) throws AppCreatorException;
 }

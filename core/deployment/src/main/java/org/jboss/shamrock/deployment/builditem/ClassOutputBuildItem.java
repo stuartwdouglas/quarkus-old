@@ -21,13 +21,13 @@ import org.jboss.shamrock.deployment.ClassOutput;
 
 public final class ClassOutputBuildItem extends SimpleBuildItem {
 
-    private final ClassOutput classOutput;
+  private final ClassOutput classOutput;
 
-    public ClassOutputBuildItem(ClassOutput classOutput) {
-        this.classOutput = classOutput;
-    }
+  public ClassOutputBuildItem(ClassOutput classOutput) {
+    this.classOutput = classOutput;
+  }
 
-    public ClassOutput getClassOutput() {
-        return classOutput;
-    }
+  public ClassOutput getClassOutput() {
+    return classOutput;
+  }
 }

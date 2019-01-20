@@ -22,22 +22,15 @@ import org.jboss.shamrock.runtime.ConfigGroup;
 @ConfigGroup
 public class IndexDependencyConfig {
 
-    /**
-     * The maven groupId of the artifact to index
-     */
-    @ConfigProperty(name = "groupId")
-    String groupId;
+  /** The maven groupId of the artifact to index */
+  @ConfigProperty(name = "groupId")
+  String groupId;
 
-    /**
-     * The maven artifactId of the artifact to index
-     */
-    @ConfigProperty(name = "artifactId")
-    String artifactId;
+  /** The maven artifactId of the artifact to index */
+  @ConfigProperty(name = "artifactId")
+  String artifactId;
 
-    /**
-     * The maven classifier of the artifact to index
-     */
-    @ConfigProperty(name = "classifier", defaultValue = "")
-    String classifier;
-
+  /** The maven classifier of the artifact to index */
+  @ConfigProperty(name = "classifier", defaultValue = "")
+  String classifier;
 }

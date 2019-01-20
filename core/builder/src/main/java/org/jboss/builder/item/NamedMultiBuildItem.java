@@ -23,5 +23,5 @@ package org.jboss.builder.item;
  */
 @SuppressWarnings("unused")
 public abstract class NamedMultiBuildItem<N> extends BuildItem {
-    NamedMultiBuildItem() {}
+  NamedMultiBuildItem() {}
 }

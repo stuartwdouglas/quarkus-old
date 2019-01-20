@@ -19,38 +19,36 @@ package org.jboss.logmanager.handlers;
 import java.io.IOException;
 import java.io.OutputStream;
 
-/**
- * @author <a href="mailto:jperkins@redhat.com">James R. Perkins</a>
- */
+/** @author <a href="mailto:jperkins@redhat.com">James R. Perkins</a> */
 final class CountingOutputStream extends OutputStream {
-    private final OutputStream delegate;
-    long currentSize;
+  private final OutputStream delegate;
+  long currentSize;
 
-    CountingOutputStream(final OutputStream delegate) {
-        this.delegate = delegate;
-        currentSize = 0;
-    }
+  CountingOutputStream(final OutputStream delegate) {
+    this.delegate = delegate;
+    currentSize = 0;
+  }
 
-    public void write(final int b) throws IOException {
-        delegate.write(b);
-        currentSize++;
-    }
+  public void write(final int b) throws IOException {
+    delegate.write(b);
+    currentSize++;
+  }
 
-    public void write(final byte[] b) throws IOException {
-        delegate.write(b);
-        currentSize += b.length;
-    }
+  public void write(final byte[] b) throws IOException {
+    delegate.write(b);
+    currentSize += b.length;
+  }
 
-    public void write(final byte[] b, final int off, final int len) throws IOException {
-        delegate.write(b, off, len);
-        currentSize += len;
-    }
+  public void write(final byte[] b, final int off, final int len) throws IOException {
+    delegate.write(b, off, len);
+    currentSize += len;
+  }
 
-    public void flush() throws IOException {
-        delegate.flush();
-    }
+  public void flush() throws IOException {
+    delegate.flush();
+  }
 
-    public void close() throws IOException {
-        delegate.close();
-    }
+  public void close() throws IOException {
+    delegate.close();
+  }
 }

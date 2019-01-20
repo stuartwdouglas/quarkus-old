@@ -17,15 +17,14 @@
 package org.jboss.shamrock.arc.runtime;
 
 import java.util.function.Function;
-
 import org.jboss.protean.arc.ClientProxy;
 
 public class ClientProxyUnwrapper implements Function<Object, Object> {
-    @Override
-    public Object apply(Object o) {
-        if (o instanceof ClientProxy) {
-            return ((ClientProxy) o).getContextualInstance();
-        }
-        return o;
+  @Override
+  public Object apply(Object o) {
+    if (o instanceof ClientProxy) {
+      return ((ClientProxy) o).getContextualInstance();
     }
+    return o;
+  }
 }

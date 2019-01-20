@@ -20,21 +20,18 @@ import org.eclipse.aether.collection.DependencyCollectionContext;
 import org.eclipse.aether.collection.DependencySelector;
 import org.eclipse.aether.graph.Dependency;
 
-/**
- *
- * @author Alexey Loubyansky
- */
+/** @author Alexey Loubyansky */
 class DisabledDependencySelector implements DependencySelector {
 
-    static DisabledDependencySelector INSTANCE = new DisabledDependencySelector();
+  static DisabledDependencySelector INSTANCE = new DisabledDependencySelector();
 
-    @Override
-    public boolean selectDependency(Dependency dependency) {
-        return false;
-    }
+  @Override
+  public boolean selectDependency(Dependency dependency) {
+    return false;
+  }
 
-    @Override
-    public DependencySelector deriveChildSelector(DependencyCollectionContext context) {
-        return this;
-    }
+  @Override
+  public DependencySelector deriveChildSelector(DependencyCollectionContext context) {
+    return this;
+  }
 }

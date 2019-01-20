@@ -21,8 +21,8 @@ import org.jboss.shamrock.deployment.builditem.HotDeploymentConfigFileBuildItem;
 
 class DevModeBuildStep {
 
-    @BuildStep
-    HotDeploymentConfigFileBuildItem config() {
-        return new HotDeploymentConfigFileBuildItem("META-INF/microprofile-config.properties");
-    }
+  @BuildStep
+  HotDeploymentConfigFileBuildItem config() {
+    return new HotDeploymentConfigFileBuildItem("META-INF/microprofile-config.properties");
+  }
 }

@@ -17,53 +17,48 @@ package org.jboss.shamrock.arc.test;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.shamrock.runtime.StartupEvent;
 
 @ApplicationScoped
 public class SimpleBean {
-    
-    static final String DEFAULT = "bar";
 
-    private final AtomicReference<StartupEvent> startupEvent = new AtomicReference<StartupEvent>();
+  static final String DEFAULT = "bar";
 
-    @Inject
-    @ConfigProperty(name = "unconfigured", defaultValue = DEFAULT)
-    String foo;
+  private final AtomicReference<StartupEvent> startupEvent = new AtomicReference<StartupEvent>();
 
-    @Inject
-    @ConfigProperty(name = "unconfigured")
-    Optional<String> fooOptional;
-    
-    @Inject
-    @ConfigProperty(name = "simpleBean.baz")
-    Optional<String> bazOptional;
+  @Inject
+  @ConfigProperty(name = "unconfigured", defaultValue = DEFAULT)
+  String foo;
 
-    void onStart(@Observes StartupEvent event) {
-        startupEvent.set(event);
-    }
+  @Inject
+  @ConfigProperty(name = "unconfigured")
+  Optional<String> fooOptional;
 
-    AtomicReference<StartupEvent> getStartupEvent() {
-        return startupEvent;
-    }
+  @Inject
+  @ConfigProperty(name = "simpleBean.baz")
+  Optional<String> bazOptional;
 
-    String getFoo() {
-        return foo;
-    }
+  void onStart(@Observes StartupEvent event) {
+    startupEvent.set(event);
+  }
 
-    Optional<String> getFooOptional() {
-        return fooOptional;
-    }
+  AtomicReference<StartupEvent> getStartupEvent() {
+    return startupEvent;
+  }
 
-    Optional<String> getBazOptional() {
-        return bazOptional;
-    }
-    
+  String getFoo() {
+    return foo;
+  }
+
+  Optional<String> getFooOptional() {
+    return fooOptional;
+  }
+
+  Optional<String> getBazOptional() {
+    return bazOptional;
+  }
 }
-
-

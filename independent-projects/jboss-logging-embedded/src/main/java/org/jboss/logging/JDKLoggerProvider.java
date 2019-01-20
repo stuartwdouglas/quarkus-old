@@ -18,7 +18,7 @@ package org.jboss.logging;
 
 final class JDKLoggerProvider extends AbstractMdcLoggerProvider implements LoggerProvider {
 
-    public Logger getLogger(final String name) {
-        return new JDKLogger(name);
-    }
+  public Logger getLogger(final String name) {
+    return new JDKLogger(name);
+  }
 }

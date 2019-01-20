@@ -16,32 +16,28 @@
 
 package org.jboss.shamrock.undertow.runtime;
 
-import org.jboss.shamrock.runtime.InjectionInstance;
-
 import io.undertow.servlet.api.InstanceFactory;
 import io.undertow.servlet.api.InstanceHandle;
+import org.jboss.shamrock.runtime.InjectionInstance;
 
 public class ShamrockInstanceFactory<T> implements InstanceFactory<T> {
 
-    private final InjectionInstance<T> injectionInstance;
+  private final InjectionInstance<T> injectionInstance;
 
-    public ShamrockInstanceFactory(InjectionInstance<T> injectionInstance) {
-        this.injectionInstance = injectionInstance;
-    }
+  public ShamrockInstanceFactory(InjectionInstance<T> injectionInstance) {
+    this.injectionInstance = injectionInstance;
+  }
 
+  @Override
+  public InstanceHandle<T> createInstance() throws InstantiationException {
+    return new InstanceHandle<T>() {
+      @Override
+      public T getInstance() {
+        return injectionInstance.newInstance();
+      }
 
-    @Override
-    public InstanceHandle<T> createInstance() throws InstantiationException {
-        return new InstanceHandle<T>() {
-            @Override
-            public T getInstance() {
-                return injectionInstance.newInstance();
-            }
-
-            @Override
-            public void release() {
-
-            }
-        };
-    }
+      @Override
+      public void release() {}
+    };
+  }
 }

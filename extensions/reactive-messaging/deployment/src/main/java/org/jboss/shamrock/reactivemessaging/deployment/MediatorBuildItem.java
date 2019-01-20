@@ -21,21 +21,20 @@ import org.jboss.protean.arc.processor.BeanInfo;
 
 public final class MediatorBuildItem extends MultiBuildItem {
 
-    private final BeanInfo bean;
+  private final BeanInfo bean;
 
-    private final MethodInfo method;
+  private final MethodInfo method;
 
-    public MediatorBuildItem(BeanInfo bean, MethodInfo method) {
-        this.bean = bean;
-        this.method = method;
-    }
+  public MediatorBuildItem(BeanInfo bean, MethodInfo method) {
+    this.bean = bean;
+    this.method = method;
+  }
 
-    public BeanInfo getBean() {
-        return bean;
-    }
+  public BeanInfo getBean() {
+    return bean;
+  }
 
-    public MethodInfo getMethod() {
-        return method;
-    }
-
+  public MethodInfo getMethod() {
+    return method;
+  }
 }

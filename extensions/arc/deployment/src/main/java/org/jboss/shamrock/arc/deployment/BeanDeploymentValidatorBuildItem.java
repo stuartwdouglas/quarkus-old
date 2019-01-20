@@ -5,14 +5,13 @@ import org.jboss.protean.arc.processor.BeanDeploymentValidator;
 
 public final class BeanDeploymentValidatorBuildItem extends MultiBuildItem {
 
-    private final BeanDeploymentValidator beanDeploymentValidator;
+  private final BeanDeploymentValidator beanDeploymentValidator;
 
-    public BeanDeploymentValidatorBuildItem(BeanDeploymentValidator beanDeploymentValidator) {
-        this.beanDeploymentValidator = beanDeploymentValidator;
-    }
+  public BeanDeploymentValidatorBuildItem(BeanDeploymentValidator beanDeploymentValidator) {
+    this.beanDeploymentValidator = beanDeploymentValidator;
+  }
 
-    public BeanDeploymentValidator getBeanDeploymentValidator() {
-        return beanDeploymentValidator;
-    }
-
+  public BeanDeploymentValidator getBeanDeploymentValidator() {
+    return beanDeploymentValidator;
+  }
 }

@@ -26,16 +26,18 @@ import org.jboss.shamrock.undertow.runtime.UndertowDeploymentTemplate;
 
 public class UndertowArcIntegrationBuildStep {
 
-    @BuildStep
-    @Record(ExecutionTime.STATIC_INIT)
-    ServletExtensionBuildItem integrateRequestContext(BeanContainerBuildItem beanContainerBuildItem, UndertowDeploymentTemplate template) {
-        return new ServletExtensionBuildItem(template.setupRequestScope(beanContainerBuildItem.getValue()));
-    }
+  @BuildStep
+  @Record(ExecutionTime.STATIC_INIT)
+  ServletExtensionBuildItem integrateRequestContext(
+      BeanContainerBuildItem beanContainerBuildItem, UndertowDeploymentTemplate template) {
+    return new ServletExtensionBuildItem(
+        template.setupRequestScope(beanContainerBuildItem.getValue()));
+  }
 
-    @BuildStep
-    void beanDefiningAnnotations(BuildProducer<BeanDefiningAnnotationBuildItem> annotations) {
-        annotations.produce(new BeanDefiningAnnotationBuildItem(UndertowBuildStep.WEB_FILTER));
-        annotations.produce(new BeanDefiningAnnotationBuildItem(UndertowBuildStep.WEB_SERVLET));
-        annotations.produce(new BeanDefiningAnnotationBuildItem(UndertowBuildStep.WEB_LISTENER));
-    }
+  @BuildStep
+  void beanDefiningAnnotations(BuildProducer<BeanDefiningAnnotationBuildItem> annotations) {
+    annotations.produce(new BeanDefiningAnnotationBuildItem(UndertowBuildStep.WEB_FILTER));
+    annotations.produce(new BeanDefiningAnnotationBuildItem(UndertowBuildStep.WEB_SERVLET));
+    annotations.produce(new BeanDefiningAnnotationBuildItem(UndertowBuildStep.WEB_LISTENER));
+  }
 }

@@ -17,19 +17,17 @@
 package org.jboss.shamrock.deployment.builditem;
 
 import java.util.concurrent.Executor;
-
 import org.jboss.builder.item.SimpleBuildItem;
 
-/**
- */
+/** */
 public final class ExecutorBuildItem extends SimpleBuildItem {
-    private final Executor executor;
+  private final Executor executor;
 
-    public ExecutorBuildItem(final Executor executor) {
-        this.executor = executor;
-    }
+  public ExecutorBuildItem(final Executor executor) {
+    this.executor = executor;
+  }
 
-    public Executor getExecutorProxy() {
-        return executor;
-    }
+  public Executor getExecutorProxy() {
+    return executor;
+  }
 }

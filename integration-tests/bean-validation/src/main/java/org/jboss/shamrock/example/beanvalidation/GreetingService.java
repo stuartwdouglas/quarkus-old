@@ -6,8 +6,7 @@ import javax.validation.constraints.NotNull;
 @ApplicationScoped
 public class GreetingService {
 
-    public String greeting(@NotNull String name) {
-        return "hello " + name;
-    }
-
+  public String greeting(@NotNull String name) {
+    return "hello " + name;
+  }
 }

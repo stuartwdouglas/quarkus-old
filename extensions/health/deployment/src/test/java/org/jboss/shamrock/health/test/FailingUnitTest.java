@@ -16,12 +16,11 @@
 
 package org.jboss.shamrock.health.test;
 
+import io.restassured.RestAssured;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
-
 import org.eclipse.microprofile.health.Health;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
@@ -34,34 +33,30 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.restassured.RestAssured;
-
 @RunWith(ShamrockUnitTest.class)
 public class FailingUnitTest {
 
-    @Deployment
-    public static JavaArchive deploy() {
-        return ShrinkWrap.create(JavaArchive.class)
-                .addClasses(FailingHealthCheck.class)
-                .addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml");
-    }
+  @Deployment
+  public static JavaArchive deploy() {
+    return ShrinkWrap.create(JavaArchive.class)
+        .addClasses(FailingHealthCheck.class)
+        .addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml");
+  }
 
-    @Inject
-    @Health
-    Instance<HealthCheck> checks;
+  @Inject @Health Instance<HealthCheck> checks;
 
-    @Test
-    public void testHealthServlet() {
-        RestAssured.when().get("/health").then().statusCode(503);
-    }
+  @Test
+  public void testHealthServlet() {
+    RestAssured.when().get("/health").then().statusCode(503);
+  }
 
-    @Test
-    public void testHealthBeans() {
-        List<HealthCheck> check = new ArrayList<>();
-        for (HealthCheck i : checks) {
-            check.add(i);
-        }
-        Assert.assertEquals(1, check.size());
-        Assert.assertEquals(HealthCheckResponse.State.DOWN, check.get(0).call().getState());
+  @Test
+  public void testHealthBeans() {
+    List<HealthCheck> check = new ArrayList<>();
+    for (HealthCheck i : checks) {
+      check.add(i);
     }
+    Assert.assertEquals(1, check.size());
+    Assert.assertEquals(HealthCheckResponse.State.DOWN, check.get(0).call().getState());
+  }
 }

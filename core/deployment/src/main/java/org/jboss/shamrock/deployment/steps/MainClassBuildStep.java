@@ -23,7 +23,6 @@ import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import org.jboss.builder.Version;
 import org.jboss.protean.gizmo.CatchBlockCreator;
 import org.jboss.protean.gizmo.ClassCreator;
@@ -48,115 +47,153 @@ import org.jboss.shamrock.runtime.Timing;
 
 class MainClassBuildStep {
 
-    private static final String APP_CLASS = "org.jboss.shamrock.runner.ApplicationImpl";
-    private static final String MAIN_CLASS = "org.jboss.shamrock.runner.GeneratedMain";
-    private static final String STARTUP_CONTEXT = "STARTUP_CONTEXT";
-    
-    @BuildStep
-    MainClassBuildItem build(List<StaticBytecodeRecorderBuildItem> staticInitTasks,
-                             List<MainBytecodeRecorderBuildItem> mainMethod,
-                             List<SystemPropertyBuildItem> properties,
-                             Optional<HttpServerBuiltItem> httpServer,
-                             List<FeatureBuildItem> features,
-                             ClassOutputBuildItem classOutput) {
+  private static final String APP_CLASS = "org.jboss.shamrock.runner.ApplicationImpl";
+  private static final String MAIN_CLASS = "org.jboss.shamrock.runner.GeneratedMain";
+  private static final String STARTUP_CONTEXT = "STARTUP_CONTEXT";
 
-        // Application class
-        ClassCreator file = new ClassCreator(ClassOutput.gizmoAdaptor(classOutput.getClassOutput(), true), APP_CLASS, null, Application.class.getName());
+  @BuildStep
+  MainClassBuildItem build(
+      List<StaticBytecodeRecorderBuildItem> staticInitTasks,
+      List<MainBytecodeRecorderBuildItem> mainMethod,
+      List<SystemPropertyBuildItem> properties,
+      Optional<HttpServerBuiltItem> httpServer,
+      List<FeatureBuildItem> features,
+      ClassOutputBuildItem classOutput) {
 
-        // Application class: static init
+    // Application class
+    ClassCreator file =
+        new ClassCreator(
+            ClassOutput.gizmoAdaptor(classOutput.getClassOutput(), true),
+            APP_CLASS,
+            null,
+            Application.class.getName());
 
-        FieldCreator scField = file.getFieldCreator(STARTUP_CONTEXT, StartupContext.class);
-        scField.setModifiers(Modifier.STATIC);
+    // Application class: static init
 
-        MethodCreator mv = file.getMethodCreator("<clinit>", void.class);
-        mv.setModifiers(Modifier.PUBLIC | Modifier.STATIC);
+    FieldCreator scField = file.getFieldCreator(STARTUP_CONTEXT, StartupContext.class);
+    scField.setModifiers(Modifier.STATIC);
 
-        //very first thing is to set system props (for build time)
-        for (SystemPropertyBuildItem i : properties) {
-            mv.invokeStaticMethod(ofMethod(System.class, "setProperty", String.class, String.class, String.class), mv.load(i.getKey()), mv.load(i.getValue()));
-        }
+    MethodCreator mv = file.getMethodCreator("<clinit>", void.class);
+    mv.setModifiers(Modifier.PUBLIC | Modifier.STATIC);
 
-        mv.invokeStaticMethod(MethodDescriptor.ofMethod(Timing.class, "staticInitStarted", void.class));
-        ResultHandle startupContext = mv.newInstance(ofConstructor(StartupContext.class));
-        mv.writeStaticField(scField.getFieldDescriptor(), startupContext);
-        TryBlock tryBlock = mv.tryBlock();
-        for (StaticBytecodeRecorderBuildItem holder : staticInitTasks) {
-            if (!holder.getBytecodeRecorder().isEmpty()) {
-                holder.getBytecodeRecorder().writeBytecode(classOutput.getClassOutput());
-
-                ResultHandle dup = tryBlock.newInstance(ofConstructor(holder.getBytecodeRecorder().getClassName()));
-                tryBlock.invokeInterfaceMethod(ofMethod(StartupTask.class, "deploy", void.class, StartupContext.class), dup, startupContext);
-            }
-        }
-        tryBlock.returnValue(null);
-
-        CatchBlockCreator cb = tryBlock.addCatch(Throwable.class);
-        cb.invokeVirtualMethod(ofMethod(StartupContext.class, "close", void.class), startupContext);
-        cb.throwException(RuntimeException.class, "Failed to start shamrock", cb.getCaughtException());
-
-        // Application class: start method
-
-        mv = file.getMethodCreator("doStart", void.class, String[].class);
-        mv.setModifiers(Modifier.PROTECTED | Modifier.FINAL);
-
-        // very first thing is to set system props (for run time, which use substitutions for a different
-        // storage from build-time)
-        for (SystemPropertyBuildItem i : properties) {
-            mv.invokeStaticMethod(ofMethod(System.class, "setProperty", String.class, String.class, String.class), mv.load(i.getKey()), mv.load(i.getValue()));
-        }
-
-        mv.invokeStaticMethod(ofMethod(Timing.class, "mainStarted", void.class));
-        startupContext = mv.readStaticField(scField.getFieldDescriptor());
-        tryBlock = mv.tryBlock();
-        for (MainBytecodeRecorderBuildItem holder : mainMethod) {
-            if (!holder.getBytecodeRecorder().isEmpty()) {
-                holder.getBytecodeRecorder().writeBytecode(classOutput.getClassOutput());
-                ResultHandle dup = tryBlock.newInstance(ofConstructor(holder.getBytecodeRecorder().getClassName()));
-                tryBlock.invokeInterfaceMethod(ofMethod(StartupTask.class, "deploy", void.class, StartupContext.class), dup, startupContext);
-            }
-        }
-        
-        // Startup log messages
-        ResultHandle featuresHandle = tryBlock.load(features.stream()
-                .map(f -> f.getInfo())
-                .collect(Collectors.joining(", ")));
-        ResultHandle serverHandle = httpServer.isPresent() ? tryBlock.load("Listening on: http://" + httpServer.get()
-                .getHost() + ":" + httpServer.get().getPort()) : tryBlock.load("");
-        tryBlock.invokeStaticMethod(ofMethod(Timing.class, "printStartupTime", void.class, String.class, String.class, String.class),
-                tryBlock.load(Version.getVersion()), featuresHandle, serverHandle);
-
-        cb = tryBlock.addCatch(Throwable.class);
-        cb.invokeVirtualMethod(ofMethod(Throwable.class, "printStackTrace", void.class), cb.getCaughtException());
-        cb.invokeVirtualMethod(ofMethod(StartupContext.class, "close", void.class), startupContext);
-        cb.throwException(RuntimeException.class, "Failed to start shamrock", cb.getCaughtException());
-        mv.returnValue(null);
-
-        // Application class: stop method
-
-        mv = file.getMethodCreator("doStop", void.class);
-        mv.setModifiers(Modifier.PROTECTED | Modifier.FINAL);
-        startupContext = mv.readStaticField(scField.getFieldDescriptor());
-        mv.invokeVirtualMethod(ofMethod(StartupContext.class, "close", void.class), startupContext);
-        mv.returnValue(null);
-
-        // Finish application class
-        file.close();
-
-        // Main class
-
-        file = new ClassCreator(ClassOutput.gizmoAdaptor(classOutput.getClassOutput(), true), MAIN_CLASS, null, Object.class.getName());
-
-        mv = file.getMethodCreator("main", void.class, String[].class);
-        mv.setModifiers(Modifier.PUBLIC | Modifier.STATIC);
-
-        final ResultHandle appClassInstance = mv.newInstance(ofConstructor(APP_CLASS));
-        // run the app
-        mv.invokeVirtualMethod(ofMethod(Application.class, "run", void.class, String[].class), appClassInstance, mv.getMethodParam(0));
-
-        mv.returnValue(null);
-
-        file.close();
-        return new MainClassBuildItem(MAIN_CLASS);
+    // very first thing is to set system props (for build time)
+    for (SystemPropertyBuildItem i : properties) {
+      mv.invokeStaticMethod(
+          ofMethod(System.class, "setProperty", String.class, String.class, String.class),
+          mv.load(i.getKey()),
+          mv.load(i.getValue()));
     }
 
+    mv.invokeStaticMethod(MethodDescriptor.ofMethod(Timing.class, "staticInitStarted", void.class));
+    ResultHandle startupContext = mv.newInstance(ofConstructor(StartupContext.class));
+    mv.writeStaticField(scField.getFieldDescriptor(), startupContext);
+    TryBlock tryBlock = mv.tryBlock();
+    for (StaticBytecodeRecorderBuildItem holder : staticInitTasks) {
+      if (!holder.getBytecodeRecorder().isEmpty()) {
+        holder.getBytecodeRecorder().writeBytecode(classOutput.getClassOutput());
+
+        ResultHandle dup =
+            tryBlock.newInstance(ofConstructor(holder.getBytecodeRecorder().getClassName()));
+        tryBlock.invokeInterfaceMethod(
+            ofMethod(StartupTask.class, "deploy", void.class, StartupContext.class),
+            dup,
+            startupContext);
+      }
+    }
+    tryBlock.returnValue(null);
+
+    CatchBlockCreator cb = tryBlock.addCatch(Throwable.class);
+    cb.invokeVirtualMethod(ofMethod(StartupContext.class, "close", void.class), startupContext);
+    cb.throwException(RuntimeException.class, "Failed to start shamrock", cb.getCaughtException());
+
+    // Application class: start method
+
+    mv = file.getMethodCreator("doStart", void.class, String[].class);
+    mv.setModifiers(Modifier.PROTECTED | Modifier.FINAL);
+
+    // very first thing is to set system props (for run time, which use substitutions for a
+    // different
+    // storage from build-time)
+    for (SystemPropertyBuildItem i : properties) {
+      mv.invokeStaticMethod(
+          ofMethod(System.class, "setProperty", String.class, String.class, String.class),
+          mv.load(i.getKey()),
+          mv.load(i.getValue()));
+    }
+
+    mv.invokeStaticMethod(ofMethod(Timing.class, "mainStarted", void.class));
+    startupContext = mv.readStaticField(scField.getFieldDescriptor());
+    tryBlock = mv.tryBlock();
+    for (MainBytecodeRecorderBuildItem holder : mainMethod) {
+      if (!holder.getBytecodeRecorder().isEmpty()) {
+        holder.getBytecodeRecorder().writeBytecode(classOutput.getClassOutput());
+        ResultHandle dup =
+            tryBlock.newInstance(ofConstructor(holder.getBytecodeRecorder().getClassName()));
+        tryBlock.invokeInterfaceMethod(
+            ofMethod(StartupTask.class, "deploy", void.class, StartupContext.class),
+            dup,
+            startupContext);
+      }
+    }
+
+    // Startup log messages
+    ResultHandle featuresHandle =
+        tryBlock.load(features.stream().map(f -> f.getInfo()).collect(Collectors.joining(", ")));
+    ResultHandle serverHandle =
+        httpServer.isPresent()
+            ? tryBlock.load(
+                "Listening on: http://"
+                    + httpServer.get().getHost()
+                    + ":"
+                    + httpServer.get().getPort())
+            : tryBlock.load("");
+    tryBlock.invokeStaticMethod(
+        ofMethod(
+            Timing.class, "printStartupTime", void.class, String.class, String.class, String.class),
+        tryBlock.load(Version.getVersion()),
+        featuresHandle,
+        serverHandle);
+
+    cb = tryBlock.addCatch(Throwable.class);
+    cb.invokeVirtualMethod(
+        ofMethod(Throwable.class, "printStackTrace", void.class), cb.getCaughtException());
+    cb.invokeVirtualMethod(ofMethod(StartupContext.class, "close", void.class), startupContext);
+    cb.throwException(RuntimeException.class, "Failed to start shamrock", cb.getCaughtException());
+    mv.returnValue(null);
+
+    // Application class: stop method
+
+    mv = file.getMethodCreator("doStop", void.class);
+    mv.setModifiers(Modifier.PROTECTED | Modifier.FINAL);
+    startupContext = mv.readStaticField(scField.getFieldDescriptor());
+    mv.invokeVirtualMethod(ofMethod(StartupContext.class, "close", void.class), startupContext);
+    mv.returnValue(null);
+
+    // Finish application class
+    file.close();
+
+    // Main class
+
+    file =
+        new ClassCreator(
+            ClassOutput.gizmoAdaptor(classOutput.getClassOutput(), true),
+            MAIN_CLASS,
+            null,
+            Object.class.getName());
+
+    mv = file.getMethodCreator("main", void.class, String[].class);
+    mv.setModifiers(Modifier.PUBLIC | Modifier.STATIC);
+
+    final ResultHandle appClassInstance = mv.newInstance(ofConstructor(APP_CLASS));
+    // run the app
+    mv.invokeVirtualMethod(
+        ofMethod(Application.class, "run", void.class, String[].class),
+        appClassInstance,
+        mv.getMethodParam(0));
+
+    mv.returnValue(null);
+
+    file.close();
+    return new MainClassBuildItem(MAIN_CLASS);
+  }
 }

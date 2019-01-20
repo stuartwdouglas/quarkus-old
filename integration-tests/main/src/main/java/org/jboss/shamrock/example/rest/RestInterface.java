@@ -22,6 +22,6 @@ import javax.ws.rs.Path;
 @Path("/test")
 public interface RestInterface {
 
-    @GET
-    String get();
+  @GET
+  String get();
 }

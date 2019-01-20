@@ -18,10 +18,14 @@ package org.jboss.shamrock.transactions;
 
 import static org.jboss.shamrock.annotations.ExecutionTime.STATIC_INIT;
 
+import com.arjuna.ats.internal.arjuna.coordinator.CheckedActionFactoryImple;
+import com.arjuna.ats.internal.jta.transaction.arjunacore.TransactionManagerImple;
+import com.arjuna.ats.internal.jta.transaction.arjunacore.TransactionSynchronizationRegistryImple;
+import com.arjuna.ats.internal.jta.transaction.arjunacore.UserTransactionImple;
+import com.arjuna.ats.jta.common.JTAEnvironmentBean;
+import com.arjuna.common.util.propertyservice.PropertiesFactory;
 import java.util.Properties;
-
 import javax.inject.Inject;
-
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildStep;
@@ -40,53 +44,47 @@ import org.jboss.shamrock.transactions.runtime.interceptor.TransactionalIntercep
 import org.jboss.shamrock.transactions.runtime.interceptor.TransactionalInterceptorRequiresNew;
 import org.jboss.shamrock.transactions.runtime.interceptor.TransactionalInterceptorSupports;
 
-import com.arjuna.ats.internal.arjuna.coordinator.CheckedActionFactoryImple;
-import com.arjuna.ats.internal.jta.transaction.arjunacore.TransactionManagerImple;
-import com.arjuna.ats.internal.jta.transaction.arjunacore.TransactionSynchronizationRegistryImple;
-import com.arjuna.ats.internal.jta.transaction.arjunacore.UserTransactionImple;
-import com.arjuna.ats.jta.common.JTAEnvironmentBean;
-import com.arjuna.common.util.propertyservice.PropertiesFactory;
-
 class TransactionsProcessor {
 
-    @Inject
-    BuildProducer<AdditionalBeanBuildItem> additionalBeans;
+  @Inject BuildProducer<AdditionalBeanBuildItem> additionalBeans;
 
-    @Inject
-    BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
+  @Inject BuildProducer<ReflectiveClassBuildItem> reflectiveClass;
 
-    @Inject
-    BuildProducer<RuntimeInitializedClassBuildItem> runtimeInit;
+  @Inject BuildProducer<RuntimeInitializedClassBuildItem> runtimeInit;
 
-    /**
-     * The node name used by the transaction manager
-     */
-    @ConfigProperty(name = "shamrock.transactions.node-name", defaultValue = "shamrock")
-    String nodeName;
+  /** The node name used by the transaction manager */
+  @ConfigProperty(name = "shamrock.transactions.node-name", defaultValue = "shamrock")
+  String nodeName;
 
-    @BuildStep(providesCapabilities = Capabilities.TRANSACTIONS)
-    @Record(STATIC_INIT)
-    public void build(TransactionTemplate tt, BuildProducer<FeatureBuildItem> feature) {
-        feature.produce(new FeatureBuildItem(FeatureBuildItem.TRANSACTIONS));
-        additionalBeans.produce(new AdditionalBeanBuildItem(TransactionProducers.class));
-        runtimeInit.produce(new RuntimeInitializedClassBuildItem("com.arjuna.ats.internal.jta.resources.arjunacore.CommitMarkableResourceRecord"));
-        reflectiveClass.produce(new ReflectiveClassBuildItem(false, false, JTAEnvironmentBean.class.getName(),
-                UserTransactionImple.class.getName(),
-                CheckedActionFactoryImple.class.getName(),
-                TransactionManagerImple.class.getName(),
-                TransactionSynchronizationRegistryImple.class.getName()));
+  @BuildStep(providesCapabilities = Capabilities.TRANSACTIONS)
+  @Record(STATIC_INIT)
+  public void build(TransactionTemplate tt, BuildProducer<FeatureBuildItem> feature) {
+    feature.produce(new FeatureBuildItem(FeatureBuildItem.TRANSACTIONS));
+    additionalBeans.produce(new AdditionalBeanBuildItem(TransactionProducers.class));
+    runtimeInit.produce(
+        new RuntimeInitializedClassBuildItem(
+            "com.arjuna.ats.internal.jta.resources.arjunacore.CommitMarkableResourceRecord"));
+    reflectiveClass.produce(
+        new ReflectiveClassBuildItem(
+            false,
+            false,
+            JTAEnvironmentBean.class.getName(),
+            UserTransactionImple.class.getName(),
+            CheckedActionFactoryImple.class.getName(),
+            TransactionManagerImple.class.getName(),
+            TransactionSynchronizationRegistryImple.class.getName()));
 
-        additionalBeans.produce(new AdditionalBeanBuildItem(TransactionalInterceptorSupports.class));
-        additionalBeans.produce(new AdditionalBeanBuildItem(TransactionalInterceptorNever.class));
-        additionalBeans.produce(new AdditionalBeanBuildItem(TransactionalInterceptorRequired.class));
-        additionalBeans.produce(new AdditionalBeanBuildItem(TransactionalInterceptorRequiresNew.class));
-        additionalBeans.produce(new AdditionalBeanBuildItem(TransactionalInterceptorMandatory.class));
-        additionalBeans.produce(new AdditionalBeanBuildItem(TransactionalInterceptorNotSupported.class));
+    additionalBeans.produce(new AdditionalBeanBuildItem(TransactionalInterceptorSupports.class));
+    additionalBeans.produce(new AdditionalBeanBuildItem(TransactionalInterceptorNever.class));
+    additionalBeans.produce(new AdditionalBeanBuildItem(TransactionalInterceptorRequired.class));
+    additionalBeans.produce(new AdditionalBeanBuildItem(TransactionalInterceptorRequiresNew.class));
+    additionalBeans.produce(new AdditionalBeanBuildItem(TransactionalInterceptorMandatory.class));
+    additionalBeans.produce(
+        new AdditionalBeanBuildItem(TransactionalInterceptorNotSupported.class));
 
-        //we want to force Arjuna to init at static init time
-        Properties defaultProperties = PropertiesFactory.getDefaultProperties();
-        tt.setDefaultProperties(defaultProperties);
-        tt.setNodeName(nodeName);
-
-    }
+    // we want to force Arjuna to init at static init time
+    Properties defaultProperties = PropertiesFactory.getDefaultProperties();
+    tt.setDefaultProperties(defaultProperties);
+    tt.setNodeName(nodeName);
+  }
 }

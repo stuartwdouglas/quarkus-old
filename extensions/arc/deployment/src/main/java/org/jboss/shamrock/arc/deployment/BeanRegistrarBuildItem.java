@@ -21,13 +21,13 @@ import org.jboss.protean.arc.processor.BeanRegistrar;
 
 public final class BeanRegistrarBuildItem extends MultiBuildItem {
 
-    private final BeanRegistrar beanRegistrar;
+  private final BeanRegistrar beanRegistrar;
 
-    public BeanRegistrarBuildItem(BeanRegistrar beanRegistrar) {
-        this.beanRegistrar = beanRegistrar;
-    }
+  public BeanRegistrarBuildItem(BeanRegistrar beanRegistrar) {
+    this.beanRegistrar = beanRegistrar;
+  }
 
-    public BeanRegistrar getBeanRegistrar() {
-        return beanRegistrar;
-    }
+  public BeanRegistrar getBeanRegistrar() {
+    return beanRegistrar;
+  }
 }

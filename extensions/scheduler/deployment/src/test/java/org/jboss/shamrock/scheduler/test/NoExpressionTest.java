@@ -16,11 +16,10 @@
 package org.jboss.shamrock.scheduler.test;
 
 import javax.enterprise.inject.spi.DeploymentException;
-
 import org.jboss.shamrock.scheduler.api.Scheduled;
-import org.jboss.shamrock.test.ShouldFail;
 import org.jboss.shamrock.test.Deployment;
 import org.jboss.shamrock.test.ShamrockUnitTest;
+import org.jboss.shamrock.test.ShouldFail;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Test;
@@ -29,24 +28,18 @@ import org.junit.runner.RunWith;
 @RunWith(ShamrockUnitTest.class)
 public class NoExpressionTest {
 
-    @ShouldFail(DeploymentException.class)
-    @Deployment
-    public static JavaArchive deploy() {
-        return ShrinkWrap.create(JavaArchive.class)
-                .addClasses(InvalidBean.class);
-    }
+  @ShouldFail(DeploymentException.class)
+  @Deployment
+  public static JavaArchive deploy() {
+    return ShrinkWrap.create(JavaArchive.class).addClasses(InvalidBean.class);
+  }
 
-    @Test
-    public void test() throws InterruptedException {
-    }
-    
-    static class InvalidBean {
-        
-        
-        @Scheduled
-        void wrong() {
-        }
-        
-    }
+  @Test
+  public void test() throws InterruptedException {}
 
+  static class InvalidBean {
+
+    @Scheduled
+    void wrong() {}
+  }
 }

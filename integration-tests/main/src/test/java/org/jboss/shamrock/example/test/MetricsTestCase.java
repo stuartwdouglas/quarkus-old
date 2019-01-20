@@ -19,31 +19,32 @@ package org.jboss.shamrock.example.test;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 
+import io.restassured.RestAssured;
 import org.jboss.shamrock.test.ShamrockTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.restassured.RestAssured;
-
 @RunWith(ShamrockTest.class)
 public class MetricsTestCase {
 
+  @Test
+  public void testMetrics() {
+    testCounted("0.0");
+    invokeResource();
+    testCounted("1.0");
+  }
 
-    @Test
-    public void testMetrics() {
-        testCounted("0.0");
-        invokeResource();
-        testCounted("1.0");
-    }
+  private void testCounted(String val) {
+    RestAssured.when()
+        .get("/metrics")
+        .then()
+        .body(
+            containsString(
+                "application:org_jboss_shamrock_example_metrics_metrics_resource_a_counted_resource "
+                    + val));
+  }
 
-    private void testCounted(String val) {
-        RestAssured.when().get("/metrics").then()
-                .body(containsString("application:org_jboss_shamrock_example_metrics_metrics_resource_a_counted_resource " + val));
-    }
-
-    public void invokeResource() {
-        RestAssured.when().get("/metricsresource").then()
-                .body(is("TEST"));
-    }
-
+  public void invokeResource() {
+    RestAssured.when().get("/metricsresource").then().body(is("TEST"));
+  }
 }

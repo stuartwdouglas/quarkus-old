@@ -17,7 +17,6 @@
 package org.jboss.shamrock.deployment.steps;
 
 import java.util.List;
-
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.ExecutionTime;
 import org.jboss.shamrock.annotations.Record;
@@ -29,21 +28,23 @@ import org.jboss.shamrock.runtime.InjectionFactoryTemplate;
 
 public class InjectionFactoryBuildStep {
 
-    @BuildStep
-    @Record(ExecutionTime.STATIC_INIT)
-    InjectionFactoryBuildItem factory(List<InjectionProviderBuildItem> providers, DefaultInjectionTemplate template,
-                                      InjectionFactoryTemplate ifTemplate) {
-        if (providers.isEmpty()) {
-            InjectionFactory factory = template.defaultFactory();
-            ifTemplate.setFactory(factory);
-            return new InjectionFactoryBuildItem(factory);
-        } else if (providers.size() != 1) {
-            throw new RuntimeException("At most a single Injection provider can be registered. Make sure you have not included multiple dependency injection containers in your project (e.g. Weld and Arc) " + providers);
-        }
-        InjectionFactory factory = providers.get(0).getFactory();
-        ifTemplate.setFactory(factory);
-        return new InjectionFactoryBuildItem(factory);
+  @BuildStep
+  @Record(ExecutionTime.STATIC_INIT)
+  InjectionFactoryBuildItem factory(
+      List<InjectionProviderBuildItem> providers,
+      DefaultInjectionTemplate template,
+      InjectionFactoryTemplate ifTemplate) {
+    if (providers.isEmpty()) {
+      InjectionFactory factory = template.defaultFactory();
+      ifTemplate.setFactory(factory);
+      return new InjectionFactoryBuildItem(factory);
+    } else if (providers.size() != 1) {
+      throw new RuntimeException(
+          "At most a single Injection provider can be registered. Make sure you have not included multiple dependency injection containers in your project (e.g. Weld and Arc) "
+              + providers);
     }
-
-
+    InjectionFactory factory = providers.get(0).getFactory();
+    ifTemplate.setFactory(factory);
+    return new InjectionFactoryBuildItem(factory);
+  }
 }

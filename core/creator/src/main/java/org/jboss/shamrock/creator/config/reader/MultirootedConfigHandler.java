@@ -17,14 +17,11 @@
 
 package org.jboss.shamrock.creator.config.reader;
 
-/**
- *
- * @author Alexey Loubyansky
- */
+/** @author Alexey Loubyansky */
 public class MultirootedConfigHandler extends MappedPropertiesHandler<Object> {
 
-    @Override
-    public Object newInstance() {
-        return null;
-    }
+  @Override
+  public Object newInstance() {
+    return null;
+  }
 }

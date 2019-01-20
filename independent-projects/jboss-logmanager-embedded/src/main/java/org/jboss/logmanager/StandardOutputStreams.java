@@ -25,54 +25,54 @@ import java.io.PrintStream;
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class StandardOutputStreams {
-    public static final PrintStream stdout = System.out;
-    public static final PrintStream stderr = System.err;
+  public static final PrintStream stdout = System.out;
+  public static final PrintStream stderr = System.err;
 
-    /**
-     * Prints an error messages to {@link #stderr stderr}.
-     *
-     * @param msg the message to print
-     */
-    public static void printError(final String msg) {
-        stderr.println(msg);
-    }
+  /**
+   * Prints an error messages to {@link #stderr stderr}.
+   *
+   * @param msg the message to print
+   */
+  public static void printError(final String msg) {
+    stderr.println(msg);
+  }
 
-    /**
-     * Prints an error messages to {@link #stderr stderr}.
-     *
-     * @param format the {@link java.util.Formatter format}
-     * @param args   the arguments for the format
-     */
-    public static void printError(final String format, final Object... args) {
-        stderr.printf(format, args);
-    }
+  /**
+   * Prints an error messages to {@link #stderr stderr}.
+   *
+   * @param format the {@link java.util.Formatter format}
+   * @param args the arguments for the format
+   */
+  public static void printError(final String format, final Object... args) {
+    stderr.printf(format, args);
+  }
 
-    /**
-     * Prints an error messages to {@link #stderr stderr}.
-     *
-     * @param cause the cause of the error, if not {@code null} the {@link Throwable#printStackTrace(PrintStream)}
-     *              writes to {@link #stderr stderr}
-     * @param msg   the message to print
-     */
-    public static void printError(final Throwable cause, final String msg) {
-        stderr.println(msg);
-        if (cause != null) {
-            cause.printStackTrace(stderr);
-        }
+  /**
+   * Prints an error messages to {@link #stderr stderr}.
+   *
+   * @param cause the cause of the error, if not {@code null} the {@link
+   *     Throwable#printStackTrace(PrintStream)} writes to {@link #stderr stderr}
+   * @param msg the message to print
+   */
+  public static void printError(final Throwable cause, final String msg) {
+    stderr.println(msg);
+    if (cause != null) {
+      cause.printStackTrace(stderr);
     }
+  }
 
-    /**
-     * Prints an error messages to {@link #stderr stderr}.
-     *
-     * @param cause  the cause of the error, if not {@code null} the {@link Throwable#printStackTrace(PrintStream)}
-     *               writes to {@link #stderr stderr}
-     * @param format the {@link java.util.Formatter format}
-     * @param args   the arguments for the format
-     */
-    public static void printError(final Throwable cause, final String format, final Object... args) {
-        stderr.printf(format, args);
-        if (cause != null) {
-            cause.printStackTrace(stderr);
-        }
+  /**
+   * Prints an error messages to {@link #stderr stderr}.
+   *
+   * @param cause the cause of the error, if not {@code null} the {@link
+   *     Throwable#printStackTrace(PrintStream)} writes to {@link #stderr stderr}
+   * @param format the {@link java.util.Formatter format}
+   * @param args the arguments for the format
+   */
+  public static void printError(final Throwable cause, final String format, final Object... args) {
+    stderr.printf(format, args);
+    if (cause != null) {
+      cause.printStackTrace(stderr);
     }
+  }
 }

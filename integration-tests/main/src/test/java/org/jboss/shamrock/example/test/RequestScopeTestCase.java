@@ -18,23 +18,18 @@ package org.jboss.shamrock.example.test;
 
 import static org.hamcrest.Matchers.is;
 
+import io.restassured.RestAssured;
 import org.jboss.shamrock.test.ShamrockTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.restassured.RestAssured;
-
 @RunWith(ShamrockTest.class)
 public class RequestScopeTestCase {
 
-    @Test
-    public void testRequestScope() {
-        RestAssured.when().get("/request-scoped").then()
-                .body(is("3"));
+  @Test
+  public void testRequestScope() {
+    RestAssured.when().get("/request-scoped").then().body(is("3"));
 
-        RestAssured.when().get("/request-scoped").then()
-                .body(is("3"));
-    }
-
-
+    RestAssured.when().get("/request-scoped").then().body(is("3"));
+  }
 }

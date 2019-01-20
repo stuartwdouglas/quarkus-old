@@ -20,13 +20,12 @@ import com.oracle.svm.core.annotate.Substitute;
 import com.oracle.svm.core.annotate.TargetClass;
 import org.wildfly.openssl.SSL;
 
-/**
- */
+/** */
 @TargetClass(SSL.class)
 public final class SSLSubstitution {
 
-    @Substitute
-    static void init() {
-        System.loadLibrary("wfssl");
-    }
+  @Substitute
+  static void init() {
+    System.loadLibrary("wfssl");
+  }
 }

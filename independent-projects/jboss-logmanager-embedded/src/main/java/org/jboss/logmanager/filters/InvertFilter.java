@@ -19,28 +19,26 @@ package org.jboss.logmanager.filters;
 import java.util.logging.Filter;
 import java.util.logging.LogRecord;
 
-/**
- * An inverting filter.
- */
+/** An inverting filter. */
 public final class InvertFilter implements Filter {
-    private final Filter target;
+  private final Filter target;
 
-    /**
-     * Construct a new instance.
-     *
-     * @param target the target filter
-     */
-    public InvertFilter(final Filter target) {
-        this.target = target;
-    }
+  /**
+   * Construct a new instance.
+   *
+   * @param target the target filter
+   */
+  public InvertFilter(final Filter target) {
+    this.target = target;
+  }
 
-    /**
-     * Determine whether a log record passes this filter.
-     *
-     * @param record the log record
-     * @return {@code true} if the target filter returns {@code false}, {@code false} otherwise
-     */
-    public boolean isLoggable(final LogRecord record) {
-        return ! target.isLoggable(record);
-    }
+  /**
+   * Determine whether a log record passes this filter.
+   *
+   * @param record the log record
+   * @return {@code true} if the target filter returns {@code false}, {@code false} otherwise
+   */
+  public boolean isLoggable(final LogRecord record) {
+    return !target.isLoggable(record);
+  }
 }

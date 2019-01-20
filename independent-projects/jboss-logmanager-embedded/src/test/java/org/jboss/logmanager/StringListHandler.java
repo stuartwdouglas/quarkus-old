@@ -19,29 +19,27 @@ package org.jboss.logmanager;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author <a href="mailto:jperkins@redhat.com">James R. Perkins</a>
- */
+/** @author <a href="mailto:jperkins@redhat.com">James R. Perkins</a> */
 class StringListHandler extends ExtHandler {
-    private final List<String> messages = new ArrayList<String>();
+  private final List<String> messages = new ArrayList<String>();
 
-    @Override
-    protected void doPublish(final ExtLogRecord record) {
-        super.doPublish(record);
-        messages.add(record.getFormattedMessage());
-    }
+  @Override
+  protected void doPublish(final ExtLogRecord record) {
+    super.doPublish(record);
+    messages.add(record.getFormattedMessage());
+  }
 
-    public String getMessage(final int index) {
-        return messages.get(index);
-    }
+  public String getMessage(final int index) {
+    return messages.get(index);
+  }
 
-    public int size() {
-        return messages.size();
-    }
+  public int size() {
+    return messages.size();
+  }
 
-    @Override
-    public void close() throws SecurityException {
-        super.close();
-        messages.clear();
-    }
+  @Override
+  public void close() throws SecurityException {
+    super.close();
+    messages.clear();
+  }
 }

@@ -24,8 +24,5 @@ import javax.persistence.PersistenceContext;
 @Singleton
 public class DefaultEntityManagerProducer {
 
-    @Produces
-    @PersistenceContext
-    EntityManager entityManager;
-
+  @Produces @PersistenceContext EntityManager entityManager;
 }

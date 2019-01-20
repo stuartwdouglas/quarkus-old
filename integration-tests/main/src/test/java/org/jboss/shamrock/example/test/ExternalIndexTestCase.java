@@ -18,19 +18,16 @@ package org.jboss.shamrock.example.test;
 
 import static org.hamcrest.Matchers.is;
 
+import io.restassured.RestAssured;
 import org.jboss.shamrock.test.ShamrockTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import io.restassured.RestAssured;
-
 @RunWith(ShamrockTest.class)
 public class ExternalIndexTestCase {
 
-    @Test
-    public void testJAXRSResourceFromExternalLibrary() {
-        RestAssured.when().get("/shared").then()
-                .body(is("Shared Resource"));
-    }
-
+  @Test
+  public void testJAXRSResourceFromExternalLibrary() {
+    RestAssured.when().get("/shared").then().body(is("Shared Resource"));
+  }
 }

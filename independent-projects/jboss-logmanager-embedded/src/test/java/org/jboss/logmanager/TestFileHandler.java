@@ -17,30 +17,27 @@
 package org.jboss.logmanager;
 
 import java.io.FileNotFoundException;
-
 import org.jboss.logmanager.handlers.FileHandler;
 
-/**
- * @author <a href="mailto:jperkins@redhat.com">James R. Perkins</a>
- */
+/** @author <a href="mailto:jperkins@redhat.com">James R. Perkins</a> */
 public class TestFileHandler extends FileHandler {
-    private static final String BASE_LOG_DIR;
+  private static final String BASE_LOG_DIR;
 
-    static {
-        BASE_LOG_DIR = System.getProperty("test.log.dir");
-    }
+  static {
+    BASE_LOG_DIR = System.getProperty("test.log.dir");
+  }
 
-    public TestFileHandler() {
-        super();
-    }
+  public TestFileHandler() {
+    super();
+  }
 
-    public TestFileHandler(final String fileName, final boolean append) throws FileNotFoundException {
-        super(fileName, append);
-    }
+  public TestFileHandler(final String fileName, final boolean append) throws FileNotFoundException {
+    super(fileName, append);
+  }
 
-    @Override
-    public void setFileName(final String fileName) throws FileNotFoundException {
-        final String name = fileName == null ? null : BASE_LOG_DIR.concat(fileName);
-        super.setFileName(name);
-    }
+  @Override
+  public void setFileName(final String fileName) throws FileNotFoundException {
+    final String name = fileName == null ? null : BASE_LOG_DIR.concat(fileName);
+    super.setFileName(name);
+  }
 }

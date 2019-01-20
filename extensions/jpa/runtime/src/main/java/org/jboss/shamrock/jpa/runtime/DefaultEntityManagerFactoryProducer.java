@@ -24,8 +24,5 @@ import javax.persistence.PersistenceUnit;
 @Singleton
 public class DefaultEntityManagerFactoryProducer {
 
-    @Produces
-    @PersistenceUnit
-    EntityManagerFactory entityManagerFactory;
-
+  @Produces @PersistenceUnit EntityManagerFactory entityManagerFactory;
 }

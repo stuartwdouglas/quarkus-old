@@ -19,11 +19,11 @@ package org.jboss.shamrock.creator.config.test;
 
 import static org.junit.Assert.assertEquals;
 
+import io.smallrye.config.SmallRyeConfigProviderResolver;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.eclipse.microprofile.config.Config;
 import org.jboss.shamrock.creator.config.reader.MappedPropertiesHandler;
 import org.jboss.shamrock.creator.config.reader.MultirootedConfigHandler;
@@ -32,135 +32,135 @@ import org.jboss.shamrock.creator.config.reader.PropertiesHandler;
 import org.jboss.shamrock.creator.config.reader.PropertyLine;
 import org.junit.Test;
 
-import io.smallrye.config.SmallRyeConfigProviderResolver;
-
-/**
- *
- * @author Alexey Loubyansky
- */
+/** @author Alexey Loubyansky */
 public class SmallryeTestCase {
 
-    @Test
-    public void testMain() throws Exception {
+  @Test
+  public void testMain() throws Exception {
 
-        /*
-         * User info
-         */
-        final PropertiesHandler<User> userHandler = new MappedPropertiesHandler<User>() {
-            @Override
-            public User newInstance() {
-                return new User();
-            }
-        }
-        .map("name", (User user, String value) -> user.setName(value))
-        .map("country", (User user, String value) -> user.setCountry(value))
-        .map("dir", (User user, String value) -> user.setDir(Paths.get(value)))
-        .map("home", (User user, String value) -> user.setHome(Paths.get(value)))
-        .map("language", (User user, String value) -> user.setLanguage(value));
+    /*
+     * User info
+     */
+    final PropertiesHandler<User> userHandler =
+        new MappedPropertiesHandler<User>() {
+          @Override
+          public User newInstance() {
+            return new User();
+          }
+        }.map("name", (User user, String value) -> user.setName(value))
+            .map("country", (User user, String value) -> user.setCountry(value))
+            .map("dir", (User user, String value) -> user.setDir(Paths.get(value)))
+            .map("home", (User user, String value) -> user.setHome(Paths.get(value)))
+            .map("language", (User user, String value) -> user.setLanguage(value));
 
+    /*
+     * java.vm.specification info
+     */
+    final PropertiesHandler<JavaVmSpec> javaVmSpecHandler =
+        new MappedPropertiesHandler<JavaVmSpec>() {
+          @Override
+          public JavaVmSpec newInstance() {
+            return new JavaVmSpec();
+          }
+        }.map("name", (JavaVmSpec vm, String value) -> vm.setName(value))
+            .map("version", (JavaVmSpec vm, String value) -> vm.setVersion(value))
+            .map("vendor", (JavaVmSpec vm, String value) -> vm.setVendor(value));
 
-        /*
-         * java.vm.specification info
-         */
-        final PropertiesHandler<JavaVmSpec> javaVmSpecHandler = new MappedPropertiesHandler<JavaVmSpec>() {
-            @Override
-            public JavaVmSpec newInstance() {
-                return new JavaVmSpec();
-            }
-        }
-        .map("name", (JavaVmSpec vm, String value) -> vm.setName(value))
-        .map("version", (JavaVmSpec vm, String value) -> vm.setVersion(value))
-        .map("vendor", (JavaVmSpec vm, String value) -> vm.setVendor(value));
+    /*
+     * java.vm info
+     */
+    final PropertiesHandler<JavaVm> javaVmHandler =
+        new MappedPropertiesHandler<JavaVm>() {
+          @Override
+          public JavaVm newInstance() {
+            return new JavaVm();
+          }
+        }.map("name", (JavaVm vm, String value) -> vm.setName(value))
+            .map("info", (JavaVm vm, String value) -> vm.setInfo(value))
+            .map("version", (JavaVm vm, String value) -> vm.setVersion(value))
+            .map(
+                "specification",
+                javaVmSpecHandler,
+                (JavaVm vm, JavaVmSpec spec) -> vm.setSpec(spec));
 
-        /*
-         * java.vm info
-         */
-        final PropertiesHandler<JavaVm> javaVmHandler = new MappedPropertiesHandler<JavaVm>() {
-            @Override
-            public JavaVm newInstance() {
-                return new JavaVm();
-            }
-        }
-        .map("name", (JavaVm vm, String value) -> vm.setName(value))
-        .map("info", (JavaVm vm, String value) -> vm.setInfo(value))
-        .map("version", (JavaVm vm, String value) -> vm.setVersion(value))
-        .map("specification", javaVmSpecHandler, (JavaVm vm, JavaVmSpec spec) -> vm.setSpec(spec));
+    /*
+     * java info
+     */
+    final PropertiesHandler<JavaInfo> javaHandler =
+        new MappedPropertiesHandler<JavaInfo>() {
+          @Override
+          public JavaInfo newInstance() {
+            return new JavaInfo();
+          }
+        }.map("version", (JavaInfo java, String value) -> java.setVersion(value))
+            .map("vm", javaVmHandler, (JavaInfo java, JavaVm vm) -> java.setVM(vm));
 
-        /*
-         * java info
-         */
-        final PropertiesHandler<JavaInfo> javaHandler = new MappedPropertiesHandler<JavaInfo>() {
-            @Override
-            public JavaInfo newInstance() {
-                return new JavaInfo();
-            }
-        }
-        .map("version", (JavaInfo java, String value) -> java.setVersion(value))
-        .map("vm", javaVmHandler, (JavaInfo java, JavaVm vm) -> java.setVM(vm));
+    /*
+     * Main properties handler
+     */
+    final User[] user = new User[1];
+    final JavaInfo[] javaInfo = new JavaInfo[1];
+    final JavaVm[] vm = new JavaVm[1];
+    final MultirootedConfigHandler configHandler = new MultirootedConfigHandler();
+    configHandler.map("user", userHandler, (User parsed) -> user[0] = parsed);
+    // configHandler.map("java", javaHandler, (JavaInfo parsed) -> javaInfo[0] = parsed);
+    configHandler.map("java.vm", javaVmHandler, (JavaVm parsed) -> vm[0] = parsed);
 
-        /*
-         * Main properties handler
-         */
-        final User[] user = new User[1];
-        final JavaInfo[] javaInfo = new JavaInfo[1];
-        final JavaVm[] vm = new JavaVm[1];
-        final MultirootedConfigHandler configHandler = new MultirootedConfigHandler();
-        configHandler.map("user", userHandler, (User parsed) -> user[0] = parsed);
-        //configHandler.map("java", javaHandler, (JavaInfo parsed) -> javaInfo[0] = parsed);
-        configHandler.map("java.vm", javaVmHandler, (JavaVm parsed) -> vm[0] = parsed);
+    /*
+     * Get the config
+     */
+    final Config config = SmallRyeConfigProviderResolver.instance().getConfig();
+    // logConfig(config);
 
-        /*
-         * Get the config
-         */
-        final Config config = SmallRyeConfigProviderResolver.instance().getConfig();
-        //logConfig(config);
-
-        /*
-         * Read the config
-         */
-        PropertiesConfigReader.getInstance(
-                configHandler, // properties handler
-                (PropertyLine line) -> {} // ignore unrecognized properties, otherwise it's going to complain
-                )
+    /*
+     * Read the config
+     */
+    PropertiesConfigReader.getInstance(
+            configHandler, // properties handler
+            (PropertyLine
+                    line) -> {} // ignore unrecognized properties, otherwise it's going to complain
+            )
         // read config as properties
-        .read(config.getPropertyNames(), (String name) -> {
-            return new PropertyLine(name, config.getValue(name, String.class));
-        });
+        .read(
+            config.getPropertyNames(),
+            (String name) -> {
+              return new PropertyLine(name, config.getValue(name, String.class));
+            });
 
-        final User expectedUser = new User();
-        expectedUser.setCountry(getProperty("user.country"));
-        expectedUser.setDir(Paths.get(getProperty("user.dir")));
-        expectedUser.setHome(Paths.get(getProperty("user.home")));
-        expectedUser.setLanguage(getProperty("user.language"));
-        expectedUser.setName(getProperty("user.name"));
-        assertEquals(expectedUser, user[0]);
+    final User expectedUser = new User();
+    expectedUser.setCountry(getProperty("user.country"));
+    expectedUser.setDir(Paths.get(getProperty("user.dir")));
+    expectedUser.setHome(Paths.get(getProperty("user.home")));
+    expectedUser.setLanguage(getProperty("user.language"));
+    expectedUser.setName(getProperty("user.name"));
+    assertEquals(expectedUser, user[0]);
 
-        final JavaVmSpec expectedJvmSpec = new JavaVmSpec();
-        expectedJvmSpec.setName(getProperty("java.vm.specification.name"));
-        expectedJvmSpec.setVendor(getProperty("java.vm.specification.vendor"));
-        expectedJvmSpec.setVersion(getProperty("java.vm.specification.version"));
+    final JavaVmSpec expectedJvmSpec = new JavaVmSpec();
+    expectedJvmSpec.setName(getProperty("java.vm.specification.name"));
+    expectedJvmSpec.setVendor(getProperty("java.vm.specification.vendor"));
+    expectedJvmSpec.setVersion(getProperty("java.vm.specification.version"));
 
-        final JavaVm expectedJavaVm = new JavaVm();
-        expectedJavaVm.setInfo(getProperty("java.vm.info"));
-        expectedJavaVm.setName(getProperty("java.vm.name"));
-        expectedJavaVm.setVersion(getProperty("java.vm.version"));
-        expectedJavaVm.setSpec(expectedJvmSpec);
+    final JavaVm expectedJavaVm = new JavaVm();
+    expectedJavaVm.setInfo(getProperty("java.vm.info"));
+    expectedJavaVm.setName(getProperty("java.vm.name"));
+    expectedJavaVm.setVersion(getProperty("java.vm.version"));
+    expectedJavaVm.setSpec(expectedJvmSpec);
 
-        assertEquals(expectedJavaVm, vm[0]);
+    assertEquals(expectedJavaVm, vm[0]);
+  }
+
+  private static String getProperty(String name) {
+    return System.getProperty(name);
+  }
+
+  private static void logConfig(final Config config) {
+    final List<String> names = new ArrayList<>();
+    for (String name : config.getPropertyNames()) {
+      names.add(name);
     }
-
-    private static String getProperty(String name) {
-        return System.getProperty(name);
+    Collections.sort(names);
+    for (String name : names) {
+      System.out.println("- " + name + "=" + config.getValue(name, String.class));
     }
-
-    private static void logConfig(final Config config) {
-        final List<String> names = new ArrayList<>();
-        for(String name : config.getPropertyNames()) {
-            names.add(name);
-        }
-        Collections.sort(names);
-        for(String name : names) {
-            System.out.println("- " + name + "=" + config.getValue(name, String.class));
-        }
-    }
+  }
 }

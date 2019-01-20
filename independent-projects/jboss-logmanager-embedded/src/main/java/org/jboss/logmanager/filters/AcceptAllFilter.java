@@ -19,30 +19,28 @@ package org.jboss.logmanager.filters;
 import java.util.logging.Filter;
 import java.util.logging.LogRecord;
 
-/**
- * An accept-all filter.
- */
+/** An accept-all filter. */
 public final class AcceptAllFilter implements Filter {
-    private AcceptAllFilter() {}
+  private AcceptAllFilter() {}
 
-    private static final AcceptAllFilter INSTANCE = new AcceptAllFilter();
+  private static final AcceptAllFilter INSTANCE = new AcceptAllFilter();
 
-    /**
-     * Always returns {@code true}.
-     *
-     * @param record ignored
-     * @return {@code true}
-     */
-    public boolean isLoggable(final LogRecord record) {
-        return true;
-    }
+  /**
+   * Always returns {@code true}.
+   *
+   * @param record ignored
+   * @return {@code true}
+   */
+  public boolean isLoggable(final LogRecord record) {
+    return true;
+  }
 
-    /**
-     * Get the filter instance.
-     *
-     * @return the filter instance
-     */
-    public static AcceptAllFilter getInstance() {
-        return INSTANCE;
-    }
+  /**
+   * Get the filter instance.
+   *
+   * @return the filter instance
+   */
+  public static AcceptAllFilter getInstance() {
+    return INSTANCE;
+  }
 }

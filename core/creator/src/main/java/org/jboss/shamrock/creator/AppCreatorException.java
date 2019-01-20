@@ -24,16 +24,14 @@ package org.jboss.shamrock.creator;
  */
 public class AppCreatorException extends Exception {
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = 1L;
+  /** */
+  private static final long serialVersionUID = 1L;
 
-    public AppCreatorException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  public AppCreatorException(String message, Throwable cause) {
+    super(message, cause);
+  }
 
-    public AppCreatorException(String message) {
-        super(message);
-    }
+  public AppCreatorException(String message) {
+    super(message);
+  }
 }

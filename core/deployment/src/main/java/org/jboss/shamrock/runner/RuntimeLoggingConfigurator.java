@@ -26,6 +26,7 @@ import org.jboss.logmanager.EmbeddedConfigurator;
 import org.jboss.logmanager.formatters.ColorPatternFormatter;
 import org.jboss.logmanager.formatters.PatternFormatter;
 import org.jboss.logmanager.handlers.ConsoleHandler;
+import org.jboss.shamrock.runtime.LogCleanupFilter;
 
 /**
  * Embedded configurator that can be used to configure logging in a similar
@@ -79,13 +80,18 @@ public class RuntimeLoggingConfigurator implements EmbeddedConfigurator {
 
         if (color && System.console() != null) {
             return loggerName.isEmpty() ? new Handler[]{
-                    new ConsoleHandler(new ColorPatternFormatter(format))
+                    filter(new ConsoleHandler(new ColorPatternFormatter(format)))
             } : NO_HANDLERS;
         } else {
             return loggerName.isEmpty() ? new Handler[]{
-                    new ConsoleHandler(new PatternFormatter(format))
+                    filter(new ConsoleHandler(new PatternFormatter(format)))
             } : NO_HANDLERS;
         }
+    }
+
+    private Handler filter(ConsoleHandler handler) {
+        handler.setFilter(new LogCleanupFilter());
+        return handler;
     }
 
     static Config getConfig() {

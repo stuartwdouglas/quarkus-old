@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.ErrorManager;
+import java.util.logging.Filter;
 import java.util.logging.Formatter;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -52,6 +53,7 @@ import org.jboss.shamrock.deployment.builditem.GeneratedResourceBuildItem;
 import org.jboss.shamrock.deployment.builditem.SystemPropertyBuildItem;
 import org.jboss.shamrock.deployment.builditem.substrate.RuntimeInitializedClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.substrate.SubstrateSystemPropertyBuildItem;
+import org.jboss.shamrock.runtime.LogCleanupFilter;
 import org.objectweb.asm.Opcodes;
 
 /**
@@ -213,6 +215,10 @@ public final class LoggingResourceProcessor {
                         console,
                         getLevelFor(branch, consoleLevel)
                 );
+                branch.invokeVirtualMethod(
+                                           MethodDescriptor.ofMethod(Handler.class, "setFilter", void.class, Filter.class), 
+                                           console, 
+                                           branch.newInstance(MethodDescriptor.ofConstructor(LogCleanupFilter.class)));
             } else {
                 consoleErrorManager = null;
                 console = null;
@@ -243,6 +249,10 @@ public final class LoggingResourceProcessor {
                             consoleErrorManager
                     );
                 }
+                branch.invokeVirtualMethod(
+                                           MethodDescriptor.ofMethod(Handler.class, "setFilter", void.class, Filter.class), 
+                                           file, 
+                                           branch.newInstance(MethodDescriptor.ofConstructor(LogCleanupFilter.class)));
             } else {
                 file = null;
             }
@@ -277,6 +287,10 @@ public final class LoggingResourceProcessor {
                     console,
                     getLevelFor(branch, "ALL")
             );
+            branch.invokeVirtualMethod(
+                    MethodDescriptor.ofMethod(Handler.class, "setFilter", void.class, Filter.class), 
+                    console, 
+                    branch.newInstance(MethodDescriptor.ofConstructor(LogCleanupFilter.class)));
             array = branch.newArray(
                     Handler[].class,
                     branch.load(1)

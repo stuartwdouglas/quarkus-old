@@ -404,11 +404,9 @@ public final class HibernateResourceProcessor {
         HibernateEntityEnhancer hibernateEntityEnhancer = new HibernateEntityEnhancer();
         for (String i : domainObjects.getClassNames()) {
             transformers.produce(new BytecodeTransformerBuildItem(i, hibernateEntityEnhancer));
-            System.err.println("Hibernate transformer for "+i);
         }
         for (AdditionalJpaModelBuildItem additionalJpaModel : additionalJpaModelBuildItems) {
             String className = additionalJpaModel.getClassName();
-            System.err.println("Hibernate additional transformer for "+className);
             try (InputStream stream = HibernateResourceProcessor.class.getClassLoader().getResourceAsStream(className.replace('.', '/') + ".class")) {
                 byte[] bytes = read(stream);
                 byte[] enhanced = hibernateEntityEnhancer.enhance(className, bytes);

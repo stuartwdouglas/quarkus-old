@@ -85,7 +85,6 @@ public final class HibernateEntityEnhancer implements BiFunction<String, ClassVi
             //We need to convert the nice Visitor chain into a plain byte array to adapt to the Hibernate ORM
             //enhancement API:
             final byte[] inputBytes = writer.toByteArray();
-            System.err.println("Enhancing: "+className);
             final byte[] transformedBytes = hibernateEnhancement(className, inputBytes);
             //Then re-convert the transformed bytecode to not interrupt the visitor chain:
             ClassReader cr = new ClassReader(transformedBytes);

@@ -65,10 +65,10 @@ import org.jboss.shamrock.creator.util.IoUtils;
 import org.jboss.shamrock.creator.util.ZipUtils;
 import org.jboss.shamrock.deployment.ClassOutput;
 import org.jboss.shamrock.deployment.ShamrockAugmentor;
+import org.jboss.shamrock.deployment.ShamrockClassWriter;
 import org.jboss.shamrock.deployment.builditem.BytecodeTransformerBuildItem;
 import org.jboss.shamrock.deployment.builditem.MainClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.substrate.SubstrateOutputBuildItem;
-import org.jboss.shamrock.deployment.index.ResolvedArtifact;
 import org.jboss.shamrock.dev.CopyUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -480,7 +480,7 @@ public class AugmentPhase implements AppCreationPhase, AugmentOutcome, RunnerJar
                                             public FutureEntry call() throws Exception {
                                                 final byte[] fileContent = CopyUtils.readFileContent(path);
                                                 ClassReader cr = new ClassReader(fileContent);
-                                                ClassWriter writer = new ClassWriter(cr, ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
+                                                ClassWriter writer = new ShamrockClassWriter(cr, ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
                                                 ClassVisitor visitor = writer;
                                                 for (BiFunction<String, ClassVisitor, ClassVisitor> i : visitors) {
                                                     visitor = i.apply(className, visitor);

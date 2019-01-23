@@ -33,6 +33,10 @@
 
     <packaging>jar</packaging>
 
+    <properties>
+        <format.skip>true</format.skip>
+    </properties>
+
     <dependencies>
         <!-- log4j backend -->
         <dependency>

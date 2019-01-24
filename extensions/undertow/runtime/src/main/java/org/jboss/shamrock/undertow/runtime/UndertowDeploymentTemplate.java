@@ -16,15 +16,19 @@
 
 package org.jboss.shamrock.undertow.runtime;
 
+import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
+import java.util.Collection;
 import java.util.EventListener;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.servlet.AsyncEvent;
+import javax.servlet.AsyncListener;
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.servlet.MultipartConfigElement;
@@ -66,6 +70,9 @@ import io.undertow.servlet.api.ServletSecurityInfo;
 import io.undertow.servlet.api.ThreadSetupHandler;
 import io.undertow.servlet.handlers.DefaultServlet;
 import io.undertow.servlet.handlers.ServletPathMatches;
+import io.undertow.servlet.handlers.ServletRequestContext;
+import io.undertow.servlet.spec.HttpServletRequestImpl;
+import io.undertow.util.AttachmentKey;
 
 /**
  * Provides the runtime methods to bootstrap Undertow. This class is present in the final uber-jar,
@@ -86,6 +93,8 @@ public class UndertowDeploymentTemplate {
 
     private static volatile Undertow undertow;
     private static volatile HttpHandler currentRoot = ResponseCodeHandler.HANDLE_404;
+
+    private static final AttachmentKey<Collection<org.jboss.protean.arc.InstanceHandle<?>>> REQUEST_CONTEXT = AttachmentKey.create(Collection.class);
 
     public RuntimeValue<DeploymentInfo> createDeployment(String name, Set<String> knownFile, Set<String> knownDirectories) {
         DeploymentInfo d = new DeploymentInfo();
@@ -313,15 +322,49 @@ public class UndertowDeploymentTemplate {
                         return new Action<T, C>() {
                             @Override
                             public T call(HttpServerExchange exchange, C context) throws Exception {
+
                                 ManagedContext requestContext = beanContainer.requestContext();
                                 if (requestContext.isActive()) {
                                     return action.call(exchange, context);
                                 } else {
+                                    Collection<org.jboss.protean.arc.InstanceHandle<?>> existingRequestContext = exchange.getAttachment(REQUEST_CONTEXT);
                                     try {
-                                        requestContext.activate();
+                                        requestContext.activate(existingRequestContext);
                                         return action.call(exchange, context);
                                     } finally {
-                                        requestContext.terminate();
+                                        ServletRequestContext src = exchange.getAttachment(ServletRequestContext.ATTACHMENT_KEY);
+                                        HttpServletRequestImpl req = src.getOriginalRequest();
+                                        if(req.isAsyncStarted()) {
+                                            exchange.putAttachment(REQUEST_CONTEXT, requestContext.getAll());
+                                            requestContext.deactivate();
+                                            if(existingRequestContext == null) {
+                                                src.getServletRequest().getAsyncContext().addListener(new AsyncListener() {
+                                                    @Override
+                                                    public void onComplete(AsyncEvent event) throws IOException {
+                                                        for(org.jboss.protean.arc.InstanceHandle<?> i : exchange.getAttachment(REQUEST_CONTEXT)) {
+                                                            i.destroy();
+                                                        }
+                                                    }
+
+                                                    @Override
+                                                    public void onTimeout(AsyncEvent event) throws IOException {
+                                                        onComplete(event);
+                                                    }
+
+                                                    @Override
+                                                    public void onError(AsyncEvent event) throws IOException {
+                                                        onComplete(event);
+                                                    }
+
+                                                    @Override
+                                                    public void onStartAsync(AsyncEvent event) throws IOException {
+
+                                                    }
+                                                });
+                                            }
+                                        } else {
+                                            requestContext.terminate();
+                                        }
                                     }
                                 }
                             }

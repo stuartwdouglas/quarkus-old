@@ -116,7 +116,6 @@ public class ShamrockUnitTest implements BeforeAllCallback, AfterAllCallback, Te
         }
     }
 
-
     private void exportArchive(Path deploymentDir, Class<?> testClass) {
         try {
             JavaArchive archive = archiveProducer.get();
@@ -182,7 +181,7 @@ public class ShamrockUnitTest implements BeforeAllCallback, AfterAllCallback, Te
                             public void execute(BuildContext context) {
                                 try {
                                     Constructor<? extends BuildItem> ctor = buildItem.getConstructor(boolean.class, String[].class);
-                                    context.produce(ctor.newInstance(false, new String[]{testClass.getName()}));
+                                    context.produce(ctor.newInstance(false, new String[] { testClass.getName() }));
                                 } catch (Exception e) {
                                     throw new RuntimeException(e);
                                 }
@@ -206,7 +205,8 @@ public class ShamrockUnitTest implements BeforeAllCallback, AfterAllCallback, Te
                 started = true;
                 InjectionInstance<?> factory = null;
                 try {
-                    factory = InjectionFactoryTemplate.currentFactory().create(Class.forName(testClass.getName(), true, Thread.currentThread().getContextClassLoader()));
+                    factory = InjectionFactoryTemplate.currentFactory()
+                            .create(Class.forName(testClass.getName(), true, Thread.currentThread().getContextClassLoader()));
                 } catch (Exception e) {
                     throw new TestInstantiationException("Failed to create test instance", e);
                 }

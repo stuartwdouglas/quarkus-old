@@ -1,12 +1,14 @@
 package org.shamrock.security.test;
 
 import static org.hamcrest.Matchers.equalTo;
-import io.restassured.RestAssured;
+
 import org.jboss.shamrock.test.ShamrockUnitTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+
+import io.restassured.RestAssured;
 
 /**
  * Tests of BASIC authentication mechanism
@@ -18,14 +20,11 @@ public class BasicAuthTestCase {
     };
     @RegisterExtension
     static final ShamrockUnitTest config = new ShamrockUnitTest()
-            .setArchiveProducer(() ->
-                                        ShrinkWrap.create(JavaArchive.class)
-                                                .addClasses(testClasses)
-                                                .addAsManifestResource("microprofile-config.properties")
-                                                .addAsResource("test-users.properties")
-                                                .addAsResource("test-roles.properties")
-            );
-
+            .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
+                    .addClasses(testClasses)
+                    .addAsManifestResource("microprofile-config.properties")
+                    .addAsResource("test-users.properties")
+                    .addAsResource("test-roles.properties"));
 
     // Basic @ServletSecurity tests
     @Test()
@@ -33,6 +32,7 @@ public class BasicAuthTestCase {
         RestAssured.when().get("/secure-test").then()
                 .statusCode(401);
     }
+
     @Test()
     public void testSecureRoleFailure() {
         System.out.printf("Begin testSecureRoleFailure\n");
@@ -40,6 +40,7 @@ public class BasicAuthTestCase {
                 .when().get("/secure-test").then()
                 .statusCode(403);
     }
+
     @Test()
     public void testSecureAccessSuccess() {
         System.out.printf("Begin testSecureAccessSuccess\n");
@@ -56,6 +57,7 @@ public class BasicAuthTestCase {
         RestAssured.when().get("/jaxrs-secured/rolesClass").then()
                 .statusCode(401);
     }
+
     /**
      * Test access a secured jaxrs resource with authentication, but no authorization. should see 403 error code.
      */
@@ -65,6 +67,7 @@ public class BasicAuthTestCase {
                 .when().get("/jaxrs-secured/rolesClass").then()
                 .statusCode(403);
     }
+
     /**
      * Test access a secured jaxrs resource with authentication, and authorization. should see 200 success code.
      */
@@ -84,12 +87,14 @@ public class BasicAuthTestCase {
                 .when().get("/jaxrs-secured/parameterized-paths/my/banking/admin").then()
                 .statusCode(200);
     }
+
     @Test
     public void testJaxrsPathAdminRoleFailure() {
         RestAssured.given().auth().preemptive().basic("noadmin", "n0Adm1n")
                 .when().get("/jaxrs-secured/parameterized-paths/my/banking/admin").then()
                 .statusCode(403);
     }
+
     /**
      * Test access a secured jaxrs resource with authentication, and authorization. should see 200 success code.
      */

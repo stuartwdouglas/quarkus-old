@@ -16,6 +16,26 @@
 
 package org.jboss.shamrock.jpa;
 
+import static org.jboss.shamrock.annotations.ExecutionTime.RUNTIME_INIT;
+import static org.jboss.shamrock.annotations.ExecutionTime.STATIC_INIT;
+
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.enterprise.inject.Produces;
+import javax.persistence.PersistenceContext;
+import javax.persistence.PersistenceUnit;
+import javax.persistence.spi.PersistenceUnitTransactionType;
+
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.hibernate.boot.archive.scan.spi.ClassDescriptor;
 import org.hibernate.cfg.AvailableSettings;
@@ -47,33 +67,12 @@ import org.jboss.shamrock.deployment.builditem.substrate.ReflectiveClassBuildIte
 import org.jboss.shamrock.deployment.builditem.substrate.SubstrateResourceBuildItem;
 import org.jboss.shamrock.deployment.configuration.ConfigurationError;
 import org.jboss.shamrock.deployment.recording.RecorderContext;
-
-
 import org.jboss.shamrock.jpa.runtime.DefaultEntityManagerFactoryProducer;
 import org.jboss.shamrock.jpa.runtime.DefaultEntityManagerProducer;
 import org.jboss.shamrock.jpa.runtime.JPAConfig;
 import org.jboss.shamrock.jpa.runtime.JPADeploymentTemplate;
 import org.jboss.shamrock.jpa.runtime.TransactionEntityManagers;
 import org.jboss.shamrock.jpa.runtime.boot.scan.ShamrockScanner;
-
-import javax.enterprise.inject.Produces;
-import javax.persistence.PersistenceContext;
-import javax.persistence.PersistenceUnit;
-import javax.persistence.spi.PersistenceUnitTransactionType;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.jboss.shamrock.annotations.ExecutionTime.RUNTIME_INIT;
-import static org.jboss.shamrock.annotations.ExecutionTime.STATIC_INIT;
 
 /**
  * Simulacrum of JPA bootstrap.
@@ -82,7 +81,7 @@ import static org.jboss.shamrock.annotations.ExecutionTime.STATIC_INIT;
  * Rather prepare the path to providing the right metadata
  *
  * @author Emmanuel Bernard emmanuel@hibernate.org
- * @author Sanne Grinovero  <sanne@hibernate.org>
+ * @author Sanne Grinovero <sanne@hibernate.org>
  */
 public final class HibernateResourceProcessor {
 
@@ -109,12 +108,12 @@ public final class HibernateResourceProcessor {
 
     @BuildStep
     void doParseAndRegisterSubstrateResources(BuildProducer<PersistenceUnitDescriptorBuildItem> persistenceProducer,
-                                              BuildProducer<SubstrateResourceBuildItem> resourceProducer,
-                                              BuildProducer<HotDeploymentConfigFileBuildItem> hotDeploymentProducer,
-                                              ArchiveRootBuildItem root,
-                                              ApplicationArchivesBuildItem applicationArchivesBuildItem) throws IOException {
+            BuildProducer<SubstrateResourceBuildItem> resourceProducer,
+            BuildProducer<HotDeploymentConfigFileBuildItem> hotDeploymentProducer,
+            ArchiveRootBuildItem root,
+            ApplicationArchivesBuildItem applicationArchivesBuildItem) throws IOException {
         List<ParsedPersistenceXmlDescriptor> descriptors = loadOriginalXMLParsedDescriptors();
-        handleHibernateORMWithNoPersistenceXml(descriptors, resourceProducer, hotDeploymentProducer, root, applicationArchivesBuildItem );
+        handleHibernateORMWithNoPersistenceXml(descriptors, resourceProducer, hotDeploymentProducer, root, applicationArchivesBuildItem);
         for (ParsedPersistenceXmlDescriptor i : descriptors) {
             persistenceProducer.produce(new PersistenceUnitDescriptorBuildItem(i));
         }
@@ -133,7 +132,8 @@ public final class HibernateResourceProcessor {
     }
 
     @BuildStep
-    void registerBeans(BuildProducer<AdditionalBeanBuildItem> additionalBeans, CombinedIndexBuildItem combinedIndex, List<PersistenceUnitDescriptorBuildItem> descriptors) {
+    void registerBeans(BuildProducer<AdditionalBeanBuildItem> additionalBeans, CombinedIndexBuildItem combinedIndex,
+            List<PersistenceUnitDescriptorBuildItem> descriptors) {
         additionalBeans.produce(new AdditionalBeanBuildItem(false, JPAConfig.class, TransactionEntityManagers.class));
 
         if (descriptors.size() == 1) {
@@ -150,7 +150,7 @@ public final class HibernateResourceProcessor {
 
     @BuildStep
     void setupResourceInjection(BuildProducer<ResourceAnnotationBuildItem> resourceAnnotations, Capabilities capabilities,
-                                BuildProducer<GeneratedResourceBuildItem> resources) {
+            BuildProducer<GeneratedResourceBuildItem> resources) {
         resources.produce(new GeneratedResourceBuildItem("META-INF/services/org.jboss.protean.arc.ResourceReferenceProvider",
                 "org.jboss.shamrock.jpa.runtime.JPAResourceReferenceProvider".getBytes()));
         resourceAnnotations.produce(new ResourceAnnotationBuildItem(PERSISTENCE_CONTEXT));
@@ -160,14 +160,15 @@ public final class HibernateResourceProcessor {
     @BuildStep
     @Record(STATIC_INIT)
     public BeanContainerListenerBuildItem build(RecorderContext recorder, JPADeploymentTemplate template,
-                                                List<PersistenceUnitDescriptorBuildItem> descItems, CombinedIndexBuildItem index,
-                                                BuildProducer<BytecodeTransformerBuildItem> transformers,
-                                                BuildProducer<ReflectiveClassBuildItem> reflectiveClass,
-                                                BuildProducer<FeatureBuildItem> feature) throws Exception {
+            List<PersistenceUnitDescriptorBuildItem> descItems, CombinedIndexBuildItem index,
+            BuildProducer<BytecodeTransformerBuildItem> transformers,
+            BuildProducer<ReflectiveClassBuildItem> reflectiveClass,
+            BuildProducer<FeatureBuildItem> feature) throws Exception {
 
         feature.produce(new FeatureBuildItem(FeatureBuildItem.JPA));
 
-        List<ParsedPersistenceXmlDescriptor> descriptors = descItems.stream().map(PersistenceUnitDescriptorBuildItem::getDescriptor).collect(Collectors.toList());
+        List<ParsedPersistenceXmlDescriptor> descriptors = descItems.stream().map(PersistenceUnitDescriptorBuildItem::getDescriptor)
+                .collect(Collectors.toList());
 
         JpaJandexScavenger scavenger = new JpaJandexScavenger(reflectiveClass, descriptors, index.getIndex());
         final KnownDomainObjects domainObjects = scavenger.discoverModelAndRegisterForReflection();
@@ -192,15 +193,16 @@ public final class HibernateResourceProcessor {
         scanner.setClassDescriptors(classDescriptors);
 
         //now we serialize the XML and class list to bytecode, to remove the need to re-parse the XML on JVM startup
-        recorder.registerNonDefaultConstructor(ParsedPersistenceXmlDescriptor.class.getDeclaredConstructor(URL.class), (i) -> Collections.singletonList(i.getPersistenceUnitRootUrl()));
+        recorder.registerNonDefaultConstructor(ParsedPersistenceXmlDescriptor.class.getDeclaredConstructor(URL.class),
+                (i) -> Collections.singletonList(i.getPersistenceUnitRootUrl()));
         return new BeanContainerListenerBuildItem(template.initMetadata(descriptors, scanner));
     }
 
     @BuildStep
     @Record(STATIC_INIT)
     public void build(JPADeploymentTemplate template,
-                      Capabilities capabilities, BuildProducer<BeanContainerListenerBuildItem> buildProducer,
-                      List<PersistenceUnitDescriptorBuildItem> descriptors) throws Exception {
+            Capabilities capabilities, BuildProducer<BeanContainerListenerBuildItem> buildProducer,
+            List<PersistenceUnitDescriptorBuildItem> descriptors) throws Exception {
 
         buildProducer.produce(new BeanContainerListenerBuildItem(template.initializeJpa(capabilities.isCapabilityPresent(Capabilities.TRANSACTIONS))));
         // Bootstrap all persistence units
@@ -239,7 +241,7 @@ public final class HibernateResourceProcessor {
             BuildProducer<HotDeploymentConfigFileBuildItem> hotDeploymentProducer,
             ArchiveRootBuildItem root,
             ApplicationArchivesBuildItem applicationArchivesBuildItem) {
-        if ( descriptors.isEmpty() ) {
+        if (descriptors.isEmpty()) {
             //we have no persistence.xml so we will create a default one
             Optional<String> dialect = hibernateOrmConfig.flatMap(c -> c.dialect);
             if (!dialect.isPresent()) {
@@ -253,10 +255,10 @@ public final class HibernateResourceProcessor {
                 desc.getProperties().setProperty(AvailableSettings.DIALECT, s);
                 hibernateOrmConfig
                         .flatMap(c -> c.schemaGeneration)
-                        .ifPresent( p -> desc.getProperties().setProperty(AvailableSettings.HBM2DDL_DATABASE_ACTION, p) );
+                        .ifPresent(p -> desc.getProperties().setProperty(AvailableSettings.HBM2DDL_DATABASE_ACTION, p));
                 hibernateOrmConfig
                         .flatMap(c -> c.showSql)
-                        .ifPresent( sql -> {
+                        .ifPresent(sql -> {
                             if (sql.equals(Boolean.TRUE)) {
                                 desc.getProperties().setProperty(AvailableSettings.SHOW_SQL, "true");
                                 desc.getProperties().setProperty(AvailableSettings.FORMAT_SQL, "true");
@@ -272,8 +274,8 @@ public final class HibernateResourceProcessor {
                 Optional<Path> loadScriptPath = Optional.ofNullable(applicationArchivesBuildItem.getRootArchive().getChildPath(file));
                 // enlist resource if present
                 loadScriptPath
-                        .filter( path -> !Files.isDirectory(path))
-                        .ifPresent( path -> {
+                        .filter(path -> !Files.isDirectory(path))
+                        .ifPresent(path -> {
                             String resourceAsString = root.getPath().relativize(loadScriptPath.get()).toString();
                             resourceProducer.produce(new SubstrateResourceBuildItem(resourceAsString));
                             hotDeploymentProducer.produce(new HotDeploymentConfigFileBuildItem(resourceAsString));
@@ -282,18 +284,17 @@ public final class HibernateResourceProcessor {
 
                 //raise exception if explicit file is not present (i.e. not the default)
                 hibernateOrmConfig.flatMap(c -> c.sqlLoadScriptSource)
-                        .filter(o -> !loadScriptPath.filter( path -> !Files.isDirectory(path)).isPresent())
+                        .filter(o -> !loadScriptPath.filter(path -> !Files.isDirectory(path)).isPresent())
                         .ifPresent(
-                            c -> { throw new ConfigurationError(
-                                "Unable to find file referenced in 'shamrock.hibernate.sql-load-script-source="
-                                + c + "'. Remove property or add file to your path."
-                            );
-                        });
+                                c -> {
+                                    throw new ConfigurationError(
+                                            "Unable to find file referenced in 'shamrock.hibernate.sql-load-script-source="
+                                                    + c + "'. Remove property or add file to your path.");
+                                });
 
                 descriptors.add(desc);
             });
-        }
-        else {
+        } else {
             if (hibernateOrmConfig.isPresent() && hibernateOrmConfig.get().isAnyPropertySet()) {
                 hibernateOrmConfig.ifPresent(c -> {
                     throw new ConfigurationError("Hibernate ORM configuration present in persistence.xml and Shamrock config file at the same time\n"
@@ -314,12 +315,13 @@ public final class HibernateResourceProcessor {
         if (resolvedDriver.contains("org.h2.Driver")) {
             return Optional.of(H2Dialect.class.getName());
         }
-        if ( resolvedDriver.contains("org.mariadb.jdbc.Driver")) {
+        if (resolvedDriver.contains("org.mariadb.jdbc.Driver")) {
             return Optional.of(MariaDB103Dialect.class.getName());
         }
-        String error = driver.isPresent() ?
-                "Hibernate extension could not guess the dialect from the driver '" + resolvedDriver + "'. Add an explicit 'shamrock.hibernate.dialect' property." :
-                "Hibernate extension cannot guess the dialect as no JDBC driver is specified by 'shamrock.datasource.driver'";
+        String error = driver.isPresent()
+                ? "Hibernate extension could not guess the dialect from the driver '" + resolvedDriver
+                        + "'. Add an explicit 'shamrock.hibernate.dialect' property."
+                : "Hibernate extension cannot guess the dialect as no JDBC driver is specified by 'shamrock.datasource.driver'";
         throw new ConfigurationError(error);
     }
 

@@ -87,7 +87,7 @@ public final class LoggingResourceProcessor {
     /**
      * The default minimum log level
      */
-    @ConfigProperty(name = "shamrock.log.min-level",  defaultValue = "INFO")
+    @ConfigProperty(name = "shamrock.log.min-level", defaultValue = "INFO")
     String rootMinLevel;
 
     /**
@@ -122,7 +122,8 @@ public final class LoggingResourceProcessor {
         final MethodCreator minimumLevelOf;
         final MethodCreator levelOf;
         final MethodCreator handlersOf;
-        try (ClassCreator cc = new ClassCreator(new ProcessorClassOutput(generatedClass), GENERATED_CONFIGURATOR, null, "java/lang/Object", "org/jboss/logmanager/EmbeddedConfigurator")) {
+        try (ClassCreator cc = new ClassCreator(new ProcessorClassOutput(generatedClass), GENERATED_CONFIGURATOR, null, "java/lang/Object",
+                "org/jboss/logmanager/EmbeddedConfigurator")) {
             // TODO set source file
             final MethodCreator ctor = cc.getMethodCreator("<init>", void.class);
             ctor.setModifiers(Opcodes.ACC_PUBLIC);
@@ -157,16 +158,13 @@ public final class LoggingResourceProcessor {
 
             // in image build phase, do a special console handler config
 
-            final BytecodeCreator ifRootLogger = ifRootLogger(handlersOf, b ->
-                    b.readStaticField(
-                            FieldDescriptor.of(
-                                    EmbeddedConfigurator.class.getName(),
-                                    "NO_HANDLERS",
-                                    "[Ljava/util/logging/Handler;"
-                            )
-                    )
-            );
-            BranchResult buildOrRunBranchResult = ifRootLogger.ifNonZero(ifRootLogger.invokeStaticMethod(MethodDescriptor.ofMethod(ImageInfo.class, "inImageBuildtimeCode", boolean.class)));
+            final BytecodeCreator ifRootLogger = ifRootLogger(handlersOf, b -> b.readStaticField(
+                    FieldDescriptor.of(
+                            EmbeddedConfigurator.class.getName(),
+                            "NO_HANDLERS",
+                            "[Ljava/util/logging/Handler;")));
+            BranchResult buildOrRunBranchResult = ifRootLogger
+                    .ifNonZero(ifRootLogger.invokeStaticMethod(MethodDescriptor.ofMethod(ImageInfo.class, "inImageBuildtimeCode", boolean.class)));
 
             // run time
             BytecodeCreator branch = buildOrRunBranchResult.falseBranch();
@@ -182,37 +180,30 @@ public final class LoggingResourceProcessor {
                     final BytecodeCreator trueBranch = consoleBranchResult.trueBranch();
                     trueBranch.assign(formatter, trueBranch.newInstance(
                             MethodDescriptor.ofConstructor(PatternFormatter.class, String.class),
-                            consoleFormatResult
-                    ));
+                            consoleFormatResult));
                     final BytecodeCreator falseBranch = consoleBranchResult.falseBranch();
                     falseBranch.assign(formatter, falseBranch.newInstance(
                             MethodDescriptor.ofConstructor(ColorPatternFormatter.class, String.class),
-                            consoleFormatResult
-                    ));
+                            consoleFormatResult));
                 } else {
                     branch.assign(formatter, branch.newInstance(
                             MethodDescriptor.ofConstructor(PatternFormatter.class, String.class),
-                            consoleFormatResult
-                    ));
+                            consoleFormatResult));
                 }
                 console = branch.newInstance(
                         MethodDescriptor.ofConstructor(ConsoleHandler.class, Formatter.class),
-                        formatter
-                );
+                        formatter);
                 branch.invokeVirtualMethod(
                         MethodDescriptor.ofMethod(ConsoleHandler.class, "setLevel", void.class, Level.class),
                         console,
-                        getLevelFor(branch, consoleLevel)
-                );
+                        getLevelFor(branch, consoleLevel));
                 consoleErrorManager = branch.invokeVirtualMethod(
                         MethodDescriptor.ofMethod(ConsoleHandler.class, "getLocalErrorManager", ErrorManager.class),
-                        console
-                );
+                        console);
                 branch.invokeVirtualMethod(
                         MethodDescriptor.ofMethod(ConsoleHandler.class, "setLevel", void.class, Level.class),
                         console,
-                        getLevelFor(branch, consoleLevel)
-                );
+                        getLevelFor(branch, consoleLevel));
             } else {
                 consoleErrorManager = null;
                 console = null;
@@ -220,28 +211,23 @@ public final class LoggingResourceProcessor {
             if (fileEnable) {
                 ResultHandle formatter = branch.newInstance(
                         MethodDescriptor.ofConstructor(PatternFormatter.class, String.class),
-                        branch.load(fileFormat)
-                );
+                        branch.load(fileFormat));
                 file = branch.newInstance(
                         MethodDescriptor.ofConstructor(FileHandler.class, Formatter.class),
-                        formatter
-                );
+                        formatter);
                 branch.invokeVirtualMethod(
                         MethodDescriptor.ofMethod(FileHandler.class, "setLevel", void.class, Level.class),
                         file,
-                        getLevelFor(branch, fileLevel)
-                );
+                        getLevelFor(branch, fileLevel));
                 branch.invokeVirtualMethod(
                         MethodDescriptor.ofMethod(FileHandler.class, "setFile", void.class, File.class),
                         file,
-                        branch.newInstance(MethodDescriptor.ofConstructor(File.class, String.class), branch.load(filePath))
-                );
+                        branch.newInstance(MethodDescriptor.ofConstructor(File.class, String.class), branch.load(filePath)));
                 if (consoleErrorManager != null) {
                     branch.invokeVirtualMethod(
                             MethodDescriptor.ofMethod(FileHandler.class, "setErrorManager", void.class, ErrorManager.class),
                             file,
-                            consoleErrorManager
-                    );
+                            consoleErrorManager);
                 }
             } else {
                 file = null;
@@ -270,25 +256,20 @@ public final class LoggingResourceProcessor {
             );
             console = branch.newInstance(
                     MethodDescriptor.ofConstructor(ConsoleHandler.class, Formatter.class),
-                    formatter
-            );
+                    formatter);
             branch.invokeVirtualMethod(
                     MethodDescriptor.ofMethod(ConsoleHandler.class, "setLevel", void.class, Level.class),
                     console,
-                    getLevelFor(branch, "ALL")
-            );
+                    getLevelFor(branch, "ALL"));
             array = branch.newArray(
                     Handler[].class,
-                    branch.load(1)
-            );
+                    branch.load(1));
             branch.writeArrayValue(
                     array,
                     branch.load(0),
-                    console
-            );
+                    console);
             branch.returnValue(
-                    array
-            );
+                    array);
 
             // levels do not have the option of being reconfigured at run time
             BytecodeCreator levelOfBc = ifNotRootLogger(levelOf, b -> getLevelFor(b, rootLevel));
@@ -307,7 +288,8 @@ public final class LoggingResourceProcessor {
             minLevelOfBc.returnValue(levelOfBc.loadNull());
         }
 
-        generatedResource.produce(new GeneratedResourceBuildItem("META-INF/services/org.jboss.logmanager.EmbeddedConfigurator", GENERATED_CONFIGURATOR.replace('/', '.').getBytes(StandardCharsets.UTF_8)));
+        generatedResource.produce(new GeneratedResourceBuildItem("META-INF/services/org.jboss.logmanager.EmbeddedConfigurator",
+                GENERATED_CONFIGURATOR.replace('/', '.').getBytes(StandardCharsets.UTF_8)));
 
         // now inject the system property setter
         systemProp.produce(new SubstrateSystemPropertyBuildItem("java.util.logging.manager", "org.jboss.logmanager.LogManager"));
@@ -318,8 +300,7 @@ public final class LoggingResourceProcessor {
                 orig.invokeVirtualMethod(
                         MethodDescriptor.ofMethod(String.class, "isEmpty", boolean.class),
                         orig.getMethodParam(0) // name
-                )
-        );
+                ));
         final BytecodeCreator falseBranch = branchResult.falseBranch();
         falseBranch.returnValue(returnIfNotRoot.apply(falseBranch));
 
@@ -331,8 +312,7 @@ public final class LoggingResourceProcessor {
                 orig.invokeVirtualMethod(
                         MethodDescriptor.ofMethod(String.class, "isEmpty", boolean.class),
                         orig.getMethodParam(0) // name
-                )
-        );
+                ));
         final BytecodeCreator trueBranch = branchResult.trueBranch();
         trueBranch.returnValue(returnIfRoot.apply(trueBranch));
 
@@ -344,9 +324,7 @@ public final class LoggingResourceProcessor {
                 orig.invokeVirtualMethod(
                         MethodDescriptor.ofMethod(String.class, "equals", boolean.class, Object.class),
                         orig.getMethodParam(0), // name
-                        orig.load(category)
-                )
-        );
+                        orig.load(category)));
         final BytecodeCreator trueBranch = branchResult.trueBranch();
         trueBranch.returnValue(returnIfCategory.apply(trueBranch));
 
@@ -377,8 +355,7 @@ public final class LoggingResourceProcessor {
             default:
                 return bc.invokeStaticMethod(
                         MethodDescriptor.ofMethod(Level.class, "parse", Level.class, String.class),
-                        bc.load(levelName)
-                );
+                        bc.load(levelName));
         }
     }
 

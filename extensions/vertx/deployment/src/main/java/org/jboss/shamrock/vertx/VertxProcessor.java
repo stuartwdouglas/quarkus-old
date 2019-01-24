@@ -59,7 +59,6 @@ class VertxProcessor {
                 .build();
     }
 
-
     /**
      * The Vert.x configuration, if set.
      */
@@ -79,10 +78,5 @@ class VertxProcessor {
                 .map(conf -> new BeanContainerListenerBuildItem(template.configureVertx(conf)))
                 .orElseGet(() -> new BeanContainerListenerBuildItem(template.configureVertx(null)));
     }
-
-
-
-
-
 
 }

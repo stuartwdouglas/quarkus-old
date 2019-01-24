@@ -1,10 +1,6 @@
 package org.jboss.shamrock.cli.commands;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.maven.model.Model;
-import org.jboss.shamrock.maven.utilities.MojoUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,7 +11,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.apache.commons.io.FileUtils;
+import org.apache.maven.model.Model;
+import org.jboss.shamrock.maven.utilities.MojoUtils;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class CreateProjectTest {
     @Test
@@ -23,8 +23,8 @@ public class CreateProjectTest {
         final File file = new File("target/basic-rest");
         delete(file);
         final CreateProject createProject = new CreateProject(file).groupId("org.jboss.shamrock")
-                                                                   .artifactId("basic-rest")
-                                                                   .version("1.0.0-SNAPSHOT");
+                .artifactId("basic-rest")
+                .version("1.0.0-SNAPSHOT");
 
         Assert.assertTrue(createProject.doCreateProject(new HashMap<>()));
     }
@@ -43,13 +43,13 @@ public class CreateProjectTest {
         final File pom = new File(testDir, "pom.xml");
         MojoUtils.write(model, pom);
         final CreateProject createProject = new CreateProject(testDir).groupId("something.is")
-                                                                   .artifactId("wrong")
-                                                                   .version("1.0.0-SNAPSHOT");
+                .artifactId("wrong")
+                .version("1.0.0-SNAPSHOT");
 
         Assert.assertTrue(createProject.doCreateProject(new HashMap<>()));
 
         assertThat(FileUtils.readFileToString(pom, "UTF-8"))
-            .contains(MojoUtils.SHAMROCK_PLUGIN_ARTIFACT_ID, MojoUtils.SHAMROCK_VERSION_VARIABLE, MojoUtils.SHAMROCK_GROUP_ID);
+                .contains(MojoUtils.SHAMROCK_PLUGIN_ARTIFACT_ID, MojoUtils.SHAMROCK_VERSION_VARIABLE, MojoUtils.SHAMROCK_GROUP_ID);
         assertThat(new File(testDir, "src/main/java")).isDirectory();
         assertThat(new File(testDir, "src/test/java")).isDirectory();
 
@@ -57,9 +57,10 @@ public class CreateProjectTest {
         assertThat(new File(testDir, "src/main/resources/META-INF/resources/index.html")).exists();
 
         assertThat(FileUtils.readFileToString(new File(testDir, "pom.xml"), "UTF-8"))
-            .containsIgnoringCase(MojoUtils.SHAMROCK_BOM_ARTIFACT_ID);
+                .containsIgnoringCase(MojoUtils.SHAMROCK_BOM_ARTIFACT_ID);
 
     }
+
     @Test
     public void createNewWithCustomizations() throws IOException {
         final File testDir = new File("target/existing");
@@ -74,16 +75,16 @@ public class CreateProjectTest {
         properties.put("extensions", "commons-io:commons-io:2.5");
 
         Assert.assertTrue(new CreateProject(testDir).groupId("org.acme")
-                                                    .artifactId("acme")
-                                                    .version("1.0.0-SNAPSHOT")
-                                                    .doCreateProject(properties));
+                .artifactId("acme")
+                .version("1.0.0-SNAPSHOT")
+                .doCreateProject(properties));
 
         assertThat(new File(testDir, "pom.xml")).isFile();
         assertThat(new File(testDir, "src/main/java/org/acme/MyResource.java")).isFile();
         assertThat(new File(testDir, "src/main/java/org/acme/MyApplication.java")).isFile();
 
         assertThat(FileUtils.readFileToString(pom, "UTF-8"))
-            .contains(MojoUtils.SHAMROCK_PLUGIN_ARTIFACT_ID, MojoUtils.SHAMROCK_VERSION_VARIABLE, MojoUtils.SHAMROCK_GROUP_ID);
+                .contains(MojoUtils.SHAMROCK_PLUGIN_ARTIFACT_ID, MojoUtils.SHAMROCK_VERSION_VARIABLE, MojoUtils.SHAMROCK_GROUP_ID);
         assertThat(new File(testDir, "src/main/java")).isDirectory();
         assertThat(new File(testDir, "src/test/java")).isDirectory();
 
@@ -91,7 +92,7 @@ public class CreateProjectTest {
         assertThat(new File(testDir, "src/main/resources/META-INF/resources/index.html")).exists();
 
         assertThat(FileUtils.readFileToString(new File(testDir, "pom.xml"), "UTF-8"))
-            .containsIgnoringCase(MojoUtils.SHAMROCK_BOM_ARTIFACT_ID);
+                .containsIgnoringCase(MojoUtils.SHAMROCK_BOM_ARTIFACT_ID);
 
     }
 
@@ -99,12 +100,12 @@ public class CreateProjectTest {
 
         if (file.exists()) {
             Files.walk(file.toPath())
-                 .sorted(Comparator.reverseOrder())
-                 .map(Path::toFile)
-                 .forEach(File::delete);
+                    .sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .forEach(File::delete);
         }
 
         Assert.assertFalse("Directory still exists",
-            Files.exists(file.toPath()));
+                Files.exists(file.toPath()));
     }
 }

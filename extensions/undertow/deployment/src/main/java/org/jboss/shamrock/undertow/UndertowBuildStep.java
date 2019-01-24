@@ -136,17 +136,17 @@ public class UndertowBuildStep {
     @BuildStep
     @Record(RUNTIME_INIT)
     public ServiceStartBuildItem boot(UndertowDeploymentTemplate template,
-                                      ServletDeploymentBuildItem servletDeploymentBuildItem,
-                                      List<HttpHandlerWrapperBuildItem> wrappers,
-                                      ShutdownContextBuildItem shutdown,
-                                      BuildProducer<UndertowBuildItem> undertowProducer,
-                                      BuildProducer<HttpServerBuiltItem> serverProducer) throws Exception {
-        RuntimeValue<Undertow> ut = template.startUndertow(shutdown, servletDeploymentBuildItem.getDeployment(), config, wrappers.stream().map(HttpHandlerWrapperBuildItem::getValue).collect(Collectors.toList()));
+            ServletDeploymentBuildItem servletDeploymentBuildItem,
+            List<HttpHandlerWrapperBuildItem> wrappers,
+            ShutdownContextBuildItem shutdown,
+            BuildProducer<UndertowBuildItem> undertowProducer,
+            BuildProducer<HttpServerBuiltItem> serverProducer) throws Exception {
+        RuntimeValue<Undertow> ut = template.startUndertow(shutdown, servletDeploymentBuildItem.getDeployment(), config,
+                wrappers.stream().map(HttpHandlerWrapperBuildItem::getValue).collect(Collectors.toList()));
         undertowProducer.produce(new UndertowBuildItem(ut));
         serverProducer.produce(new HttpServerBuiltItem(config.host, config.port));
         return new ServiceStartBuildItem("undertow");
     }
-
 
     @BuildStep
     SubstrateConfigBuildItem config() {
@@ -156,7 +156,7 @@ public class UndertowBuildStep {
 
                 .build();
     }
-    
+
     @BuildStep
     HotDeploymentConfigFileBuildItem configFile() {
         return new HotDeploymentConfigFileBuildItem(WEB_XML);
@@ -165,18 +165,19 @@ public class UndertowBuildStep {
     @Record(STATIC_INIT)
     @BuildStep()
     public ServletDeploymentBuildItem build(ApplicationArchivesBuildItem applicationArchivesBuildItem,
-                                            List<ServletBuildItem> servlets,
-                                            List<FilterBuildItem> filters,
-                                            List<ServletInitParamBuildItem> initParams,
-                                            List<ServletContextAttributeBuildItem> contextParams,
-                                            UndertowDeploymentTemplate template, RecorderContext context,
-                                            List<ServletExtensionBuildItem> extensions,
-                                            InjectionFactoryBuildItem injectionFactory,
-                                            InjectionFactoryBuildItem bc,
-                                            BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) throws Exception {
+            List<ServletBuildItem> servlets,
+            List<FilterBuildItem> filters,
+            List<ServletInitParamBuildItem> initParams,
+            List<ServletContextAttributeBuildItem> contextParams,
+            UndertowDeploymentTemplate template, RecorderContext context,
+            List<ServletExtensionBuildItem> extensions,
+            InjectionFactoryBuildItem injectionFactory,
+            InjectionFactoryBuildItem bc,
+            BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) throws Exception {
 
         context.registerSubstitution(ServletSecurityInfo.class, ServletSecurityInfoProxy.class, ServletSecurityInfoSubstitution.class);
-        reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, DefaultServlet.class.getName(), "io.undertow.server.protocol.http.HttpRequestParser$$generated"));
+        reflectiveClasses.produce(
+                new ReflectiveClassBuildItem(false, false, DefaultServlet.class.getName(), "io.undertow.server.protocol.http.HttpRequestParser$$generated"));
 
         //we need to check for web resources in order to get welcome files to work
         //this kinda sucks
@@ -237,7 +238,8 @@ public class UndertowBuildStep {
                     }
                 }
                 if (servlet.getMultipartConfig() != null) {
-                    template.setMultipartConfig(sref, servlet.getMultipartConfig().getLocation(), servlet.getMultipartConfig().getMaxFileSize(), servlet.getMultipartConfig().getMaxRequestSize(), servlet.getMultipartConfig().getFileSizeThreshold());
+                    template.setMultipartConfig(sref, servlet.getMultipartConfig().getLocation(), servlet.getMultipartConfig().getMaxFileSize(),
+                            servlet.getMultipartConfig().getMaxRequestSize(), servlet.getMultipartConfig().getFileSizeThreshold());
                 }
                 // Map the @ServletSecurity annotations
                 if (result.getAnnotations() != null) {
@@ -322,7 +324,8 @@ public class UndertowBuildStep {
             if (servlet.getLoadOnStartup() == 0) {
                 reflectiveClasses.produce(new ReflectiveClassBuildItem(false, false, servlet.getServletClass()));
             }
-            template.registerServlet(deployment, servlet.getName(), context.classProxy(servletClass), servlet.isAsyncSupported(), servlet.getLoadOnStartup(), injectionFactory.getFactory());
+            template.registerServlet(deployment, servlet.getName(), context.classProxy(servletClass), servlet.isAsyncSupported(), servlet.getLoadOnStartup(),
+                    injectionFactory.getFactory());
 
             for (String m : servlet.getMappings()) {
                 template.addServletMapping(deployment, servlet.getName(), m);
@@ -356,7 +359,7 @@ public class UndertowBuildStep {
 
     @BuildStep
     SubstrateResourceBuildItem registerSubstrateResources(ArchiveRootBuildItem root,
-                                                          ApplicationArchivesBuildItem applicationArchivesBuildItem) throws IOException {
+            ApplicationArchivesBuildItem applicationArchivesBuildItem) throws IOException {
         List<String> res = new ArrayList<>();
         Path resources = applicationArchivesBuildItem.getRootArchive().getChildPath("META-INF/resources");
         if (resources != null) {
@@ -429,11 +432,10 @@ public class UndertowBuildStep {
                 AnnotationValue displayNameValue = annotation.value("displayName");
                 AnnotationValue smallIconValue = annotation.value("smallIcon");
                 AnnotationValue largeIconValue = annotation.value("largeIcon");
-                DescriptionGroupMetaData descriptionGroup =
-                        getDescriptionGroup((descriptionValue == null) ? "" : descriptionValue.asString(),
-                                (displayNameValue == null) ? "" : displayNameValue.asString(),
-                                (smallIconValue == null) ? "" : smallIconValue.asString(),
-                                (largeIconValue == null) ? "" : largeIconValue.asString());
+                DescriptionGroupMetaData descriptionGroup = getDescriptionGroup((descriptionValue == null) ? "" : descriptionValue.asString(),
+                        (displayNameValue == null) ? "" : displayNameValue.asString(),
+                        (smallIconValue == null) ? "" : smallIconValue.asString(),
+                        (largeIconValue == null) ? "" : largeIconValue.asString());
                 if (descriptionGroup != null) {
                     servlet.setDescriptionGroup(descriptionGroup);
                 }
@@ -508,11 +510,10 @@ public class UndertowBuildStep {
                 AnnotationValue displayNameValue = annotation.value("displayName");
                 AnnotationValue smallIconValue = annotation.value("smallIcon");
                 AnnotationValue largeIconValue = annotation.value("largeIcon");
-                DescriptionGroupMetaData descriptionGroup =
-                        getDescriptionGroup((descriptionValue == null) ? "" : descriptionValue.asString(),
-                                (displayNameValue == null) ? "" : displayNameValue.asString(),
-                                (smallIconValue == null) ? "" : smallIconValue.asString(),
-                                (largeIconValue == null) ? "" : largeIconValue.asString());
+                DescriptionGroupMetaData descriptionGroup = getDescriptionGroup((descriptionValue == null) ? "" : descriptionValue.asString(),
+                        (displayNameValue == null) ? "" : displayNameValue.asString(),
+                        (smallIconValue == null) ? "" : smallIconValue.asString(),
+                        (largeIconValue == null) ? "" : largeIconValue.asString());
                 if (descriptionGroup != null) {
                     filter.setDescriptionGroup(descriptionGroup);
                 }
@@ -801,7 +802,7 @@ public class UndertowBuildStep {
     }
 
     protected DescriptionGroupMetaData getDescriptionGroup(String description, String displayName, String smallIcon,
-                                                           String largeIcon) {
+            String largeIcon) {
         DescriptionGroupMetaData dg = null;
         if (description.length() > 0 || displayName.length() > 0 || smallIcon.length() > 0 || largeIcon.length() > 0) {
             dg = new DescriptionGroupMetaData();

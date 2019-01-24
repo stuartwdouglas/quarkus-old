@@ -19,6 +19,7 @@ package org.jboss.shamrock.maven;
 
 import java.io.File;
 import java.util.List;
+
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -71,7 +72,7 @@ public class BuildMojo extends AbstractMojo {
      * @parameter default-value="${project.remoteProjectRepositories}"
      * @readonly
      */
-    @Parameter( defaultValue = "${project.remoteProjectRepositories}", readonly = true, required = true )
+    @Parameter(defaultValue = "${project.remoteProjectRepositories}", readonly = true, required = true)
     private List<RemoteRepository> repos;
 
     /**
@@ -80,7 +81,7 @@ public class BuildMojo extends AbstractMojo {
      * @parameter default-value="${project.remotePluginRepositories}"
      * @readonly
      */
-    @Parameter( defaultValue = "${project.remotePluginRepositories}", readonly = true, required = true )
+    @Parameter(defaultValue = "${project.remotePluginRepositories}", readonly = true, required = true)
     private List<RemoteRepository> pluginRepos;
 
     /**
@@ -130,7 +131,7 @@ public class BuildMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
-        try(AppCreator appCreator = AppCreator.builder()
+        try (AppCreator appCreator = AppCreator.builder()
                 // configure the build phases we want the app to go through
                 .addPhase(new AugmentPhase()
                         .setAppClassesDir(outputDirectory.toPath())

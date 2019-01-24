@@ -66,7 +66,6 @@ public class PropertiesRealmConfig {
         return "{enabled,users,roles,authMechanism,realmName}";
     }
 
-
     public boolean isEnabled() {
         return enabled;
     }
@@ -110,6 +109,7 @@ public class PropertiesRealmConfig {
     /**
      * Used to access what should be a parent class, but parsing of the MP config properties is not working
      * from parent to child
+     * 
      * @return AuthConfig information
      */
     public AuthConfig getAuthConfig() {

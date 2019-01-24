@@ -30,4 +30,3 @@ public final class Target_ConnectionSpec {
         return false;
     }
 }
-

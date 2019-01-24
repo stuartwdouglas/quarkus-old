@@ -70,7 +70,7 @@ public class MetricsProcessor {
     }
 
     @BuildStep
-    void beans( BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
+    void beans(BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
         additionalBeans.produce(new AdditionalBeanBuildItem(MetricProducer.class,
                 MetricNameFactory.class,
                 MetricRegistries.class,
@@ -85,10 +85,10 @@ public class MetricsProcessor {
     @BuildStep
     @Record(STATIC_INIT)
     public void build(BeanContainerBuildItem beanContainerBuildItem,
-                      MetricsDeploymentTemplate metrics,
-                      BuildProducer<ReflectiveClassBuildItem> reflectiveClasses,
-                      BeanArchiveIndexBuildItem beanArchiveIndex,
-                      BuildProducer<FeatureBuildItem> feature) throws Exception {
+            MetricsDeploymentTemplate metrics,
+            BuildProducer<ReflectiveClassBuildItem> reflectiveClasses,
+            BeanArchiveIndexBuildItem beanArchiveIndex,
+            BuildProducer<FeatureBuildItem> feature) throws Exception {
 
         feature.produce(new FeatureBuildItem(FeatureBuildItem.MP_METRICS));
 

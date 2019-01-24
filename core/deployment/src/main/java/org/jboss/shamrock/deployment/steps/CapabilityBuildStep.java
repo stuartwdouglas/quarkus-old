@@ -25,7 +25,7 @@ public class CapabilityBuildStep implements BuildStep {
     private final String capability;
 
     public CapabilityBuildStep(String capability) {
-        if(capability == null) {
+        if (capability == null) {
             throw new IllegalArgumentException("capability cannot be null");
         }
         this.capability = capability;

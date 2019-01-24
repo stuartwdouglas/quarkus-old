@@ -25,11 +25,12 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLContextSpi;
 import javax.net.ssl.SSLException;
 
+import org.wildfly.openssl.OpenSSLContextSPI;
+import org.wildfly.openssl.OpenSSLProvider;
+
 import com.oracle.svm.core.annotate.Alias;
 import com.oracle.svm.core.annotate.Substitute;
 import com.oracle.svm.core.annotate.TargetClass;
-import org.wildfly.openssl.OpenSSLContextSPI;
-import org.wildfly.openssl.OpenSSLProvider;
 
 /**
  */
@@ -85,4 +86,3 @@ public final class SSLContextSubstitution {
         }
     }
 }
-

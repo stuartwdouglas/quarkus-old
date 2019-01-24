@@ -109,7 +109,6 @@ public class ShamrockAugmentor {
         }
     }
 
-
     public static Builder builder() {
         return new Builder();
     }

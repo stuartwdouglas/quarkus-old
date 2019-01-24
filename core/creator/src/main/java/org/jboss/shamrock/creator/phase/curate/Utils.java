@@ -40,7 +40,6 @@ import org.jboss.shamrock.creator.AppArtifact;
 import org.jboss.shamrock.creator.AppCreatorException;
 import org.jboss.shamrock.creator.AppDependency;
 
-
 /**
  *
  * @author Alexey Loubyansky
@@ -52,8 +51,8 @@ public class Utils {
     /**
      * Returns the provisioning state artifact for the given application artifact
      *
-     * @param appArtifact  application artifact
-     * @return  provisioning state artifact
+     * @param appArtifact application artifact
+     * @return provisioning state artifact
      */
     static AppArtifact getStateArtifact(AppArtifact appArtifact) {
         return new AppArtifact(appArtifact.getGroupId() + ".shamrock.curate",
@@ -66,15 +65,15 @@ public class Utils {
     /**
      * Filters out non-platform and transitive dependencies.
      *
-     * @param appDeps  resolved application dependencies
-     * @return  dependencies that can be checked for updates
-     * @throws AppCreatorException  in case of a failure
+     * @param appDeps resolved application dependencies
+     * @return dependencies that can be checked for updates
+     * @throws AppCreatorException in case of a failure
      */
     static List<AppDependency> getUpdateCandidates(List<AppDependency> appDeps) throws AppCreatorException {
         final List<AppDependency> updateCandidates = new ArrayList<>();
-        for(AppDependency dep : appDeps) {
+        for (AppDependency dep : appDeps) {
             final String groupId = dep.getArtifact().getGroupId();
-            if(!groupId.equals("org.jboss.shamrock") || "test".equals(dep.getScope())) {
+            if (!groupId.equals("org.jboss.shamrock") || "test".equals(dep.getScope())) {
                 continue;
             }
             updateCandidates.add(dep);
@@ -85,29 +84,31 @@ public class Utils {
     /**
      * Filters out non-platform from application POM dependencies.
      *
-     * @param deps  POM model application dependencies
-     * @param appDeps  resolved application dependencies
-     * @return  dependencies that can be checked for updates
-     * @throws AppCreatorException  in case of a failure
+     * @param deps POM model application dependencies
+     * @param appDeps resolved application dependencies
+     * @return dependencies that can be checked for updates
+     * @throws AppCreatorException in case of a failure
      */
     static List<AppDependency> getUpdateCandidates(List<Dependency> deps, List<AppDependency> appDeps) throws AppCreatorException {
         final Map<ArtifactKey, AppDependency> appDepMap = new HashMap<>(appDeps.size());
-        for(AppDependency appDep : appDeps) {
+        for (AppDependency appDep : appDeps) {
             appDepMap.put(new ArtifactKey(appDep.getArtifact()), appDep);
         }
         final List<AppDependency> updateCandidates = new ArrayList<>(deps.size());
-        for(Dependency dep : deps) {
-            if(!dep.getGroupId().equals("org.jboss.shamrock") || "test".equals(dep.getScope())) {
+        for (Dependency dep : deps) {
+            if (!dep.getGroupId().equals("org.jboss.shamrock") || "test".equals(dep.getScope())) {
                 continue;
             }
             final AppDependency appDep = appDepMap.remove(new ArtifactKey(dep));
-            if(appDep == null) {
-                throw new AppCreatorException("Failed to locate dependency " + new AppArtifact(dep.getGroupId(), dep.getArtifactId(), dep.getClassifier(), dep.getType(), dep.getVersion()) + " present in pom.xml among resolved application dependencies");
+            if (appDep == null) {
+                throw new AppCreatorException("Failed to locate dependency "
+                        + new AppArtifact(dep.getGroupId(), dep.getArtifactId(), dep.getClassifier(), dep.getType(), dep.getVersion())
+                        + " present in pom.xml among resolved application dependencies");
             }
             updateCandidates.add(appDep);
         }
-        for(AppDependency appDep : appDepMap.values()) {
-            if(appDep.getArtifact().getGroupId().equals("org.jboss.shamrock")) {
+        for (AppDependency appDep : appDepMap.values()) {
+            if (appDep.getArtifact().getGroupId().equals("org.jboss.shamrock")) {
                 updateCandidates.add(appDep);
             }
         }
@@ -147,7 +148,7 @@ public class Utils {
     static Model readAppModel(Path appJar, AppArtifact appArtifact) throws AppCreatorException {
         try (FileSystem fs = FileSystems.newFileSystem(appJar, null)) {
             final Path pomXml = fs.getPath("META-INF", "maven", appArtifact.getGroupId(), appArtifact.getArtifactId(), "pom.xml");
-            if(!Files.exists(pomXml)) {
+            if (!Files.exists(pomXml)) {
                 throw new AppCreatorException("Failed to located META-INF/maven/<groupId>/<artifactId>/pom.xml in " + appJar);
             }
             try {
@@ -183,20 +184,20 @@ public class Utils {
                                         throw new AppCreatorException("Failed to read " + pomXml, e);
                                     }
                                     Properties props = null;
-                                    if(model.getGroupId() == null) {
+                                    if (model.getGroupId() == null) {
                                         props = loadPomProps(appJar, artifactIdPath);
                                         final String groupId = props.getProperty("groupId");
-                                        if(groupId == null) {
+                                        if (groupId == null) {
                                             throw new AppCreatorException("Failed to determine groupId for " + appJar);
                                         }
                                         model.setGroupId(groupId);
                                     }
-                                    if(model.getVersion() == null) {
-                                        if(props == null) {
+                                    if (model.getVersion() == null) {
+                                        if (props == null) {
                                             props = loadPomProps(appJar, artifactIdPath);
                                         }
                                         final String version = props.getProperty("version");
-                                        if(version == null) {
+                                        if (version == null) {
                                             throw new AppCreatorException("Failed to determine the artifact version for " + appJar);
                                         }
                                         model.setVersion(version);
@@ -216,20 +217,20 @@ public class Utils {
 
     private static Properties loadPomProps(Path appJar, Path artifactIdPath) throws AppCreatorException {
         final Path propsPath = artifactIdPath.resolve("pom.properties");
-        if(!Files.exists(propsPath)) {
+        if (!Files.exists(propsPath)) {
             throw new AppCreatorException("Failed to located META-INF/maven/<groupId>/<artifactId>/pom.properties in " + appJar);
         }
         final Properties props = new Properties();
-        try(BufferedReader reader = Files.newBufferedReader(propsPath)) {
+        try (BufferedReader reader = Files.newBufferedReader(propsPath)) {
             props.load(reader);
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw new AppCreatorException("Failed to read " + propsPath, e);
         }
         return props;
     }
 
     static Model readModel(final Path pomXml) throws IOException, AppCreatorException {
-        try(BufferedReader reader = Files.newBufferedReader(pomXml)) {
+        try (BufferedReader reader = Files.newBufferedReader(pomXml)) {
             final MavenXpp3Reader xpp3Reader = new MavenXpp3Reader();
             return xpp3Reader.read(reader);
         } catch (XmlPullParserException e) {
@@ -260,7 +261,7 @@ public class Utils {
         ArtifactKey(Dependency artifact) {
             this.groupId = artifact.getGroupId();
             this.artifactId = artifact.getArtifactId();
-            final String classifier  = artifact.getClassifier();
+            final String classifier = artifact.getClassifier();
             this.classifier = classifier == null ? "" : classifier;
         }
 

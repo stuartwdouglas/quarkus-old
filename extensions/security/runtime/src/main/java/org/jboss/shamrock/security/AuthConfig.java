@@ -26,6 +26,7 @@ public class AuthConfig {
         this.realmName = realmName;
         this.type = type;
     }
+
     public AuthConfig() {
 
     }

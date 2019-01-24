@@ -26,19 +26,19 @@ public class PomStateReadingPhase implements AppCreationPhase<PomStateReadingPha
 
     @Override
     public void provideOutcome(AppCreator ctx) throws AppCreatorException {
-/*
-        System.out.println("PomStateReadingPhase.process");
-
-        ctx.resolveOutcome(PomStateCreationPhase.Outcome.class);
-
-        final AppArtifact stateArtifact = Utils.getStateArtifact(ctx.getAppArtifact());
-        List<AppDependency> stateDeps = ctx.getArtifactResolver().collectDependencies(stateArtifact);
-        for(AppDependency stateDep : stateDeps) {
-            System.out.println("- " + stateDep);
-        }
-
-        ctx.pushOutcome(Outcome.class, new Outcome() {});
-        */
+        /*
+         * System.out.println("PomStateReadingPhase.process");
+         * 
+         * ctx.resolveOutcome(PomStateCreationPhase.Outcome.class);
+         * 
+         * final AppArtifact stateArtifact = Utils.getStateArtifact(ctx.getAppArtifact());
+         * List<AppDependency> stateDeps = ctx.getArtifactResolver().collectDependencies(stateArtifact);
+         * for(AppDependency stateDep : stateDeps) {
+         * System.out.println("- " + stateDep);
+         * }
+         * 
+         * ctx.pushOutcome(Outcome.class, new Outcome() {});
+         */
     }
 
     @Override

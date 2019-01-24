@@ -53,8 +53,8 @@ public class ApplicationArchiveLoader {
 
     private static final String JANDEX_INDEX = "META-INF/jandex.idx";
 
-    public static List<ApplicationArchive> scanForOtherIndexes(ClassLoader classLoader, Set<String> applicationArchiveFiles, Path appRoot, List<Path> additionalApplicationArchives) throws IOException {
-
+    public static List<ApplicationArchive> scanForOtherIndexes(ClassLoader classLoader, Set<String> applicationArchiveFiles, Path appRoot,
+            List<Path> additionalApplicationArchives) throws IOException {
 
         Set<Path> dependenciesToIndex = new HashSet<>();
 
@@ -85,7 +85,6 @@ public class ApplicationArchiveLoader {
             }
         }
 
-
         return ret;
     }
 
@@ -102,7 +101,6 @@ public class ApplicationArchiveLoader {
         return ret;
     }
 
-
     private static Path urlToPath(URL url) {
         if (url.getProtocol().equals("jar")) {
             String jarPath = url.getPath().substring(5, url.getPath().lastIndexOf('!'));
@@ -115,7 +113,6 @@ public class ApplicationArchiveLoader {
         }
         throw new RuntimeException("Unkown URL type " + url.getProtocol());
     }
-
 
     private static Index handleFilePath(Path path) throws IOException {
         Path existing = path.resolve(JANDEX_INDEX);

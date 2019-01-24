@@ -1,10 +1,6 @@
 package org.jboss.shamrock.maven.it.verifier;
 
-
-import org.apache.commons.io.FileUtils;
-import org.apache.maven.shared.invoker.*;
-import org.jutils.jprocesses.JProcesses;
-import org.jutils.jprocesses.model.ProcessInfo;
+import static org.jboss.shamrock.maven.it.MojoTestBase.installPluginToLocalRepository;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -14,7 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.jboss.shamrock.maven.it.MojoTestBase.installPluginToLocalRepository;
+import org.apache.commons.io.FileUtils;
+import org.apache.maven.shared.invoker.*;
+import org.jutils.jprocesses.JProcesses;
+import org.jutils.jprocesses.model.ProcessInfo;
 
 /**
  * Implementation of verifier using a forked process that is still running while verifying. The process is stop when
@@ -49,9 +48,9 @@ public class RunningInvoker extends MavenProcessInvoker {
             return;
         }
         List<ProcessInfo> list = JProcesses.getProcessList().stream().filter(pi ->
-                // Kill all process using the live reload and the live reload process.
-                // This might be too much
-                pi.getCommand().contains("shamrock:dev") || pi.getCommand().contains(getWorkingDirectory().getAbsolutePath()))
+        // Kill all process using the live reload and the live reload process.
+        // This might be too much
+        pi.getCommand().contains("shamrock:dev") || pi.getCommand().contains(getWorkingDirectory().getAbsolutePath()))
                 .collect(Collectors.toList());
 
         list.stream()

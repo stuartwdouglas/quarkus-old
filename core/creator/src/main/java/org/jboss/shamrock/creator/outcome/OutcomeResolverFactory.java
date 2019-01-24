@@ -46,7 +46,7 @@ public class OutcomeResolverFactory<C> {
         public void provides(Class<?> type) throws AppCreatorException {
             phaseDescr.addProvidedType(type);
             final OutcomeProviderDescription<C> duplicateDescr = providers.put(type, phaseDescr);
-            if(duplicateDescr != null) {
+            if (duplicateDescr != null) {
                 throw new AppCreatorException(Errors.alternativeOutcomeProviders(type, duplicateDescr.provider, phaseDescr.provider));
             }
         }

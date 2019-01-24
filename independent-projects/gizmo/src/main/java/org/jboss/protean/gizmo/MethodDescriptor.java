@@ -22,7 +22,6 @@ import java.util.Objects;
 
 import org.jboss.jandex.MethodInfo;
 
-
 public class MethodDescriptor {
 
     private final String declaringClass;
@@ -64,7 +63,8 @@ public class MethodDescriptor {
     }
 
     public static MethodDescriptor ofMethod(String declaringClass, String name, String returnType, String... parameterTypes) {
-        return new MethodDescriptor(DescriptorUtils.objectToInternalClassName(declaringClass), name, DescriptorUtils.objectToDescriptor(returnType), DescriptorUtils.objectsToDescriptor(parameterTypes));
+        return new MethodDescriptor(DescriptorUtils.objectToInternalClassName(declaringClass), name, DescriptorUtils.objectToDescriptor(returnType),
+                DescriptorUtils.objectsToDescriptor(parameterTypes));
     }
 
     public static MethodDescriptor ofMethod(Class<?> declaringClass, String name, Class<?> returnType, Class<?>... parameterTypes) {
@@ -72,7 +72,8 @@ public class MethodDescriptor {
         for (int i = 0; i < args.length; ++i) {
             args[i] = DescriptorUtils.classToStringRepresentation(parameterTypes[i]);
         }
-        return new MethodDescriptor(DescriptorUtils.objectToInternalClassName(declaringClass), name, DescriptorUtils.classToStringRepresentation(returnType), args);
+        return new MethodDescriptor(DescriptorUtils.objectToInternalClassName(declaringClass), name, DescriptorUtils.classToStringRepresentation(returnType),
+                args);
     }
 
     public static MethodDescriptor ofMethod(Method method) {
@@ -80,7 +81,8 @@ public class MethodDescriptor {
     }
 
     public static MethodDescriptor ofMethod(Object declaringClass, String name, Object returnType, Object... parameterTypes) {
-        return new MethodDescriptor(DescriptorUtils.objectToInternalClassName(declaringClass), name, DescriptorUtils.objectToDescriptor(returnType), DescriptorUtils.objectsToDescriptor(parameterTypes));
+        return new MethodDescriptor(DescriptorUtils.objectToInternalClassName(declaringClass), name, DescriptorUtils.objectToDescriptor(returnType),
+                DescriptorUtils.objectsToDescriptor(parameterTypes));
     }
 
     public static MethodDescriptor ofConstructor(String declaringClass, String... parameterTypes) {
@@ -117,8 +119,10 @@ public class MethodDescriptor {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         MethodDescriptor that = (MethodDescriptor) o;
         return Objects.equals(name, that.name) &&
                 Objects.equals(returnType, that.returnType) &&

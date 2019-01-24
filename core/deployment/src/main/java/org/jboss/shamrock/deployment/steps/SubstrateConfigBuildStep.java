@@ -21,23 +21,23 @@ import java.util.Map;
 
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildStep;
-import org.jboss.shamrock.deployment.builditem.substrate.SubstrateSystemPropertyBuildItem;
-import org.jboss.shamrock.deployment.builditem.substrate.SubstrateProxyDefinitionBuildItem;
-import org.jboss.shamrock.deployment.builditem.substrate.SubstrateResourceBundleBuildItem;
 import org.jboss.shamrock.deployment.builditem.substrate.RuntimeInitializedClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.substrate.RuntimeReinitializedClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.substrate.SubstrateConfigBuildItem;
+import org.jboss.shamrock.deployment.builditem.substrate.SubstrateProxyDefinitionBuildItem;
+import org.jboss.shamrock.deployment.builditem.substrate.SubstrateResourceBundleBuildItem;
+import org.jboss.shamrock.deployment.builditem.substrate.SubstrateSystemPropertyBuildItem;
 
 //TODO: this should go away, once we decide on which one of the API's we want
 class SubstrateConfigBuildStep {
 
     @BuildStep
     void build(List<SubstrateConfigBuildItem> substrateConfigBuildItems,
-               BuildProducer<SubstrateProxyDefinitionBuildItem> proxy,
-               BuildProducer<SubstrateResourceBundleBuildItem> resourceBundle,
-               BuildProducer<RuntimeInitializedClassBuildItem> runtimeInit,
-               BuildProducer<RuntimeReinitializedClassBuildItem> runtimeReinit,
-               BuildProducer<SubstrateSystemPropertyBuildItem> nativeImage) {
+            BuildProducer<SubstrateProxyDefinitionBuildItem> proxy,
+            BuildProducer<SubstrateResourceBundleBuildItem> resourceBundle,
+            BuildProducer<RuntimeInitializedClassBuildItem> runtimeInit,
+            BuildProducer<RuntimeReinitializedClassBuildItem> runtimeReinit,
+            BuildProducer<SubstrateSystemPropertyBuildItem> nativeImage) {
         for (SubstrateConfigBuildItem substrateConfigBuildItem : substrateConfigBuildItems) {
             for (String i : substrateConfigBuildItem.getRuntimeInitializedClasses()) {
                 runtimeInit.produce(new RuntimeInitializedClassBuildItem(i));

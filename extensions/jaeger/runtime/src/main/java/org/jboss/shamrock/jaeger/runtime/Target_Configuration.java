@@ -29,6 +29,5 @@ public final class Target_Configuration {
     private MetricsFactory loadMetricsFactory() {
         // TODO: Determine how to obtain required metrics factory
         return new NoopMetricsFactory();
-    } 
+    }
 }
-

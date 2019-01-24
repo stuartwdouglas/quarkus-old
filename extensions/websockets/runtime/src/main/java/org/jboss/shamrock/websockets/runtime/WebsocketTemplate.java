@@ -35,11 +35,9 @@ public class WebsocketTemplate {
 
     private static final Logger log = Logger.getLogger(WebsocketTemplate.class);
 
-
     public void setupWorker(RuntimeValue<Undertow> undertow) {
         WorkerSupplier.worker = undertow.getValue().getWorker();
     }
-
 
     public WebSocketDeploymentInfo createDeploymentInfo(Set<String> annotatedEndpoints, Set<String> endpoints, Set<String> serverApplicationConfigClasses) {
         WebSocketDeploymentInfo container = new WebSocketDeploymentInfo();
@@ -63,7 +61,6 @@ public class WebsocketTemplate {
         Set<Class<?>> newAnnotatatedEndpoints = new HashSet<>();
         Set<ServerEndpointConfig> serverEndpointConfigurations = new HashSet<>();
 
-
         final Set<ServerApplicationConfig> configInstances = new HashSet<>();
         for (String clazzName : serverApplicationConfigClasses) {
             try {
@@ -72,7 +69,6 @@ public class WebsocketTemplate {
                 log.error("Could not initialize websocket config class " + clazzName, e);
             }
         }
-
 
         if (!configInstances.isEmpty()) {
             for (ServerApplicationConfig config : configInstances) {
@@ -103,6 +99,5 @@ public class WebsocketTemplate {
         }
         return container;
     }
-
 
 }

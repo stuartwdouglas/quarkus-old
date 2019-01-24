@@ -56,9 +56,9 @@ class FieldCreatorImpl implements FieldCreator {
     @Override
     public void write(ClassWriter file) {
         FieldVisitor fieldVisitor = file.visitField(modifiers, fieldDescriptor.getName(), fieldDescriptor.getType(), null, null);
-        for(AnnotationCreatorImpl annotation : annotations) {
+        for (AnnotationCreatorImpl annotation : annotations) {
             AnnotationVisitor av = fieldVisitor.visitAnnotation(DescriptorUtils.extToInt(annotation.getAnnotationType()), true);
-            for(Map.Entry<String, Object> e : annotation.getValues().entrySet()) {
+            for (Map.Entry<String, Object> e : annotation.getValues().entrySet()) {
                 av.visit(e.getKey(), e.getValue());
             }
             av.visitEnd();

@@ -53,7 +53,7 @@ public class TransactionScopedEntityManager implements EntityManager {
     }
 
     public void requestDone() {
-        if(fallbackEntityManager != null) {
+        if (fallbackEntityManager != null) {
             fallbackEntityManager.close();
         }
     }
@@ -81,7 +81,7 @@ public class TransactionScopedEntityManager implements EntityManager {
             });
             return new EntityManagerResult(newEm, false);
         } else {
-            if(fallbackEntityManager == null) {
+            if (fallbackEntityManager == null) {
                 fallbackEntityManager = emf.createEntityManager();
             }
             return new EntityManagerResult(emf.createEntityManager(), false);

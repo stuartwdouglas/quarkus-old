@@ -73,4 +73,3 @@ public class ShamrockJaegerTracer implements Tracer {
         return tracer().activeSpan();
     }
 }
-

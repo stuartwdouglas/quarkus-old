@@ -65,8 +65,10 @@ public class AetherArtifactResolver extends AppArtifactResolverBase {
         final RepositorySystem repoSystem = MavenRepoInitializer.getRepositorySystem();
         final Settings settings = MavenRepoInitializer.getSettings();
         final DefaultRepositorySystemSession repoSession = MavenRepoInitializer.newSession(repoSystem, settings);
-        final AppCreatorLocalRepositoryManager appCreatorLocalRepoManager = new AppCreatorLocalRepositoryManager(repoSystem.newLocalRepositoryManager(repoSession,
-                new LocalRepository(repoHome.toString())), Paths.get(MavenRepoInitializer.getLocalRepo(settings)));
+        final AppCreatorLocalRepositoryManager appCreatorLocalRepoManager = new AppCreatorLocalRepositoryManager(
+                repoSystem.newLocalRepositoryManager(repoSession,
+                        new LocalRepository(repoHome.toString())),
+                Paths.get(MavenRepoInitializer.getLocalRepo(settings)));
         repoSession.setLocalRepositoryManager(appCreatorLocalRepoManager);
         repoSession.setDependencySelector(new AppCreatorDependencySelector(true));
         final AetherArtifactResolver resolver = new AetherArtifactResolver(repoSystem, repoSession, MavenRepoInitializer.getRemoteRepos(settings));
@@ -78,8 +80,10 @@ public class AetherArtifactResolver extends AppArtifactResolverBase {
         final RepositorySystem repoSystem = MavenRepoInitializer.getRepositorySystem();
         final Settings settings = MavenRepoInitializer.getSettings();
         final DefaultRepositorySystemSession repoSession = MavenRepoInitializer.newSession(repoSystem, settings);
-        final AppCreatorLocalRepositoryManager appCreatorLocalRepoManager = new AppCreatorLocalRepositoryManager(repoSystem.newLocalRepositoryManager(repoSession,
-                new LocalRepository(repoHome.toString())), Paths.get(MavenRepoInitializer.getLocalRepo(settings)));
+        final AppCreatorLocalRepositoryManager appCreatorLocalRepoManager = new AppCreatorLocalRepositoryManager(
+                repoSystem.newLocalRepositoryManager(repoSession,
+                        new LocalRepository(repoHome.toString())),
+                Paths.get(MavenRepoInitializer.getLocalRepo(settings)));
         repoSession.setLocalRepositoryManager(appCreatorLocalRepoManager);
         repoSession.setDependencySelector(new AppCreatorDependencySelector(true));
         final AetherArtifactResolver resolver = new AetherArtifactResolver(repoSystem, repoSession, remoteRepos);
@@ -93,7 +97,8 @@ public class AetherArtifactResolver extends AppArtifactResolverBase {
     protected AppCreatorLocalRepositoryManager localRepoManager;
 
     public AetherArtifactResolver() throws AppCreatorException {
-        this(MavenRepoInitializer.getRepositorySystem(), MavenRepoInitializer.newSession(MavenRepoInitializer.getRepositorySystem()), MavenRepoInitializer.getRemoteRepos());
+        this(MavenRepoInitializer.getRepositorySystem(), MavenRepoInitializer.newSession(MavenRepoInitializer.getRepositorySystem()),
+                MavenRepoInitializer.getRemoteRepos());
     }
 
     public AetherArtifactResolver(RepositorySystem repoSystem, RepositorySystemSession repoSession,
@@ -114,7 +119,7 @@ public class AetherArtifactResolver extends AppArtifactResolverBase {
 
     @Override
     public void relink(AppArtifact artifact, Path path) throws AppCreatorException {
-        if(localRepoManager == null) {
+        if (localRepoManager == null) {
             throw new AppCreatorException("Failed to (re-)link " + artifact + " to " + path + ": AppCreatorLocalRepositoryManager has not been initialized");
         }
         localRepoManager.relink(artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(), artifact.getType(), artifact.getVersion(), path);
@@ -152,11 +157,11 @@ public class AetherArtifactResolver extends AppArtifactResolverBase {
         }
 
         final List<DependencyNode> depNodes = depResult.getRoot().getChildren();
-        if(depNodes.isEmpty()) {
+        if (depNodes.isEmpty()) {
             return Collections.emptyList();
         }
 
-        final List<AppDependency> appDeps =  new ArrayList<>();
+        final List<AppDependency> appDeps = new ArrayList<>();
         collect(depNodes, appDeps);
         return appDeps;
     }
@@ -165,7 +170,7 @@ public class AetherArtifactResolver extends AppArtifactResolverBase {
     public List<AppDependency> collectDependencies(AppArtifact root, List<AppDependency> coords) throws AppCreatorException {
         final CollectRequest collectRequest = new CollectRequest();
         collectRequest.setRoot(new Dependency(toAetherArtifact(root), "runtime"));
-        for(AppDependency dep : coords) {
+        for (AppDependency dep : coords) {
             collectRequest.addDependency(new Dependency(toAetherArtifact(dep.getArtifact()), dep.getScope()));
         }
         collectRequest.setRepositories(remoteRepos);
@@ -180,40 +185,40 @@ public class AetherArtifactResolver extends AppArtifactResolverBase {
         }
 
         final List<DependencyNode> depNodes = depResult.getRoot().getChildren();
-        if(depNodes.isEmpty()) {
+        if (depNodes.isEmpty()) {
             return Collections.emptyList();
         }
 
-        final List<AppDependency> appDeps =  new ArrayList<>();
+        final List<AppDependency> appDeps = new ArrayList<>();
         collect(depNodes, appDeps);
         return appDeps;
     }
 
-/*
-    @Override
-    public List<AppDependency> collectDependencies(AppArtifact coords) throws AppCreatorException {
-        final CollectRequest collectRequest = new CollectRequest();
-        collectRequest.setRoot(new Dependency(toAetherArtifact(coords), "runtime"));
-        //collectRequest.setRootArtifact(toAetherArtifact(coords));
-        collectRequest.setRepositories(remoteRepos);
-
-        final CollectResult depResult;
-        try {
-            depResult = repoSystem.collectDependencies(repoSession, collectRequest);
-        } catch (DependencyCollectionException e) {
-            throw new AppCreatorException("Failed to collect dependencies for " + coords, e);
-        }
-
-        final List<DependencyNode> depNodes = depResult.getRoot().getChildren();
-        if(depNodes.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        final List<AppDependency> appDeps =  new ArrayList<>();
-        collect(depNodes, appDeps);
-        return appDeps;
-    }
-*/
+    /*
+     * @Override
+     * public List<AppDependency> collectDependencies(AppArtifact coords) throws AppCreatorException {
+     * final CollectRequest collectRequest = new CollectRequest();
+     * collectRequest.setRoot(new Dependency(toAetherArtifact(coords), "runtime"));
+     * //collectRequest.setRootArtifact(toAetherArtifact(coords));
+     * collectRequest.setRepositories(remoteRepos);
+     * 
+     * final CollectResult depResult;
+     * try {
+     * depResult = repoSystem.collectDependencies(repoSession, collectRequest);
+     * } catch (DependencyCollectionException e) {
+     * throw new AppCreatorException("Failed to collect dependencies for " + coords, e);
+     * }
+     * 
+     * final List<DependencyNode> depNodes = depResult.getRoot().getChildren();
+     * if(depNodes.isEmpty()) {
+     * return Collections.emptyList();
+     * }
+     * 
+     * final List<AppDependency> appDeps = new ArrayList<>();
+     * collect(depNodes, appDeps);
+     * return appDeps;
+     * }
+     */
     @Override
     public List<String> listLaterVersions(AppArtifact appArtifact, String upToVersion, boolean inclusive) throws AppCreatorException {
         final VersionRangeResult rangeResult = resolveVersionRangeResult(appArtifact, upToVersion, inclusive);
@@ -229,13 +234,13 @@ public class AetherArtifactResolver extends AppArtifactResolverBase {
     public String getNextVersion(AppArtifact appArtifact, String upToVersion, boolean inclusive) throws AppCreatorException {
         final VersionRangeResult rangeResult = resolveVersionRangeResult(appArtifact, upToVersion, inclusive);
         final List<Version> versions = rangeResult.getVersions();
-        if(versions.isEmpty()) {
+        if (versions.isEmpty()) {
             return appArtifact.getVersion();
         }
         Version next = versions.get(0);
-        for(int i = 1; i < versions.size(); ++i) {
+        for (int i = 1; i < versions.size(); ++i) {
             final Version candidate = versions.get(i);
-            if(next.compareTo(candidate) > 0) {
+            if (next.compareTo(candidate) > 0) {
                 next = candidate;
             }
         }
@@ -246,13 +251,13 @@ public class AetherArtifactResolver extends AppArtifactResolverBase {
     public String getLatestVersion(AppArtifact appArtifact, String upToVersion, boolean inclusive) throws AppCreatorException {
         final VersionRangeResult rangeResult = resolveVersionRangeResult(appArtifact, upToVersion, inclusive);
         final List<Version> versions = rangeResult.getVersions();
-        if(versions.isEmpty()) {
+        if (versions.isEmpty()) {
             return appArtifact.getVersion();
         }
         Version latest = versions.get(0);
-        for(int i = 1; i < versions.size(); ++i) {
+        for (int i = 1; i < versions.size(); ++i) {
             final Version candidate = versions.get(i);
-            if(latest.compareTo(candidate) < 0) {
+            if (latest.compareTo(candidate) < 0) {
                 latest = candidate;
             }
         }
@@ -261,11 +266,12 @@ public class AetherArtifactResolver extends AppArtifactResolverBase {
 
     public List<RemoteRepository> resolveArtifactRepos(AppArtifact appArtifact) throws AppCreatorException {
         final ArtifactDescriptorRequest request = new ArtifactDescriptorRequest();
-        request.setArtifact(new DefaultArtifact(appArtifact.getGroupId(), appArtifact.getArtifactId(), appArtifact.getClassifier(), appArtifact.getType(), appArtifact.getVersion()));
+        request.setArtifact(new DefaultArtifact(appArtifact.getGroupId(), appArtifact.getArtifactId(), appArtifact.getClassifier(), appArtifact.getType(),
+                appArtifact.getVersion()));
         //request.setRepositories(remoteRepos);
         final ArtifactDescriptorResult result;
         try {
-             result = repoSystem.readArtifactDescriptor(repoSession, request);
+            result = repoSystem.readArtifactDescriptor(repoSession, request);
         } catch (ArtifactDescriptorException e) {
             throw new AppCreatorException("Failed to resolve descriptor for " + appArtifact, e);
         }
@@ -307,7 +313,7 @@ public class AetherArtifactResolver extends AppArtifactResolverBase {
     }
 
     private static void collect(List<DependencyNode> nodes, List<AppDependency> appDeps) {
-        for(DependencyNode node : nodes) {
+        for (DependencyNode node : nodes) {
             collect(node.getChildren(), appDeps);
             appDeps.add(new AppDependency(toAppArtifact(node.getArtifact()), node.getDependency().getScope()));
         }
@@ -318,9 +324,10 @@ public class AetherArtifactResolver extends AppArtifactResolverBase {
     }
 
     private static AppArtifact toAppArtifact(Artifact artifact) {
-        final AppArtifact mvn = new AppArtifact(artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(), artifact.getExtension(), artifact.getVersion());
+        final AppArtifact mvn = new AppArtifact(artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(), artifact.getExtension(),
+                artifact.getVersion());
         final File file = artifact.getFile();
-        if(file != null) {
+        if (file != null) {
             setPath(mvn, file.toPath());
         }
         return mvn;

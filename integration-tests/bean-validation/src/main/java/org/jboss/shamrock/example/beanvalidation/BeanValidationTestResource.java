@@ -47,8 +47,7 @@ public class BeanValidationTestResource {
                 "b",
                 Collections.singletonList("c"),
                 -4d,
-                invalidCategorizedEmails
-        ))));
+                invalidCategorizedEmails))));
 
         Map<String, List<String>> validCategorizedEmails = new HashMap<>();
         validCategorizedEmails.put("Professional", Collections.singletonList("bill.jones@example.com"));
@@ -58,8 +57,7 @@ public class BeanValidationTestResource {
                 "bill.jones@example.com",
                 Collections.singletonList("biji@example.com"),
                 5d,
-                validCategorizedEmails
-        ))));
+                validCategorizedEmails))));
 
         return result.build();
     }

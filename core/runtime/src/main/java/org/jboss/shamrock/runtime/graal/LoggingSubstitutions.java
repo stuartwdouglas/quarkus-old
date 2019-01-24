@@ -45,4 +45,5 @@ final class Target_org_slf4j_LoggerFactory {
     }
 }
 
-final class LoggingSubstitutions {}
+final class LoggingSubstitutions {
+}

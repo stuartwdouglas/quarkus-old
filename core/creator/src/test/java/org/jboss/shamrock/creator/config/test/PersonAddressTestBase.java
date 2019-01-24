@@ -76,7 +76,7 @@ public abstract class PersonAddressTestBase {
              * Store properties in a file
              */
             final Path propsFile = tmpDir.resolve("example.properties");
-            try(OutputStream out = Files.newOutputStream(propsFile)) {
+            try (OutputStream out = Files.newOutputStream(propsFile)) {
                 props.store(out, "");
             }
 
@@ -86,7 +86,7 @@ public abstract class PersonAddressTestBase {
             loaded = PropertiesConfigReader.getInstance(
                     getPropertiesHandler(), // properties handler
                     (PropertyLine line) -> loadedNotMapped.put(line.getName(), line.getValue()) // what to do with the props not recognized by the handler
-                    )
+            )
                     .read(propsFile);
         } finally {
             IoUtils.recursiveDelete(tmpDir);
@@ -95,12 +95,12 @@ public abstract class PersonAddressTestBase {
         /*
          * Log result
          *
-        System.out.println("Loaded config: " + loaded);
-        System.out.println("Not mapped");
-        for(Map.Entry<String, String> entry : loadedNotMapped.entrySet()) {
-            System.out.println("- " + entry.getKey() + "=" + entry.getValue());
-        }
-        */
+         * System.out.println("Loaded config: " + loaded);
+         * System.out.println("Not mapped");
+         * for(Map.Entry<String, String> entry : loadedNotMapped.entrySet()) {
+         * System.out.println("- " + entry.getKey() + "=" + entry.getValue());
+         * }
+         */
 
         /*
          * Make sure the result is correct

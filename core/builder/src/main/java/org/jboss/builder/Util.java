@@ -21,7 +21,8 @@ import org.wildfly.common.annotation.NotNull;
 /**
  */
 final class Util {
-    private Util() {}
+    private Util() {
+    }
 
     static void checkNotGeneric(@NotNull Class<?> clz) {
         if (clz.getTypeParameters().length != 0) {

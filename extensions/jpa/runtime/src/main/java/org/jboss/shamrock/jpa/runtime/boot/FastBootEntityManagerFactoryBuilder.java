@@ -18,6 +18,7 @@ package org.jboss.shamrock.jpa.runtime.boot;
 
 import java.io.Serializable;
 import java.util.Map;
+
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.PersistenceException;

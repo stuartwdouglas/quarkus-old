@@ -16,13 +16,13 @@
  */
 package org.jboss.shamrock.dependencies;
 
-import org.apache.maven.model.Dependency;
-import org.jboss.shamrock.maven.utilities.MojoUtils;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.apache.maven.model.Dependency;
+import org.jboss.shamrock.maven.utilities.MojoUtils;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
@@ -43,7 +43,6 @@ public class Extension {
     public Extension() {
         // Use by mapper.
     }
-
 
     public String getArtifactId() {
         return artifactId;
@@ -136,7 +135,7 @@ public class Extension {
         if (classifier != null && !classifier.isEmpty()) {
             dependency.setClassifier(classifier);
         }
-        if (version != null  && ! version.isEmpty()  && ! stripVersion) {
+        if (version != null && !version.isEmpty() && !stripVersion) {
             dependency.setVersion(version);
         }
         return dependency;
@@ -146,4 +145,3 @@ public class Extension {
         return getGroupId() + ":" + getArtifactId();
     }
 }
-

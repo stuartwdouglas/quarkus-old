@@ -27,7 +27,6 @@ import io.restassured.RestAssured;
 @ShamrockTest
 public class MetricsTestCase {
 
-
     @Test
     public void testMetrics() {
         testCounted("0.0");

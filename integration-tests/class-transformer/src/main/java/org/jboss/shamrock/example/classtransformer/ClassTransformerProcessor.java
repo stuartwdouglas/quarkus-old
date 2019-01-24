@@ -22,20 +22,19 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiFunction;
 
+import javax.inject.Inject;
+
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.DotName;
-import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.BuildProducer;
-import javax.inject.Inject;
-
+import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.deployment.builditem.BytecodeTransformerBuildItem;
 import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-
 
 /**
  * class that adds an additional @GET @Path("/transformed") method to every JAX-RS endpoint.

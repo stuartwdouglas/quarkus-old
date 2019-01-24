@@ -105,7 +105,8 @@ public class RuntimeUpdatesProcessor {
     void doScan() throws IOException {
         final long start = System.currentTimeMillis();
         final ConcurrentMap<String, byte[]> changedClasses = scanForChangedClasses();
-        if (changedClasses == null) return;
+        if (changedClasses == null)
+            return;
 
         if (FAKEREPLACE_HANDLER == null) {
             DevModeMain.restartApp(false);
@@ -150,8 +151,7 @@ public class RuntimeUpdatesProcessor {
                     .filter(p -> wasRecentlyModified(p))
                     .collect(Collectors.toConcurrentMap(
                             p -> pathToClassName(p),
-                            p -> CopyUtils.readFileContentNoIOExceptions(p))
-                    );
+                            p -> CopyUtils.readFileContentNoIOExceptions(p)));
         }
         if (changedClasses.isEmpty() && !checkForConfigFileChange()) {
             return null;
@@ -177,10 +177,10 @@ public class RuntimeUpdatesProcessor {
                     Long existing = configFileTimestamps.get(i);
                     if (value > existing) {
                         ret = true;
-                        if(doCopy) {
+                        if (doCopy) {
                             Path target = classesDir.resolve(i);
                             byte[] data = CopyUtils.readFileContent(config);
-                            try(FileOutputStream out = new FileOutputStream(target.toFile())) {
+                            try (FileOutputStream out = new FileOutputStream(target.toFile())) {
                                 out.write(data);
                             }
                         }
@@ -197,10 +197,10 @@ public class RuntimeUpdatesProcessor {
         try {
             long sourceMod = Files.getLastModifiedTime(p).toMillis();
             boolean recent = sourceMod > lastChange;
-            if(recent) {
+            if (recent) {
                 return true;
             }
-            if(p.toString().endsWith(".java")) {
+            if (p.toString().endsWith(".java")) {
                 String pathName = sourcesDir.relativize(p).toString();
                 String classFileName = pathName.substring(0, pathName.length() - 5) + ".class";
                 Path classFile = classesDir.resolve(classFileName);

@@ -64,21 +64,22 @@ public class ApplicationArchiveBuildStep {
     @ConfigProperty(name = "shamrock.index-dependency")
     Map<String, IndexDependencyConfig> depsToIndex;
 
-
     @BuildStep
-    ApplicationArchivesBuildItem build(ArchiveRootBuildItem root, ApplicationIndexBuildItem appindex, List<AdditionalApplicationArchiveMarkerBuildItem> appMarkers) throws IOException {
+    ApplicationArchivesBuildItem build(ArchiveRootBuildItem root, ApplicationIndexBuildItem appindex,
+            List<AdditionalApplicationArchiveMarkerBuildItem> appMarkers) throws IOException {
 
         Set<String> markerFiles = new HashSet<>();
         for (AdditionalApplicationArchiveMarkerBuildItem i : appMarkers) {
             markerFiles.add(i.getFile());
         }
 
-        List<ApplicationArchive> applicationArchives = scanForOtherIndexes(Thread.currentThread().getContextClassLoader(), markerFiles, root.getPath(), Collections.emptyList());
+        List<ApplicationArchive> applicationArchives = scanForOtherIndexes(Thread.currentThread().getContextClassLoader(), markerFiles, root.getPath(),
+                Collections.emptyList());
         return new ApplicationArchivesBuildItem(new ApplicationArchiveImpl(appindex.getIndex(), root.getPath(), null), applicationArchives);
     }
 
-    private List<ApplicationArchive> scanForOtherIndexes(ClassLoader classLoader, Set<String> applicationArchiveFiles, Path appRoot, List<Path> additionalApplicationArchives) throws IOException {
-
+    private List<ApplicationArchive> scanForOtherIndexes(ClassLoader classLoader, Set<String> applicationArchiveFiles, Path appRoot,
+            List<Path> additionalApplicationArchives) throws IOException {
 
         Set<Path> dependenciesToIndex = new HashSet<>();
         //get paths that are included via index-dependencies
@@ -130,7 +131,6 @@ public class ApplicationArchiveBuildStep {
             }
         }
 
-
         return ret;
     }
 
@@ -147,24 +147,22 @@ public class ApplicationArchiveBuildStep {
         return ret;
     }
 
-
     private static Path urlToPath(URL url) {
         try {
-			if (url.getProtocol().equals("jar")) {
-			    String jarPath = url.getPath().substring(0, url.getPath().lastIndexOf('!'));
-			    return Paths.get(new URI(jarPath));
-			} else if (url.getProtocol().equals("file")) {
-			    int index = url.getPath().lastIndexOf("/META-INF");
-			    String pathString = url.getPath().substring(0, index);
-			    Path path = Paths.get(new URI(url.getProtocol(), url.getHost(), pathString, null));
-			    return path;
-			}
-			throw new RuntimeException("Unkown URL type " + url.getProtocol());
-		} catch (URISyntaxException e) {
-			throw new RuntimeException(e);
-		}
+            if (url.getProtocol().equals("jar")) {
+                String jarPath = url.getPath().substring(0, url.getPath().lastIndexOf('!'));
+                return Paths.get(new URI(jarPath));
+            } else if (url.getProtocol().equals("file")) {
+                int index = url.getPath().lastIndexOf("/META-INF");
+                String pathString = url.getPath().substring(0, index);
+                Path path = Paths.get(new URI(url.getProtocol(), url.getHost(), pathString, null));
+                return path;
+            }
+            throw new RuntimeException("Unkown URL type " + url.getProtocol());
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
-
 
     private static Index handleFilePath(Path path) throws IOException {
         Path existing = path.resolve(JANDEX_INDEX);

@@ -38,7 +38,7 @@ import org.wildfly.security.auth.server.SecurityRealm;
 /**
  * The build time process for the security aspects of the deployment. This creates {@linkplain BuildStep}s for integration
  * with the Elytron security services. This supports the Elytron {@linkplain org.wildfly.security.auth.realm.LegacyPropertiesSecurityRealm}
- * and {@linkplain  org.wildfly.security.auth.realm.SimpleMapBackedSecurityRealm} realm implementations. Others could be
+ * and {@linkplain org.wildfly.security.auth.realm.SimpleMapBackedSecurityRealm} realm implementations. Others could be
  * added by creating an extension that produces a SecurityRealmBuildItem for the realm.
  *
  * Additional authentication mechanisms can be added by producing AuthConfigBuildItems and including the associated
@@ -65,6 +65,7 @@ class SecurityDeploymentProcessor {
 
     /**
      * Register the Elytron-provided password factory SPI implementation
+     * 
      * @param classes producer factory for ReflectiveClassBuildItems
      */
     @BuildStep
@@ -76,18 +77,19 @@ class SecurityDeploymentProcessor {
      * Check to see if a PropertiesRealmConfig was specified and enabled and create a {@linkplain org.wildfly.security.auth.realm.LegacyPropertiesSecurityRealm}
      * runtime value to process the user/roles properties files. This also registers the names of the user/roles properties files
      * to include the build artifact.
+     * 
      * @param template - runtime security template
      * @param resources - SubstrateResourceBuildItem used to register the realm user/roles properties files names.
      * @param securityRealm - the producer factory for the SecurityRealmBuildItem
-     * @return the AuthConfigBuildItem for the realm  authentication mechanism if there was an enabled PropertiesRealmConfig,
-     * null otherwise
+     * @return the AuthConfigBuildItem for the realm authentication mechanism if there was an enabled PropertiesRealmConfig,
+     *         null otherwise
      * @throws Exception - on any failure
      */
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
     AuthConfigBuildItem configureFileRealmAuthConfig(SecurityTemplate template,
-                                                    BuildProducer<SubstrateResourceBuildItem> resources,
-                                                    BuildProducer<SecurityRealmBuildItem> securityRealm) throws Exception {
+            BuildProducer<SubstrateResourceBuildItem> resources,
+            BuildProducer<SecurityRealmBuildItem> securityRealm) throws Exception {
         if (propertiesRealmConfig.isPresent() && propertiesRealmConfig.get().isEnabled()) {
             PropertiesRealmConfig realmConfig = propertiesRealmConfig.get();
             log.debugf("Configuring from PropertiesRealmConfig, users=%s, roles=%s", realmConfig.getUsers(), realmConfig.getRoles());
@@ -109,15 +111,15 @@ class SecurityDeploymentProcessor {
      * @param template - runtime security template
      * @param resources - SubstrateResourceBuildItem used to register the realm user/roles properties files names.
      * @param securityRealm - the producer factory for the SecurityRealmBuildItem
-     * @return the AuthConfigBuildItem for the realm  authentication mechanism if there was an enabled MPRealmConfig,
-     * null otherwise
+     * @return the AuthConfigBuildItem for the realm authentication mechanism if there was an enabled MPRealmConfig,
+     *         null otherwise
      * @throws Exception - on any failure
      */
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
     AuthConfigBuildItem configureMPRealmConfig(SecurityTemplate template,
-                                 BuildProducer<SubstrateResourceBuildItem> resources,
-                                 BuildProducer<SecurityRealmBuildItem> securityRealm) throws Exception {
+            BuildProducer<SubstrateResourceBuildItem> resources,
+            BuildProducer<SecurityRealmBuildItem> securityRealm) throws Exception {
         if (mpRealmConfig.isPresent() && mpRealmConfig.get().isEnabled()) {
             MPRealmConfig realmConfig = mpRealmConfig.get();
             log.info("Configuring from MPRealmConfig");
@@ -127,15 +129,15 @@ class SecurityDeploymentProcessor {
             Set<String> userKeys = ShamrockConfig.getNames("shamrock.security.embedded.users");
 
             log.debugf("userKeys: %s", userKeys);
-            for(String key : userKeys) {
-                String pass = ShamrockConfig.getString("shamrock.security.embedded.users."+key, null, false);
+            for (String key : userKeys) {
+                String pass = ShamrockConfig.getString("shamrock.security.embedded.users." + key, null, false);
                 log.debugf("%s.pass = %s", key, pass);
                 realmConfig.users.put(key, pass);
             }
             Set<String> roleKeys = ShamrockConfig.getNames("shamrock.security.embedded.roles");
             log.debugf("roleKeys: %s", roleKeys);
-            for(String key : roleKeys) {
-                String roles = ShamrockConfig.getString("shamrock.security.embedded.roles."+key, null, false);
+            for (String key : roleKeys) {
+                String roles = ShamrockConfig.getString("shamrock.security.embedded.roles." + key, null, false);
                 log.debugf("%s.roles = %s", key, roles);
                 realmConfig.roles.put(key, roles);
             }
@@ -160,16 +162,16 @@ class SecurityDeploymentProcessor {
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
     SecurityDomainBuildItem build(SecurityTemplate template, BuildProducer<ServletExtensionBuildItem> extension,
-                                  List<SecurityRealmBuildItem> realms,
-                                  List<AuthConfigBuildItem> authConfigs) throws Exception {
+            List<SecurityRealmBuildItem> realms,
+            List<AuthConfigBuildItem> authConfigs) throws Exception {
         log.debugf("build, hasFile=%s, hasMP=%s", propertiesRealmConfig.isPresent(), mpRealmConfig.isPresent());
-        if(realms.size() > 0) {
+        if (realms.size() > 0) {
             // Configure the SecurityDomain.Builder from the main realm
             SecurityRealmBuildItem realmBuildItem = realms.get(0);
             AuthConfig authConfig = realmBuildItem.getAuthConfig();
             RuntimeValue<SecurityDomain.Builder> securityDomainBuilder = template.configureDomainBuilder(authConfig.getRealmName(), realmBuildItem.getRealm());
             // Add any additional SecurityRealms
-            for(int n = 1; n < realms.size(); n++) {
+            for (int n = 1; n < realms.size(); n++) {
                 realmBuildItem = realms.get(n);
                 RuntimeValue<SecurityRealm> realm = realmBuildItem.getRealm();
                 authConfig = realmBuildItem.getAuthConfig();
@@ -203,17 +205,14 @@ class SecurityDeploymentProcessor {
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
     void loadRealm(SecurityTemplate template, List<SecurityRealmBuildItem> realms) throws Exception {
-        for(SecurityRealmBuildItem realm : realms) {
+        for (SecurityRealmBuildItem realm : realms) {
             AuthConfig authConfig = realm.getAuthConfig();
-            if(authConfig.getType().isAssignableFrom(PropertiesRealmConfig.class)) {
+            if (authConfig.getType().isAssignableFrom(PropertiesRealmConfig.class)) {
                 template.loadRealm(realm.getRealm(), propertiesRealmConfig.get());
-            }
-            else if(authConfig.getType().isAssignableFrom(MPRealmConfig.class)) {
+            } else if (authConfig.getType().isAssignableFrom(MPRealmConfig.class)) {
                 template.loadRealm(realm.getRealm(), mpRealmConfig.get());
             }
         }
     }
-
-
 
 }

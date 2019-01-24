@@ -91,7 +91,6 @@ public final class FilterBuildItem extends MultiBuildItem {
         return this;
     }
 
-
     public static class FilterMappingInfo {
 
         private MappingType mappingType;
@@ -129,8 +128,7 @@ public final class FilterBuildItem extends MultiBuildItem {
         }
 
         public enum MappingType {
-            URL,
-            SERVLET;
+            URL, SERVLET;
         }
 
     }

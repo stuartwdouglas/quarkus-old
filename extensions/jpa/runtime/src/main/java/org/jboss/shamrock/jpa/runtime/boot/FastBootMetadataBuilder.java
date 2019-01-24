@@ -16,12 +16,32 @@
 
 package org.jboss.shamrock.jpa.runtime.boot;
 
+import static org.hibernate.cfg.AvailableSettings.DATASOURCE;
+import static org.hibernate.cfg.AvailableSettings.DRIVER;
+import static org.hibernate.cfg.AvailableSettings.JACC_PREFIX;
+import static org.hibernate.cfg.AvailableSettings.JPA_JDBC_DRIVER;
+import static org.hibernate.cfg.AvailableSettings.JPA_JDBC_PASSWORD;
+import static org.hibernate.cfg.AvailableSettings.JPA_JDBC_URL;
+import static org.hibernate.cfg.AvailableSettings.JPA_JDBC_USER;
+import static org.hibernate.cfg.AvailableSettings.JPA_JTA_DATASOURCE;
+import static org.hibernate.cfg.AvailableSettings.JPA_NON_JTA_DATASOURCE;
+import static org.hibernate.cfg.AvailableSettings.JPA_TRANSACTION_TYPE;
+import static org.hibernate.cfg.AvailableSettings.PASS;
+import static org.hibernate.cfg.AvailableSettings.TRANSACTION_COORDINATOR_STRATEGY;
+import static org.hibernate.cfg.AvailableSettings.URL;
+import static org.hibernate.cfg.AvailableSettings.USER;
+import static org.hibernate.internal.HEMLogging.messageLogger;
+import static org.hibernate.jpa.AvailableSettings.CLASS_CACHE_PREFIX;
+import static org.hibernate.jpa.AvailableSettings.COLLECTION_CACHE_PREFIX;
+import static org.hibernate.jpa.AvailableSettings.PERSISTENCE_UNIT_NAME;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.concurrent.ConcurrentHashMap;
+
 import javax.persistence.PersistenceException;
 import javax.persistence.spi.PersistenceUnitTransactionType;
 
@@ -66,25 +86,6 @@ import org.jboss.shamrock.jpa.runtime.recording.RecordableBootstrap;
 import org.jboss.shamrock.jpa.runtime.recording.RecordedState;
 import org.jboss.shamrock.jpa.runtime.recording.RecordingDialectFactory;
 import org.jboss.shamrock.jpa.runtime.service.FlatClassLoaderService;
-
-import static org.hibernate.cfg.AvailableSettings.DATASOURCE;
-import static org.hibernate.cfg.AvailableSettings.DRIVER;
-import static org.hibernate.cfg.AvailableSettings.JACC_PREFIX;
-import static org.hibernate.cfg.AvailableSettings.JPA_JDBC_DRIVER;
-import static org.hibernate.cfg.AvailableSettings.JPA_JDBC_PASSWORD;
-import static org.hibernate.cfg.AvailableSettings.JPA_JDBC_URL;
-import static org.hibernate.cfg.AvailableSettings.JPA_JDBC_USER;
-import static org.hibernate.cfg.AvailableSettings.JPA_JTA_DATASOURCE;
-import static org.hibernate.cfg.AvailableSettings.JPA_NON_JTA_DATASOURCE;
-import static org.hibernate.cfg.AvailableSettings.JPA_TRANSACTION_TYPE;
-import static org.hibernate.cfg.AvailableSettings.PASS;
-import static org.hibernate.cfg.AvailableSettings.TRANSACTION_COORDINATOR_STRATEGY;
-import static org.hibernate.cfg.AvailableSettings.URL;
-import static org.hibernate.cfg.AvailableSettings.USER;
-import static org.hibernate.internal.HEMLogging.messageLogger;
-import static org.hibernate.jpa.AvailableSettings.CLASS_CACHE_PREFIX;
-import static org.hibernate.jpa.AvailableSettings.COLLECTION_CACHE_PREFIX;
-import static org.hibernate.jpa.AvailableSettings.PERSISTENCE_UNIT_NAME;
 
 /**
  * Alternative to EntityManagerFactoryBuilderImpl so to have full control of how MetadataBuilderImplementor
@@ -167,8 +168,8 @@ public class FastBootMetadataBuilder {
     }
 
     private void insertStateRecorders(StandardServiceRegistryBuilder ssrBuilder) {
-//        ssrBuilder.addService( DialectFactory.class, new RecordingDialectFactory() );
-//        ssrBuilder.addInitiator(  )
+        //        ssrBuilder.addService( DialectFactory.class, new RecordingDialectFactory() );
+        //        ssrBuilder.addInitiator(  )
     }
 
     private BootstrapServiceRegistry buildBootstrapServiceRegistry(ClassLoaderService providedClassLoaderService) {
@@ -260,7 +261,7 @@ public class FastBootMetadataBuilder {
     private void destroyServiceRegistry(MetadataImplementor fullMeta) {
         final AbstractServiceRegistryImpl serviceRegistry = (AbstractServiceRegistryImpl) metamodelBuilder.getBootstrapContext().getServiceRegistry();
         serviceRegistry.close();
-        serviceRegistry.resetParent( null );
+        serviceRegistry.resetParent(null);
     }
 
     private MetadataImplementor trimBootstrapMetadata(MetadataImpl fullMeta) {
@@ -291,8 +292,8 @@ public class FastBootMetadataBuilder {
 
     private JtaPlatform extractJtaPlatform() {
         return new JBossStandAloneJtaPlatform();
-//        JtaPlatformResolver service = standardServiceRegistry.getService( JtaPlatformResolver.class );
-//        return service.resolveJtaPlatform( this.configurationValues, (ServiceRegistryImplementor) standardServiceRegistry );
+        //        JtaPlatformResolver service = standardServiceRegistry.getService( JtaPlatformResolver.class );
+        //        return service.resolveJtaPlatform( this.configurationValues, (ServiceRegistryImplementor) standardServiceRegistry );
     }
 
     private Dialect extractDialect() {

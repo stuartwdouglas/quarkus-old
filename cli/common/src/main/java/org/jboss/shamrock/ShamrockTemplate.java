@@ -1,11 +1,11 @@
 package org.jboss.shamrock;
 
-import freemarker.cache.ClassTemplateLoader;
-import freemarker.template.Configuration;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+
+import freemarker.cache.ClassTemplateLoader;
+import freemarker.template.Configuration;
 
 public abstract class ShamrockTemplate {
     protected final Configuration cfg;

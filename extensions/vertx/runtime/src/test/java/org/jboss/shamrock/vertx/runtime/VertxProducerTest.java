@@ -1,15 +1,14 @@
 package org.jboss.shamrock.vertx.runtime;
 
-import org.junit.Test;
-
-import java.util.Optional;
-
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.*;
 
-public class VertxProducerTest {
+import java.util.Optional;
 
+import org.junit.Test;
+
+public class VertxProducerTest {
 
     @Test
     public void shouldNotFailWithoutConfig() {

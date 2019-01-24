@@ -53,11 +53,11 @@ public class RESTEasyExtension extends DefaultAnnotationScannerExtension {
             Class<?> asyncResponseProvider = Class.forName("org.jboss.resteasy.spi.AsyncResponseProvider");
             // can't use the ServiceLoader API because Providers is not an interface
             Enumeration<URL> resources = getClass().getClassLoader().getResources("META-INF/services/javax.ws.rs.ext.Providers");
-            while(resources.hasMoreElements()) {
+            while (resources.hasMoreElements()) {
                 URL resource = resources.nextElement();
-                try(BufferedReader r = new BufferedReader(new InputStreamReader(resource.openStream()))){
+                try (BufferedReader r = new BufferedReader(new InputStreamReader(resource.openStream()))) {
                     String line;
-                    while((line = r.readLine()) != null) {
+                    while ((line = r.readLine()) != null) {
                         scanAsyncResponseProvidersFromClassName(asyncResponseProvider, line.trim());
                     }
                 }
@@ -72,15 +72,15 @@ public class RESTEasyExtension extends DefaultAnnotationScannerExtension {
     private void scanAsyncResponseProvidersFromClassName(Class<?> asyncResponseProviderClass, String name) {
         try {
             Class<?> klass = Class.forName(name);
-            if(asyncResponseProviderClass.isAssignableFrom(klass)) {
+            if (asyncResponseProviderClass.isAssignableFrom(klass)) {
                 for (java.lang.reflect.Type type : klass.getGenericInterfaces()) {
-                    if(type instanceof java.lang.reflect.ParameterizedType) {
+                    if (type instanceof java.lang.reflect.ParameterizedType) {
                         java.lang.reflect.ParameterizedType pType = (java.lang.reflect.ParameterizedType) type;
-                        if(pType.getRawType().equals(asyncResponseProviderClass)
+                        if (pType.getRawType().equals(asyncResponseProviderClass)
                                 && pType.getActualTypeArguments().length == 1) {
                             java.lang.reflect.Type asyncType = pType.getActualTypeArguments()[0];
                             String asyncTypeName;
-                            if(asyncType instanceof java.lang.reflect.ParameterizedType)
+                            if (asyncType instanceof java.lang.reflect.ParameterizedType)
                                 asyncTypeName = ((java.lang.reflect.ParameterizedType) asyncType).getRawType().getTypeName();
                             else
                                 asyncTypeName = asyncType.getTypeName();
@@ -89,7 +89,7 @@ public class RESTEasyExtension extends DefaultAnnotationScannerExtension {
                     }
                 }
             }
-        }catch(ClassNotFoundException x) {
+        } catch (ClassNotFoundException x) {
             // ignore it
         }
     }
@@ -97,12 +97,12 @@ public class RESTEasyExtension extends DefaultAnnotationScannerExtension {
     private void scanAsyncResponseProviders(IndexView index) {
         for (ClassInfo providerClass : index.getAllKnownImplementors(DOTNAME_ASYNC_RESPONSE_PROVIDER)) {
             for (AnnotationInstance annotation : providerClass.classAnnotations()) {
-                if(annotation.name().equals(DOTNAME_PROVIDER)){
+                if (annotation.name().equals(DOTNAME_PROVIDER)) {
                     for (Type interf : providerClass.interfaceTypes()) {
-                        if(interf.kind() == Type.Kind.PARAMETERIZED_TYPE
+                        if (interf.kind() == Type.Kind.PARAMETERIZED_TYPE
                                 && interf.name().equals(DOTNAME_ASYNC_RESPONSE_PROVIDER)) {
                             ParameterizedType pType = interf.asParameterizedType();
-                            if(pType.arguments().size() == 1) {
+                            if (pType.arguments().size() == 1) {
                                 Type asyncType = pType.arguments().get(0);
                                 asyncTypes.add(asyncType.name());
                             }
@@ -120,7 +120,7 @@ public class RESTEasyExtension extends DefaultAnnotationScannerExtension {
             JaxRsParameterInfo info = new JaxRsParameterInfo();
             info.in = In.PATH;
             info.name = JandexUtil.stringValue(jaxRsAnno, OpenApiConstants.PROP_VALUE);
-            if(info.name == null)
+            if (info.name == null)
                 info.name = method.parameterName(idx);
             return info;
         }
@@ -130,7 +130,7 @@ public class RESTEasyExtension extends DefaultAnnotationScannerExtension {
             JaxRsParameterInfo info = new JaxRsParameterInfo();
             info.in = In.QUERY;
             info.name = JandexUtil.stringValue(jaxRsAnno, OpenApiConstants.PROP_VALUE);
-            if(info.name == null)
+            if (info.name == null)
                 info.name = method.parameterName(idx);
             return info;
         }
@@ -140,7 +140,7 @@ public class RESTEasyExtension extends DefaultAnnotationScannerExtension {
             JaxRsParameterInfo info = new JaxRsParameterInfo();
             info.in = In.COOKIE;
             info.name = JandexUtil.stringValue(jaxRsAnno, OpenApiConstants.PROP_VALUE);
-            if(info.name == null)
+            if (info.name == null)
                 info.name = method.parameterName(idx);
             return info;
         }
@@ -150,7 +150,7 @@ public class RESTEasyExtension extends DefaultAnnotationScannerExtension {
             JaxRsParameterInfo info = new JaxRsParameterInfo();
             info.in = In.HEADER;
             info.name = JandexUtil.stringValue(jaxRsAnno, OpenApiConstants.PROP_VALUE);
-            if(info.name == null)
+            if (info.name == null)
                 info.name = method.parameterName(idx);
             return info;
         }
@@ -182,10 +182,10 @@ public class RESTEasyExtension extends DefaultAnnotationScannerExtension {
 
     @Override
     public Type resolveAsyncType(Type type) {
-        if(type.kind() == Type.Kind.PARAMETERIZED_TYPE
+        if (type.kind() == Type.Kind.PARAMETERIZED_TYPE
                 && asyncTypes.contains(type.name())) {
             ParameterizedType pType = type.asParameterizedType();
-            if(pType.arguments().size() == 1)
+            if (pType.arguments().size() == 1)
                 return pType.arguments().get(0);
         }
         return super.resolveAsyncType(type);
@@ -193,7 +193,7 @@ public class RESTEasyExtension extends DefaultAnnotationScannerExtension {
 
     @Override
     public void processJaxRsApplications(OpenApiAnnotationScanner scanner, Collection<ClassInfo> applications) {
-        if(applications.isEmpty())
+        if (applications.isEmpty())
             scanner.setCurrentAppPath(defaultPath);
     }
 }

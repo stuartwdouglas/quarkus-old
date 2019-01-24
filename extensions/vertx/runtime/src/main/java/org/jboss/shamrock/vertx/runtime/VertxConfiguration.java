@@ -1,9 +1,9 @@
 package org.jboss.shamrock.vertx.runtime;
 
+import java.util.Optional;
+
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.shamrock.runtime.ConfigGroup;
-
-import java.util.Optional;
 
 @ConfigGroup
 public class VertxConfiguration {
@@ -26,12 +26,12 @@ public class VertxConfiguration {
     @ConfigProperty(name = "eventLoopsPoolSize", defaultValue = "-1")
     public int eventLoopsPoolSize;
 
-//   TODO Wait until the long support is implemented.
-//    /**
-//     * The maximum amount of time the event loop can be blocked. In nano seconds.
-//     */
-//    @ConfigProperty(name = "maxEventLoopExecuteTime", defaultValue = "2000000000")
-//    public long maxEventLoopExecuteTime;
+    //   TODO Wait until the long support is implemented.
+    //    /**
+    //     * The maximum amount of time the event loop can be blocked. In nano seconds.
+    //     */
+    //    @ConfigProperty(name = "maxEventLoopExecuteTime", defaultValue = "2000000000")
+    //    public long maxEventLoopExecuteTime;
 
     /**
      * The amount of time before a warning is displayed if the event loop is blocked. In milliseconds.
@@ -45,12 +45,12 @@ public class VertxConfiguration {
     @ConfigProperty(name = "workerPoolSize", defaultValue = "20")
     public int workerPoolSize;
 
-//    TODO Wait until the long support is implemented.
-//    /**
-//     * The maximum amount of time the worker thread can be blocked. In nano seconds.
-//     */
-//    @ConfigProperty(name = "maxWorkerExecuteTime", defaultValue = "60000000000")
-//    public long maxWorkerExecuteTime;
+    //    TODO Wait until the long support is implemented.
+    //    /**
+    //     * The maximum amount of time the worker thread can be blocked. In nano seconds.
+    //     */
+    //    @ConfigProperty(name = "maxWorkerExecuteTime", defaultValue = "60000000000")
+    //    public long maxWorkerExecuteTime;
 
     /**
      * The size of the internal thread pool (used for the file system).
@@ -75,6 +75,5 @@ public class VertxConfiguration {
      */
     @ConfigProperty(name = "cluster")
     public Optional<ClusterConfiguration> clusterConfiguration;
-
 
 }

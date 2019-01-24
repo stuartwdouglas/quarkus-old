@@ -41,7 +41,8 @@ class MethodCreatorImpl extends BytecodeCreatorImpl implements MethodCreator {
     private final ClassOutput classOutput;
     private final ClassCreator classCreator;
 
-    MethodCreatorImpl(BytecodeCreatorImpl enclosing, MethodDescriptor methodDescriptor, String declaringClassName, ClassOutput classOutput, ClassCreator classCreator) {
+    MethodCreatorImpl(BytecodeCreatorImpl enclosing, MethodDescriptor methodDescriptor, String declaringClassName, ClassOutput classOutput,
+            ClassCreator classCreator) {
         super(enclosing, true);
         this.methodDescriptor = methodDescriptor;
         this.declaringClassName = declaringClassName;
@@ -67,7 +68,7 @@ class MethodCreatorImpl extends BytecodeCreatorImpl implements MethodCreator {
 
     @Override
     public AnnotatedElement getParameterAnnotations(int param) {
-        if(parameterAnnotations.containsKey(param)) {
+        if (parameterAnnotations.containsKey(param)) {
             return parameterAnnotations.get(param);
         }
         AnnotationParameters p = new AnnotationParameters();
@@ -88,9 +89,8 @@ class MethodCreatorImpl extends BytecodeCreatorImpl implements MethodCreator {
 
     @Override
     public void write(ClassWriter file) {
-        MethodVisitor visitor = file.visitMethod(modifiers, methodDescriptor.getName(), methodDescriptor.getDescriptor(), null, exceptions.toArray(new String[0]));
-
-
+        MethodVisitor visitor = file.visitMethod(modifiers, methodDescriptor.getName(), methodDescriptor.getDescriptor(), null,
+                exceptions.toArray(new String[0]));
 
         int localVarCount = Modifier.isStatic(modifiers) ? 0 : 1;
         for (int i = 0; i < methodDescriptor.getParameterTypes().length; ++i) {
@@ -105,17 +105,17 @@ class MethodCreatorImpl extends BytecodeCreatorImpl implements MethodCreator {
         writeOperations(visitor);
         visitor.visitMaxs(0, varCount);
 
-        for(AnnotationCreatorImpl annotation : annotations) {
+        for (AnnotationCreatorImpl annotation : annotations) {
             AnnotationVisitor av = visitor.visitAnnotation(DescriptorUtils.extToInt(annotation.getAnnotationType()), true);
-            for(Map.Entry<String, Object> e : annotation.getValues().entrySet()) {
+            for (Map.Entry<String, Object> e : annotation.getValues().entrySet()) {
                 av.visit(e.getKey(), e.getValue());
             }
             av.visitEnd();
         }
-        for(Map.Entry<Integer, AnnotationParameters> entry : parameterAnnotations.entrySet()) {
-            for(AnnotationCreatorImpl annotation : entry.getValue().annotations) {
+        for (Map.Entry<Integer, AnnotationParameters> entry : parameterAnnotations.entrySet()) {
+            for (AnnotationCreatorImpl annotation : entry.getValue().annotations) {
                 AnnotationVisitor av = visitor.visitParameterAnnotation(entry.getKey(), DescriptorUtils.extToInt(annotation.getAnnotationType()), true);
-                for(Map.Entry<String, Object> e : annotation.getValues().entrySet()) {
+                for (Map.Entry<String, Object> e : annotation.getValues().entrySet()) {
                     av.visit(e.getKey(), e.getValue());
                 }
                 av.visitEnd();

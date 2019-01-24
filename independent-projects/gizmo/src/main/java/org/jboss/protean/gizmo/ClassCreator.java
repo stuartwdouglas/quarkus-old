@@ -130,7 +130,9 @@ public class ClassCreator implements AutoCloseable, AnnotatedElement {
         for (int i = 0; i < params.length; ++i) {
             params[i] = ctor.getMethodParam(i);
         }
-        ResultHandle ret = ctor.invokeSpecialMethod(MethodDescriptor.ofMethod(getSuperClass(), descriptor.getName(), descriptor.getReturnType(), descriptor.getParameterTypes()), ctor.getThis(), params);
+        ResultHandle ret = ctor.invokeSpecialMethod(
+                MethodDescriptor.ofMethod(getSuperClass(), descriptor.getName(), descriptor.getReturnType(), descriptor.getParameterTypes()), ctor.getThis(),
+                params);
         ctor.returnValue(ret);
         superclassAccessors.put(descriptor, ctor.getMethodDescriptor());
         return ctor.getMethodDescriptor();
@@ -171,9 +173,9 @@ public class ClassCreator implements AutoCloseable, AnnotatedElement {
         for (Map.Entry<MethodDescriptor, MethodCreatorImpl> method : methods.entrySet()) {
             method.getValue().write(file);
         }
-        for(AnnotationCreatorImpl annotation : annotations) {
+        for (AnnotationCreatorImpl annotation : annotations) {
             AnnotationVisitor av = file.visitAnnotation(DescriptorUtils.extToInt(annotation.getAnnotationType()), true);
-            for(Map.Entry<String, Object> e : annotation.getValues().entrySet()) {
+            for (Map.Entry<String, Object> e : annotation.getValues().entrySet()) {
                 av.visit(e.getKey(), e.getValue());
             }
             av.visitEnd();

@@ -42,7 +42,6 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
  */
 public class ConfiguredTypeAnnotationProcessor extends AbstractProcessor {
 
-
     @Override
     public Set<String> getSupportedOptions() {
         return Collections.emptySet();
@@ -75,7 +74,7 @@ public class ConfiguredTypeAnnotationProcessor extends AbstractProcessor {
                     for (VariableElement field : fieldsIn(i.getEnclosedElements())) {
                         if (field.getAnnotation(ConfigProperty.class) != null) {
                             String docComment = processingEnv.getElementUtils().getDocComment(field);
-                            if(docComment == null) {
+                            if (docComment == null) {
                                 processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Unable to find javadoc for config property " + field);
                                 throw new RuntimeException("Unable to find javadoc for config property " + field);
                             }
@@ -84,7 +83,8 @@ public class ConfiguredTypeAnnotationProcessor extends AbstractProcessor {
                     }
                     if (!properties.isEmpty()) {
                         try {
-                            FileObject file = processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "", i.getQualifiedName().toString().replace(".", "/") + ".confjavadoc");
+                            FileObject file = processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "",
+                                    i.getQualifiedName().toString().replace(".", "/") + ".confjavadoc");
                             try (Writer writer = file.openWriter()) {
                                 properties.store(writer, "");
                             }

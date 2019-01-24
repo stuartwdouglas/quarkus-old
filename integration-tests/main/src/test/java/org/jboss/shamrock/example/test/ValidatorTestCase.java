@@ -57,7 +57,6 @@ public class ValidatorTestCase {
         Assertions.assertEquals("failed:email", new String(out.toByteArray()));
     }
 
-
     @Test
     public void testManualValidationPassed() throws Exception {
         URL uri = new URL("http://localhost:8080/validator/manual");

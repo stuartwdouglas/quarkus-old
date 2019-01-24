@@ -1,8 +1,8 @@
 package org.jboss.shamrock.maven.utilities;
 
-import org.apache.maven.model.Dependency;
-
 import java.util.function.Predicate;
+
+import org.apache.maven.model.Dependency;
 
 public class ShamrockDependencyPredicate implements Predicate<Dependency> {
     @Override

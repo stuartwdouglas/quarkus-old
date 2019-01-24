@@ -36,7 +36,7 @@ import org.objectweb.asm.Opcodes;
  * This is not configurable, and we enforce the ORM environment to use the "noop" enhancer as we require all
  * entities to be enhanced at build time.
  *
- * @author Sanne Grinovero  <sanne@hibernate.org>
+ * @author Sanne Grinovero <sanne@hibernate.org>
  */
 public final class HibernateEntityEnhancer implements BiFunction<String, ClassVisitor, ClassVisitor> {
 

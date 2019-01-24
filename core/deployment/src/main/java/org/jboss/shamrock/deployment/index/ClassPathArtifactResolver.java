@@ -73,7 +73,7 @@ public class ClassPathArtifactResolver implements ArtifactResolver {
 
                 boolean matches = true;
                 for (int i = 0; i < groupParts.length; ++i) {
-                    String up = url.path.getName(url.path.getNameCount() - groupParts.length -3 + i).toString();
+                    String up = url.path.getName(url.path.getNameCount() - groupParts.length - 3 + i).toString();
                     if (!up.equals(groupParts[i])) {
                         matches = false;
                         break;
@@ -89,7 +89,8 @@ public class ClassPathArtifactResolver implements ArtifactResolver {
                 }
             }
         }
-        throw new RuntimeException("Could not resolve artifact " + groupId + ":" + artifactId + ":" + classifier + ". Please make sure it is present and contains a META-INF/MANIFEST.MF file. Note that artifacts that are part of the same project may not always be resolvable, in this case you should generate a META-INF/jandex.idx file instead using the Jandex Maven plugin.");
+        throw new RuntimeException("Could not resolve artifact " + groupId + ":" + artifactId + ":" + classifier
+                + ". Please make sure it is present and contains a META-INF/MANIFEST.MF file. Note that artifacts that are part of the same project may not always be resolvable, in this case you should generate a META-INF/jandex.idx file instead using the Jandex Maven plugin.");
     }
 
     static class StoredUrl {

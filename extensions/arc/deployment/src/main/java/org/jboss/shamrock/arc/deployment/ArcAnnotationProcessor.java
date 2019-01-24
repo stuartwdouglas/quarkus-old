@@ -53,8 +53,8 @@ import org.jboss.protean.arc.processor.ResourceOutput;
 import org.jboss.shamrock.annotations.BuildProducer;
 import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.annotations.Record;
-import org.jboss.shamrock.arc.deployment.UnremovableBeanBuildItem.BeanClassNameExclusion;
 import org.jboss.shamrock.arc.deployment.UnremovableBeanBuildItem.BeanClassAnnotationExclusion;
+import org.jboss.shamrock.arc.deployment.UnremovableBeanBuildItem.BeanClassNameExclusion;
 import org.jboss.shamrock.arc.runtime.ArcDeploymentTemplate;
 import org.jboss.shamrock.arc.runtime.BeanContainer;
 import org.jboss.shamrock.arc.runtime.LifecycleEventRunner;
@@ -105,13 +105,13 @@ public class ArcAnnotationProcessor {
 
     @Inject
     List<BeanDefiningAnnotationBuildItem> additionalBeanDefiningAnnotations;
-    
+
     @Inject
     List<UnremovableBeanBuildItem> removalExclusions;
-    
+
     @ConfigProperty(name = "shamrock.arc")
     ArcConfig config;
-    
+
     @BuildStep(providesCapabilities = Capabilities.CDI_ARC, applicationArchiveMarkers = { "META-INF/beans.xml",
             "META-INF/services/javax.enterprise.inject.spi.Extension" })
     @Record(STATIC_INIT)
@@ -148,10 +148,10 @@ public class ArcAnnotationProcessor {
         builder.setApplicationClassPredicate(new Predicate<DotName>() {
             @Override
             public boolean test(DotName dotName) {
-                if(applicationArchivesBuildItem.getRootArchive().getIndex().getClassByName(dotName) != null) {
+                if (applicationArchivesBuildItem.getRootArchive().getIndex().getClassByName(dotName) != null) {
                     return true;
                 }
-                if(generatedClassNames.contains(dotName)) {
+                if (generatedClassNames.contains(dotName)) {
                     return true;
                 }
                 return false;
@@ -163,6 +163,7 @@ public class ArcAnnotationProcessor {
             public boolean appliesTo(AnnotationTarget.Kind kind) {
                 return AnnotationTarget.Kind.CLASS == kind;
             }
+
             @Override
             public void transform(TransformationContext transformationContext) {
                 if (additionalBeans.contains(transformationContext.getTarget().asClass().name().toString())) {

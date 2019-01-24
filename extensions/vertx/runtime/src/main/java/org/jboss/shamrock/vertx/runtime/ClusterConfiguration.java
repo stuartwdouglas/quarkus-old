@@ -1,9 +1,9 @@
 package org.jboss.shamrock.vertx.runtime;
 
+import java.util.Optional;
+
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.shamrock.runtime.ConfigGroup;
-
-import java.util.Optional;
 
 @ConfigGroup
 public class ClusterConfiguration {

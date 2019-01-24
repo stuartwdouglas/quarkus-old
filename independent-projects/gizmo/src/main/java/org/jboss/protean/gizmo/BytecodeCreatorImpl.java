@@ -129,14 +129,12 @@ class BytecodeCreatorImpl implements BytecodeCreator {
         return ret;
     }
 
-
     @Override
     public ResultHandle invokeSpecialMethod(MethodDescriptor descriptor, ResultHandle object, ResultHandle... args) {
         ResultHandle ret = allocateResult(descriptor.getReturnType());
         operations.add(new InvokeOperation(ret, descriptor, resolve(checkScope(object)), resolve(checkScope(args)), false, true));
         return ret;
     }
-
 
     @Override
     public ResultHandle newInstance(MethodDescriptor descriptor, ResultHandle... args) {
@@ -600,7 +598,7 @@ class BytecodeCreatorImpl implements BytecodeCreator {
 
     @Override
     public void continueScope(final BytecodeCreator scope) {
-        if (! isScopedWithin(scope)) {
+        if (!isScopedWithin(scope)) {
             throw new IllegalArgumentException("Cannot continue non-enclosing scope");
         }
         operations.add(new JumpOperation(((BytecodeCreatorImpl) scope).top));
@@ -608,7 +606,7 @@ class BytecodeCreatorImpl implements BytecodeCreator {
 
     @Override
     public void breakScope(final BytecodeCreator scope) {
-        if (! isScopedWithin(scope)) {
+        if (!isScopedWithin(scope)) {
             throw new IllegalArgumentException("Cannot break non-enclosing scope");
         }
         operations.add(new JumpOperation(((BytecodeCreatorImpl) scope).bottom));
@@ -629,7 +627,8 @@ class BytecodeCreatorImpl implements BytecodeCreator {
                 methodVisitor.visitInsn(Opcodes.POP);
             }
         } else if (handle.getResultType() == ResultHandle.ResultType.LOCAL_VARIABLE) {
-            if (handle.getType().equals("S") || handle.getType().equals("Z") || handle.getType().equals("I") || handle.getType().equals("B") || handle.getType().equals("C")) {
+            if (handle.getType().equals("S") || handle.getType().equals("Z") || handle.getType().equals("I") || handle.getType().equals("B")
+                    || handle.getType().equals("C")) {
                 methodVisitor.visitVarInsn(Opcodes.ISTORE, handle.getNo());
             } else if (handle.getType().equals("J")) {
                 methodVisitor.visitVarInsn(Opcodes.LSTORE, handle.getNo());
@@ -656,11 +655,12 @@ class BytecodeCreatorImpl implements BytecodeCreator {
             }
             return;
         }
-        if (! isScopedWithin(handle.getOwner())) {
-//            throw new IllegalStateException("Wrong owner for ResultHandle " + handle);
+        if (!isScopedWithin(handle.getOwner())) {
+            //            throw new IllegalStateException("Wrong owner for ResultHandle " + handle);
         }
         if (handle.getResultType() != ResultHandle.ResultType.SINGLE_USE) {
-            if (handle.getType().equals("S") || handle.getType().equals("Z") || handle.getType().equals("I") || handle.getType().equals("B") || handle.getType().equals("C")) {
+            if (handle.getType().equals("S") || handle.getType().equals("Z") || handle.getType().equals("I") || handle.getType().equals("B")
+                    || handle.getType().equals("C")) {
                 methodVisitor.visitVarInsn(Opcodes.ILOAD, handle.getNo());
             } else if (handle.getType().equals("J")) {
                 methodVisitor.visitVarInsn(Opcodes.LLOAD, handle.getNo());
@@ -721,7 +721,6 @@ class BytecodeCreatorImpl implements BytecodeCreator {
         return new BranchResultImpl(trueBranch, falseBranch);
     }
 
-
     @Override
     public ResultHandle getMethodParam(int methodNo) {
         int count = (method.getModifiers() & Modifier.STATIC) != 0 ? 0 : 1;
@@ -759,8 +758,10 @@ class BytecodeCreatorImpl implements BytecodeCreator {
         }
         final String functionName = getMethod().getDeclaringClassName() + FUNCTION + functionCount.incrementAndGet();
         ResultHandle ret = new ResultHandle("L" + functionName.replace('.', '/') + ";", this);
-        ClassCreator cc = ClassCreator.builder().enclosing(this).classOutput(getMethod().getClassOutput()).className(functionName).interfaces(functionalInterface).build();
-        MethodCreatorImpl mc = (MethodCreatorImpl) cc.getMethodCreator(functionMethod.getName(), functionMethod.getReturnType(), functionMethod.getParameterTypes());
+        ClassCreator cc = ClassCreator.builder().enclosing(this).classOutput(getMethod().getClassOutput()).className(functionName)
+                .interfaces(functionalInterface).build();
+        MethodCreatorImpl mc = (MethodCreatorImpl) cc.getMethodCreator(functionMethod.getName(), functionMethod.getReturnType(),
+                functionMethod.getParameterTypes());
 
         FunctionCreatorImpl fc = mc.addFunctionBody(ret, cc, mc, this);
         operations.add(new Operation() {
@@ -805,7 +806,8 @@ class BytecodeCreatorImpl implements BytecodeCreator {
                     methodVisitor.visitInsn(Opcodes.RETURN);
                 } else {
                     loadResultHandle(methodVisitor, resolvedReturnValue, BytecodeCreatorImpl.this, methodDescriptor.getReturnType());
-                    if (methodDescriptor.getReturnType().equals("S") || methodDescriptor.getReturnType().equals("Z") || methodDescriptor.getReturnType().equals("I") || methodDescriptor.getReturnType().equals("B")) {
+                    if (methodDescriptor.getReturnType().equals("S") || methodDescriptor.getReturnType().equals("Z")
+                            || methodDescriptor.getReturnType().equals("I") || methodDescriptor.getReturnType().equals("B")) {
                         methodVisitor.visitInsn(Opcodes.IRETURN);
                     } else if (methodDescriptor.getReturnType().equals("J")) {
                         methodVisitor.visitInsn(Opcodes.LRETURN);
@@ -926,7 +928,7 @@ class BytecodeCreatorImpl implements BytecodeCreator {
     <R extends ResultHandle> R checkScope(R handle) {
         if (handle != null) {
             final BytecodeCreatorImpl handleOwner = handle.getOwner();
-            if (handleOwner != null && ! isScopedWithin(handleOwner)) {
+            if (handleOwner != null && !isScopedWithin(handleOwner)) {
                 final StringBuilder trace = new StringBuilder();
                 trace.append("Result handle ").append(handle).append(" used outside of its scope\n");
                 trace.append("The handle's scope is:\n");
@@ -941,7 +943,8 @@ class BytecodeCreatorImpl implements BytecodeCreator {
 
     private void dumpScope(final StringBuilder builder) {
         builder.append("\tat ").append(this).append('\n');
-        if (owner != null) owner.dumpScope(builder);
+        if (owner != null)
+            owner.dumpScope(builder);
     }
 
     ResultHandle[] checkScope(ResultHandle[] handles) {
@@ -969,23 +972,21 @@ class BytecodeCreatorImpl implements BytecodeCreator {
 
     static abstract class Operation {
 
-
         private final Throwable errorPoint;
 
         Operation() {
-            if(Boolean.getBoolean("arc.debug")) {
-                errorPoint= new RuntimeException("Error location");
+            if (Boolean.getBoolean("arc.debug")) {
+                errorPoint = new RuntimeException("Error location");
             } else {
                 errorPoint = null;
             }
         }
 
-
         public void doProcess(MethodVisitor visitor) {
             try {
                 writeBytecode(visitor);
             } catch (Throwable e) {
-                if(errorPoint == null) {
+                if (errorPoint == null) {
                     throw new RuntimeException(e);
                 }
                 RuntimeException ex = new RuntimeException("Exception generating bytecode", errorPoint);
@@ -1054,7 +1055,8 @@ class BytecodeCreatorImpl implements BytecodeCreator {
         final boolean interfaceMethod;
         final boolean specialMethod;
 
-        InvokeOperation(ResultHandle resultHandle, MethodDescriptor descriptor, ResultHandle object, ResultHandle[] args, boolean interfaceMethod, boolean specialMethod) {
+        InvokeOperation(ResultHandle resultHandle, MethodDescriptor descriptor, ResultHandle object, ResultHandle[] args, boolean interfaceMethod,
+                boolean specialMethod) {
             if (args.length != descriptor.getParameterTypes().length) {
                 throw new RuntimeException("Wrong number of params " + Arrays.toString(descriptor.getParameterTypes()) + " vs " + Arrays.toString(args));
             }
@@ -1185,7 +1187,8 @@ class BytecodeCreatorImpl implements BytecodeCreator {
         private final BytecodeCreatorImpl trueBranch;
         private final BytecodeCreatorImpl falseBranch;
 
-        IfOperation(final int opcode, final String opType, final ResultHandle resultHandle, final BytecodeCreatorImpl trueBranch, final BytecodeCreatorImpl falseBranch) {
+        IfOperation(final int opcode, final String opType, final ResultHandle resultHandle, final BytecodeCreatorImpl trueBranch,
+                final BytecodeCreatorImpl falseBranch) {
             this.opcode = opcode;
             this.opType = opType;
             this.resultHandle = resultHandle;

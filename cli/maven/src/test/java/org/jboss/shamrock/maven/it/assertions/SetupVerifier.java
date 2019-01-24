@@ -1,5 +1,13 @@
 package org.jboss.shamrock.maven.it.assertions;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.*;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.Optional;
+import java.util.Properties;
+
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.Profile;
@@ -9,14 +17,6 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.jboss.shamrock.maven.CreateProjectMojo;
 import org.jboss.shamrock.maven.utilities.MojoUtils;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.Optional;
-import java.util.Properties;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
 
 public class SetupVerifier {
 
@@ -68,7 +68,6 @@ public class SetupVerifier {
             assertThat(execution.getGoals()).containsExactly("build");
             assertThat(execution.getConfiguration()).isNull();
         });
-
 
         // Check profile
         assertThat(model.getProfiles()).hasSize(1);

@@ -40,7 +40,6 @@ import javax.ws.rs.core.Response;
 
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 
-
 /**
  * Created by hbraun on 22.01.18.
  */
@@ -71,14 +70,13 @@ public class PartialResponse extends Response implements Serializable {
         return ex;
     }
 
-
     @Override
     @SuppressWarnings("unchecked")
     public <T> T readEntity(Class<T> entityType) {
 
         if (entityType.isAssignableFrom(String.class)) {
             return (T) readStringEntity(responseContext.getEntityStream());
-        }  else {
+        } else {
             throw notSupported();
         }
     }
@@ -92,7 +90,6 @@ public class PartialResponse extends Response implements Serializable {
             throw new WebApplicationException("Failed to read entity", e);
         }
     }
-
 
     @Override
     public <T> T readEntity(GenericType<T> entityType) {

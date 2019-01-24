@@ -78,11 +78,11 @@ public class RuntimeLoggingConfigurator implements EmbeddedConfigurator {
                 .orElse(true);
 
         if (color && System.console() != null) {
-            return loggerName.isEmpty() ? new Handler[]{
+            return loggerName.isEmpty() ? new Handler[] {
                     new ConsoleHandler(new ColorPatternFormatter(format))
             } : NO_HANDLERS;
         } else {
-            return loggerName.isEmpty() ? new Handler[]{
+            return loggerName.isEmpty() ? new Handler[] {
                     new ConsoleHandler(new PatternFormatter(format))
             } : NO_HANDLERS;
         }

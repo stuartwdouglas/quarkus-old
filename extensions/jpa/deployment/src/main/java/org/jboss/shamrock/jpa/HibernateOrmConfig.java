@@ -1,9 +1,9 @@
 package org.jboss.shamrock.jpa;
 
+import java.util.Optional;
+
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.shamrock.runtime.ConfigGroup;
-
-import java.util.Optional;
 
 /**
  * @author Emmanuel Bernard emmanuel@hibernate.org
@@ -28,7 +28,7 @@ public class HibernateOrmConfig {
     /**
      * Enable SQL logging (default to false)
      */
-    @ConfigProperty(name="show_sql")
+    @ConfigProperty(name = "show_sql")
     public Optional<Boolean> showSql;
 
     /**
@@ -36,7 +36,7 @@ public class HibernateOrmConfig {
      * specify the location of a load script.
      * The location specified in this property is relative to the root of the persistence unit.
      */
-    @ConfigProperty(name="sql-load-script-source")
+    @ConfigProperty(name = "sql-load-script-source")
     public Optional<String> sqlLoadScriptSource;
 
     public boolean isAnyPropertySet() {

@@ -29,7 +29,6 @@ public class ShamrockInstanceFactory<T> implements InstanceFactory<T> {
         this.injectionInstance = injectionInstance;
     }
 
-
     @Override
     public InstanceHandle<T> createInstance() throws InstantiationException {
         return new InstanceHandle<T>() {

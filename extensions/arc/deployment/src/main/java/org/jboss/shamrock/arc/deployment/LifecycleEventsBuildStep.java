@@ -11,7 +11,7 @@ import org.jboss.shamrock.deployment.builditem.ServiceStartBuildItem;
 import org.jboss.shamrock.deployment.builditem.ShutdownContextBuildItem;
 
 public class LifecycleEventsBuildStep {
-    
+
     @BuildStep
     @Record(RUNTIME_INIT)
     void startupEvent(ArcDeploymentTemplate template, List<ServiceStartBuildItem> startList, BeanContainerBuildItem beanContainer,

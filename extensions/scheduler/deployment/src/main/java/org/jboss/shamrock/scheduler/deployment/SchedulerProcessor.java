@@ -59,8 +59,8 @@ import org.jboss.shamrock.arc.deployment.AdditionalBeanBuildItem;
 import org.jboss.shamrock.arc.deployment.AnnotationsTransformerBuildItem;
 import org.jboss.shamrock.arc.deployment.BeanContainerBuildItem;
 import org.jboss.shamrock.arc.deployment.BeanDeploymentValidatorBuildItem;
-import org.jboss.shamrock.arc.deployment.UnremovableBeanBuildItem.BeanClassAnnotationExclusion;
 import org.jboss.shamrock.arc.deployment.UnremovableBeanBuildItem;
+import org.jboss.shamrock.arc.deployment.UnremovableBeanBuildItem.BeanClassAnnotationExclusion;
 import org.jboss.shamrock.deployment.builditem.FeatureBuildItem;
 import org.jboss.shamrock.deployment.builditem.GeneratedClassBuildItem;
 import org.jboss.shamrock.deployment.builditem.substrate.ReflectiveClassBuildItem;
@@ -115,7 +115,8 @@ public class SchedulerProcessor {
             public void transform(TransformationContext context) {
                 if (context.getAnnotations().isEmpty()) {
                     // Class with no annotations but with @Scheduled method
-                    if (context.getTarget().asClass().annotations().containsKey(SCHEDULED_NAME) || context.getTarget().asClass().annotations().containsKey(SCHEDULEDS_NAME)) {
+                    if (context.getTarget().asClass().annotations().containsKey(SCHEDULED_NAME)
+                            || context.getTarget().asClass().annotations().containsKey(SCHEDULEDS_NAME)) {
                         LOGGER.debugf("Found scheduled business methods on a class %s with no annotations - adding @Singleton", context.getTarget());
                         context.transform().add(Singleton.class).done();
                     }
@@ -135,7 +136,7 @@ public class SchedulerProcessor {
 
     @BuildStep
     BeanDeploymentValidatorBuildItem beanDeploymentValidator(BuildProducer<ScheduledBusinessMethodItem> scheduledBusinessMethods) {
-        
+
         return new BeanDeploymentValidatorBuildItem(new BeanDeploymentValidator() {
 
             @Override
@@ -171,10 +172,12 @@ public class SchedulerProcessor {
                                 // Validate method params and return type
                                 List<Type> params = method.parameters();
                                 if (params.size() > 1 || (params.size() == 1 && !params.get(0).equals(SCHEDULED_EXECUTION_TYPE))) {
-                                    throw new IllegalStateException(String.format("Invalid scheduled business method parameters %s [method: %s, bean:%s", params, method, bean));
+                                    throw new IllegalStateException(
+                                            String.format("Invalid scheduled business method parameters %s [method: %s, bean:%s", params, method, bean));
                                 }
                                 if (!method.returnType().kind().equals(Type.Kind.VOID)) {
-                                    throw new IllegalStateException(String.format("Scheduled business method must return void [method: %s, bean:%s", method.returnType(), method, bean));
+                                    throw new IllegalStateException(String.format("Scheduled business method must return void [method: %s, bean:%s",
+                                            method.returnType(), method, bean));
                                 }
                                 // Validate cron() and every() expressions
                                 for (AnnotationInstance scheduled : schedules) {
@@ -190,7 +193,7 @@ public class SchedulerProcessor {
             }
         });
     }
-    
+
     @BuildStep
     public List<UnremovableBeanBuildItem> unremovableBeans() {
         return Arrays.asList(new UnremovableBeanBuildItem(new BeanClassAnnotationExclusion(SCHEDULED_NAME)),

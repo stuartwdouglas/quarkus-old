@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package org.jboss.shamrock.beanvalidation.runtime;
 
 import javax.validation.Validator;

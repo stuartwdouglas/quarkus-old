@@ -138,5 +138,4 @@ public class EventBusConfiguration {
     @ConfigProperty(name = "trustAll", defaultValue = "false")
     public boolean trustAll;
 
-
 }

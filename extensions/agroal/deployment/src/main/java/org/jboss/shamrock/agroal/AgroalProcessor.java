@@ -42,7 +42,6 @@ class AgroalProcessor {
     @ConfigProperty(name = "shamrock.datasource")
     Optional<DataSourceConfig> dataSourceConfig;
 
-
     @BuildStep
     AdditionalBeanBuildItem registerBean() {
         return new AdditionalBeanBuildItem(false, DataSourceProducer.class);
@@ -58,8 +57,7 @@ class AgroalProcessor {
                 java.sql.Statement[].class.getName(),
                 java.sql.Statement.class.getName(),
                 java.sql.ResultSet.class.getName(),
-                java.sql.ResultSet[].class.getName()
-        ));
+                java.sql.ResultSet[].class.getName()));
         if (!dataSourceConfig.isPresent()) {
             log.warn("Agroal extension was included in build however no data source has been defined");
             return null;

@@ -25,7 +25,7 @@ public class ApplicationArchiveMarkerBuildStep implements BuildStep {
     private final String marker;
 
     public ApplicationArchiveMarkerBuildStep(String marker) {
-        if(marker == null) {
+        if (marker == null) {
             throw new IllegalArgumentException("marker cannot be null");
         }
         this.marker = marker;

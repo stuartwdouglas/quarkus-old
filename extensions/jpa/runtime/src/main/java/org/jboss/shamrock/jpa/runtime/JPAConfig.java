@@ -67,7 +67,7 @@ public class JPAConfig {
     }
 
     void startAll() {
-        for(Map.Entry<String, LazyPersistenceUnit> i : persistenceUnits.entrySet()) {
+        for (Map.Entry<String, LazyPersistenceUnit> i : persistenceUnits.entrySet()) {
             i.getValue().get();
         }
     }
@@ -104,9 +104,9 @@ public class JPAConfig {
         }
 
         EntityManagerFactory get() {
-            if(value == null) {
+            if (value == null) {
                 synchronized (this) {
-                    if(value == null) {
+                    if (value == null) {
                         value = Persistence.createEntityManagerFactory(name);
                     }
                 }

@@ -26,7 +26,7 @@ import org.jboss.builder.item.SymbolicBuildItem;
 import org.wildfly.common.Assert;
 
 /**
- * A builder for build step instances within a chain. A build step can consume and produce items.  It may also register
+ * A builder for build step instances within a chain. A build step can consume and produce items. It may also register
  * a destructor for items it produces, which will be run (in indeterminate order) at the end of processing.
  */
 public final class BuildStepBuilder {
@@ -40,7 +40,7 @@ public final class BuildStepBuilder {
     }
 
     /**
-     * Set the build step for this builder.  If no build step is specified, then this step will be excluded from
+     * Set the build step for this builder. If no build step is specified, then this step will be excluded from
      * the final chain.
      *
      * @param buildStep the build step
@@ -150,7 +150,7 @@ public final class BuildStepBuilder {
 
     /**
      * Similarly to {@link #beforeConsume(Class)}, establish that this build step must come before the consumer(s) of the
-     * given item {@code type}; however, only one {@code producer} may exist for the given item.  In addition, the
+     * given item {@code type}; however, only one {@code producer} may exist for the given item. In addition, the
      * build step may produce an actual value for this item, which will be shared to all consumers during deployment.
      *
      * @param type the item type (must not be {@code null})
@@ -167,7 +167,7 @@ public final class BuildStepBuilder {
 
     /**
      * Similarly to {@link #beforeConsume(Class)}, establish that this build step must come before the consumer(s) of the
-     * given item {@code type}; however, only one {@code producer} may exist for the given item.  In addition, the
+     * given item {@code type}; however, only one {@code producer} may exist for the given item. In addition, the
      * build step may produce an actual value for this item, which will be shared to all consumers during deployment.
      *
      * @param type the item type (must not be {@code null})
@@ -186,7 +186,7 @@ public final class BuildStepBuilder {
 
     /**
      * Similarly to {@link #beforeConsume(Class)}, establish that this build step must come before the consumer(s) of the
-     * given item {@code type}; however, only one {@code producer} may exist for the given item.  In addition, the
+     * given item {@code type}; however, only one {@code producer} may exist for the given item. In addition, the
      * build step may produce an actual value for this item, which will be shared to all consumers during deployment.
      *
      * @param type the item type (must not be {@code null})
@@ -202,7 +202,7 @@ public final class BuildStepBuilder {
 
     /**
      * Similarly to {@link #beforeConsume(Class)}, establish that this build step must come before the consumer(s) of the
-     * given item {@code type}; however, only one {@code producer} may exist for the given item.  In addition, the
+     * given item {@code type}; however, only one {@code producer} may exist for the given item. In addition, the
      * build step may produce an actual value for this item, which will be shared to all consumers during deployment.
      *
      * @param type the item type (must not be {@code null})
@@ -245,7 +245,7 @@ public final class BuildStepBuilder {
     }
 
     /**
-     * This build step consumes the given produced item.  The item must be produced somewhere in the chain.  If
+     * This build step consumes the given produced item. The item must be produced somewhere in the chain. If
      * no such producer exists, the chain will not be constructed; instead, an error will be raised.
      *
      * @param type the item type (must not be {@code null})
@@ -261,7 +261,7 @@ public final class BuildStepBuilder {
     }
 
     /**
-     * This build step consumes the given produced item.  The item must be produced somewhere in the chain.  If
+     * This build step consumes the given produced item. The item must be produced somewhere in the chain. If
      * no such producer exists, the chain will not be constructed; instead, an error will be raised.
      *
      * @param type the item type (must not be {@code null})
@@ -276,7 +276,7 @@ public final class BuildStepBuilder {
     }
 
     /**
-     * This build step consumes the given produced item.  The item must be produced somewhere in the chain.  If
+     * This build step consumes the given produced item. The item must be produced somewhere in the chain. If
      * no such producer exists, the chain will not be constructed; instead, an error will be raised.
      *
      * @param type the item type (must not be {@code null})
@@ -293,7 +293,7 @@ public final class BuildStepBuilder {
     }
 
     /**
-     * This build step consumes the given produced item.  The item must be produced somewhere in the chain.  If
+     * This build step consumes the given produced item. The item must be produced somewhere in the chain. If
      * no such producer exists, the chain will not be constructed; instead, an error will be raised.
      *
      * @param type the item type (must not be {@code null})

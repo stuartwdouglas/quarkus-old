@@ -1,11 +1,7 @@
 package org.jboss.shamrock.cli.commands;
 
-import org.apache.maven.model.Dependency;
-import org.apache.maven.model.Model;
-import org.jboss.shamrock.maven.utilities.MojoUtils;
-import org.jboss.shamrock.maven.utilities.ShamrockDependencyPredicate;
-import org.junit.Assert;
-import org.junit.Test;
+import static java.util.Arrays.asList;
+import static org.jboss.shamrock.maven.utilities.MojoUtils.readPom;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -15,8 +11,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Arrays.asList;
-import static org.jboss.shamrock.maven.utilities.MojoUtils.readPom;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Model;
+import org.jboss.shamrock.maven.utilities.MojoUtils;
+import org.jboss.shamrock.maven.utilities.ShamrockDependencyPredicate;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class ListExtensionsTest {
 
@@ -28,13 +28,13 @@ public class ListExtensionsTest {
         final HashMap<String, Object> context = new HashMap<>();
 
         new CreateProject(pom.getParentFile())
-            .groupId(MojoUtils.SHAMROCK_GROUP_ID)
-            .artifactId("add-extension-test")
-            .version("0.0.1-SNAPSHOT")
-            .doCreateProject(context);
+                .groupId(MojoUtils.SHAMROCK_GROUP_ID)
+                .artifactId("add-extension-test")
+                .version("0.0.1-SNAPSHOT")
+                .doCreateProject(context);
 
         new AddExtensions(pom)
-            .addExtensions(asList("commons-io:commons-io:2.5", "Agroal"));
+                .addExtensions(asList("commons-io:commons-io:2.5", "Agroal"));
 
         Model model = readPom(pom);
 
@@ -53,22 +53,22 @@ public class ListExtensionsTest {
         final HashMap<String, Object> context = new HashMap<>();
 
         new CreateProject(pom.getParentFile())
-            .groupId(MojoUtils.SHAMROCK_GROUP_ID)
-            .artifactId("add-extension-test")
-            .version("0.0.1-SNAPSHOT")
-            .doCreateProject(context);
+                .groupId(MojoUtils.SHAMROCK_GROUP_ID)
+                .artifactId("add-extension-test")
+                .version("0.0.1-SNAPSHOT")
+                .doCreateProject(context);
 
         Model model = readPom(pom);
 
         model.setDependencyManagement(null);
         model.getDependencies().stream()
-             .filter(new ShamrockDependencyPredicate())
-             .forEach(d -> d.setVersion("0.0.1"));
+                .filter(new ShamrockDependencyPredicate())
+                .forEach(d -> d.setVersion("0.0.1"));
 
         MojoUtils.write(model, pom);
 
         new AddExtensions(pom)
-            .addExtensions(asList("commons-io:commons-io:2.5", "Agroal"));
+                .addExtensions(asList("commons-io:commons-io:2.5", "Agroal"));
 
         model = readPom(pom);
 
@@ -77,7 +77,7 @@ public class ListExtensionsTest {
         try (final PrintStream printStream = new PrintStream(baos)) {
             System.setOut(printStream);
             new ListExtensions(model)
-                .listExtensions();
+                    .listExtensions();
         } finally {
             System.setOut(out);
         }

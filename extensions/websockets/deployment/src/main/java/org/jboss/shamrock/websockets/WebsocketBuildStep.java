@@ -52,7 +52,6 @@ public class WebsocketBuildStep {
     private static final DotName SERVER_APPLICATION_CONFIG = DotName.createSimple(ServerApplicationConfig.class.getName());
     private static final DotName ENDPOINT = DotName.createSimple(Endpoint.class.getName());
 
-
     @BuildStep
     @Record(ExecutionTime.STATIC_INIT)
     public ServletContextAttributeBuildItem deploy(final CombinedIndexBuildItem indexBuildItem, WebsocketTemplate template,
@@ -106,10 +105,11 @@ public class WebsocketBuildStep {
                 config.isEmpty()) {
             return null;
         }
-        reflection.produce(new ReflectiveClassBuildItem(true, false , annotatedEndpoints.toArray(new String[annotatedEndpoints.size()])));
-        reflection.produce(new ReflectiveClassBuildItem(false, false , JsrWebSocketFilter.class.getName()));
-        
-        return new ServletContextAttributeBuildItem(WebSocketDeploymentInfo.ATTRIBUTE_NAME, template.createDeploymentInfo(annotatedEndpoints, endpoints, config));
+        reflection.produce(new ReflectiveClassBuildItem(true, false, annotatedEndpoints.toArray(new String[annotatedEndpoints.size()])));
+        reflection.produce(new ReflectiveClassBuildItem(false, false, JsrWebSocketFilter.class.getName()));
+
+        return new ServletContextAttributeBuildItem(WebSocketDeploymentInfo.ATTRIBUTE_NAME,
+                template.createDeploymentInfo(annotatedEndpoints, endpoints, config));
     }
 
     @BuildStep

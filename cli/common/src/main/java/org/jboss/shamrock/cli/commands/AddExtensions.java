@@ -1,12 +1,7 @@
 package org.jboss.shamrock.cli.commands;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.maven.model.Dependency;
-import org.apache.maven.model.Model;
-import org.jboss.shamrock.dependencies.Extension;
-import org.jboss.shamrock.maven.utilities.MojoUtils;
+import static org.jboss.shamrock.maven.utilities.MojoUtils.SHAMROCK_BOM_ARTIFACT_ID;
+import static org.jboss.shamrock.maven.utilities.MojoUtils.readPom;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,8 +9,14 @@ import java.net.URL;
 import java.util.List;
 import java.util.Optional;
 
-import static org.jboss.shamrock.maven.utilities.MojoUtils.SHAMROCK_BOM_ARTIFACT_ID;
-import static org.jboss.shamrock.maven.utilities.MojoUtils.readPom;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Model;
+import org.jboss.shamrock.dependencies.Extension;
+import org.jboss.shamrock.maven.utilities.MojoUtils;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class AddExtensions {
     private Model model;
@@ -50,14 +51,14 @@ public class AddExtensions {
 
         for (String dependency : extensions) {
             Optional<Extension> optional = MojoUtils.loadExtensions().stream()
-                                                    .filter(d -> {
-                                                               boolean hasTag = d.labels().contains(dependency.trim().toLowerCase());
-                                                               boolean machName = d.getName()
-                                                                                   .toLowerCase()
-                                                                                   .contains(dependency.trim().toLowerCase());
-                                                               return hasTag || machName;
-                                                           })
-                                                    .findAny();
+                    .filter(d -> {
+                        boolean hasTag = d.labels().contains(dependency.trim().toLowerCase());
+                        boolean machName = d.getName()
+                                .toLowerCase()
+                                .contains(dependency.trim().toLowerCase());
+                        return hasTag || machName;
+                    })
+                    .findAny();
 
             if (optional.isPresent()) {
                 final Extension extension = optional.get();
@@ -65,8 +66,8 @@ public class AddExtensions {
                 if (!MojoUtils.hasDependency(model, extension.getGroupId(), extension.getArtifactId())) {
                     System.out.println("Adding extension " + extension.toCoordinates());
                     model.addDependency(extension
-                                            .toDependency(containsBOM(model) &&
-                                                          isDefinedInBom(dependenciesFromBom, extension)));
+                            .toDependency(containsBOM(model) &&
+                                    isDefinedInBom(dependenciesFromBom, extension)));
                     updated = true;
                 } else {
                     System.out.println("Skipping extension " + extension.toCoordinates() + ": already present");
@@ -91,8 +92,8 @@ public class AddExtensions {
     private List<Dependency> getDependenciesFromBom() {
         try {
             return readPom(getClass().getResourceAsStream("/shamrock-bom/pom.xml"))
-                       .getDependencyManagement()
-                       .getDependencies();
+                    .getDependencyManagement()
+                    .getDependencies();
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -104,16 +105,15 @@ public class AddExtensions {
         }
         List<Dependency> dependencies = model.getDependencyManagement().getDependencies();
         return dependencies.stream()
-                           // Find bom
-                           .filter(dependency -> "import".equalsIgnoreCase(dependency.getScope()))
-                           .filter(dependency -> "pom".equalsIgnoreCase(dependency.getType()))
-                           // Does it matches the bom artifact name
-                           .anyMatch(dependency -> dependency.getArtifactId().equalsIgnoreCase(SHAMROCK_BOM_ARTIFACT_ID));
+                // Find bom
+                .filter(dependency -> "import".equalsIgnoreCase(dependency.getScope()))
+                .filter(dependency -> "pom".equalsIgnoreCase(dependency.getType()))
+                // Does it matches the bom artifact name
+                .anyMatch(dependency -> dependency.getArtifactId().equalsIgnoreCase(SHAMROCK_BOM_ARTIFACT_ID));
     }
 
     private boolean isDefinedInBom(List<Dependency> dependencies, Extension extension) {
-        return dependencies.stream().anyMatch(dependency ->
-                                                  dependency.getGroupId().equalsIgnoreCase(extension.getGroupId())
-                                                  && dependency.getArtifactId().equalsIgnoreCase(extension.getArtifactId()));
+        return dependencies.stream().anyMatch(dependency -> dependency.getGroupId().equalsIgnoreCase(extension.getGroupId())
+                && dependency.getArtifactId().equalsIgnoreCase(extension.getArtifactId()));
     }
 }

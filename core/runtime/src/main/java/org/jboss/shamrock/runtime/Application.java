@@ -25,12 +25,13 @@ import org.jboss.logging.Logger;
 import org.jboss.shamrock.runtime.graal.DiagnosticPrinter;
 import org.jboss.threads.Locks;
 import org.wildfly.common.Assert;
+
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
 /**
  * The application base class, which is extended and implemented by a generated class which implements the application
- * setup logic.  The base class does some basic error checking.
+ * setup logic. The base class does some basic error checking.
  */
 @SuppressWarnings("restriction")
 public abstract class Application {
@@ -54,34 +55,37 @@ public abstract class Application {
     }
 
     /**
-     * Start the application.  If another thread is also trying to start the application, this method waits for that
-     * thread to finish starting.  Returns immediately if the application is started already.  If the application
+     * Start the application. If another thread is also trying to start the application, this method waits for that
+     * thread to finish starting. Returns immediately if the application is started already. If the application
      * fails to start, an exception is thrown.
      *
      * @param args the command-line arguments
      * @implNote The command line args are not yet used, but at some point we'll want a facility for overriding config and/or
-     * letting the user hook into it.
+     *           letting the user hook into it.
      */
     public final void start(@SuppressWarnings("unused") String[] args) {
         final Lock stateLock = this.stateLock;
         stateLock.lock();
         try {
-            loop: for (;;) switch (state) {
-                case ST_INITIAL: break loop; // normal startup
-                case ST_STARTING: {
-                    try {
-                        stateCond.await();
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        throw interruptedOnAwaitStart();
+            loop: for (;;)
+                switch (state) {
+                    case ST_INITIAL:
+                        break loop; // normal startup
+                    case ST_STARTING: {
+                        try {
+                            stateCond.await();
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            throw interruptedOnAwaitStart();
+                        }
+                        break;
                     }
-                    break;
+                    case ST_STARTED:
+                        return; // all good
+                    default: {
+                        throw new IllegalStateException("The application is stopping");
+                    }
                 }
-                case ST_STARTED: return; // all good
-                default: {
-                    throw new IllegalStateException("The application is stopping");
-                }
-            }
             state = ST_STARTING;
         } finally {
             stateLock.unlock();
@@ -110,57 +114,14 @@ public abstract class Application {
     protected abstract void doStart(String[] args);
 
     /**
-     * Stop the application.  If another thread is also trying to stop the application, this method waits for that
-     * thread to finish.  Returns immediately if the application is already stopped.  If an exception is thrown during
+     * Stop the application. If another thread is also trying to stop the application, this method waits for that
+     * thread to finish. Returns immediately if the application is already stopped. If an exception is thrown during
      * stop, that exception is propagated.
      */
     public final void stop() {
-        final Lock stateLock = this.stateLock;
-        stateLock.lock();
-        try {
-            loop: for (;;) switch (state) {
-                case ST_INITIAL: throw new IllegalStateException("The application has not been started");
-                case ST_STARTING: {
-                    try {
-                        stateCond.await();
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        throw interruptedOnAwaitStart();
-                    }
-                    break;
-                }
-                case ST_STARTED: break loop; // normal shutdown
-                case ST_STOPPING: {
-                    try {
-                        stateCond.await();
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        throw interruptedOnAwaitStop();
-                    }
-                    break;
-                }
-                case ST_STOPPED:
-                case ST_EXIT: return; // all good
-                default: throw Assert.impossibleSwitchCase(state);
-            }
-            state = ST_STOPPING;
-        } finally {
-            stateLock.unlock();
-        }
-        final long mark = System.nanoTime();
-        try {
-            doStop();
-        } finally {
-            stateLock.lock();
-            try {
-                state = ST_STOPPED;
-                final long time = System.nanoTime() - mark;
-                Logger.getLogger("org.jboss.shamrock").infof("Shamrock stopped in %d.%03dms", Long.valueOf(time / 1_000_000), Long.valueOf(time % 1_000_000 / 1_000));
-                stateCond.signalAll();
-            } finally {
-                stateLock.unlock();
-            }
-        }
+        final Lock stateLock=this.stateLock;stateLock.lock();try{loop:for(;;)switch(state){case ST_INITIAL:throw new IllegalStateException("The application has not been started");case ST_STARTING:{try{stateCond.await();}catch(InterruptedException e){Thread.currentThread().interrupt();throw interruptedOnAwaitStart();}break;}case ST_STARTED:break loop; // normal shutdown
+        case ST_STOPPING:{try{stateCond.await();}catch(InterruptedException e){Thread.currentThread().interrupt();throw interruptedOnAwaitStop();}break;}case ST_STOPPED:case ST_EXIT:return; // all good
+        default:throw Assert.impossibleSwitchCase(state);}state=ST_STOPPING;}finally{stateLock.unlock();}final long mark=System.nanoTime();try{doStop();}finally{stateLock.lock();try{state=ST_STOPPED;final long time=System.nanoTime()-mark;Logger.getLogger("org.jboss.shamrock").infof("Shamrock stopped in %d.%03dms",Long.valueOf(time/1_000_000),Long.valueOf(time%1_000_000/1_000));stateCond.signalAll();}finally{stateLock.unlock();}}
     }
 
     protected abstract void doStop();
@@ -190,7 +151,7 @@ public abstract class Application {
             Runtime.getRuntime().addShutdownHook(shutdownHookThread);
             start(args);
             try {
-                while (! shutdownRequested) {
+                while (!shutdownRequested) {
                     Thread.interrupted();
                     LockSupport.park(shutdownHookThread);
                 }

@@ -68,7 +68,6 @@ import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.spi.ResteasyUriBuilder;
 
-
 /**
  * Created by hbraun on 15.01.18.
  */
@@ -116,7 +115,7 @@ class RestClientBuilderImpl implements RestClientBuilder {
         Annotation[] providers = aClass.getAnnotations();
 
         for (Annotation provider : providers) {
-            if(provider instanceof  RegisterProvider) {
+            if (provider instanceof RegisterProvider) {
                 RegisterProvider p = (RegisterProvider) provider;
                 register(p.value(), p.priority());
             }
@@ -331,7 +330,6 @@ class RestClientBuilderImpl implements RestClientBuilder {
         }
     }
 
-
     @Override
     public Configuration getConfiguration() {
         return getConfigurationWrapper();
@@ -459,7 +457,6 @@ class RestClientBuilderImpl implements RestClientBuilder {
 
     @Override
     public RestClientBuilder register(Object o, Map<Class<?>, Integer> map) {
-
 
         if (o instanceof ResponseExceptionMapper) {
 

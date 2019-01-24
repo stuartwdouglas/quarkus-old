@@ -44,7 +44,7 @@ public class UpdateToNextAndPersistStateDemo extends ConfigDemoBase {
     public void demo(AppCreator creator) throws Exception {
         creator.resolveOutcome(RunnerJarOutcome.class);
         final CurateOutcome curateOutcome = creator.getOutcome(CurateOutcome.class);
-        if(curateOutcome == null) {
+        if (curateOutcome == null) {
             throw new IllegalStateException("Curate outcome isn't available");
         }
         curateOutcome.persist(creator);

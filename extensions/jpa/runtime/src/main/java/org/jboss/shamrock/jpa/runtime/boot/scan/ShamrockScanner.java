@@ -75,7 +75,6 @@ public class ShamrockScanner implements Scanner {
 
     public static class ClassDescriptorImpl implements ClassDescriptor {
 
-
         private String name;
         private Categorization categorization;
 

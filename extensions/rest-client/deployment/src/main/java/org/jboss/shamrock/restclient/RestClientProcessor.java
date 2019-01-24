@@ -94,7 +94,7 @@ class RestClientProcessor {
     @BuildStep
     public void build(BuildProducer<GeneratedBeanBuildItem> generatedBeans, BuildProducer<FeatureBuildItem> feature) throws Exception {
         feature.produce(new FeatureBuildItem(FeatureBuildItem.MP_REST_CLIENT));
-    	reflectiveClass.produce(new ReflectiveClassBuildItem(false, false,
+        reflectiveClass.produce(new ReflectiveClassBuildItem(false, false,
                 DefaultResponseExceptionMapper.class.getName(),
                 LogFactoryImpl.class.getName(),
                 Jdk14Logger.class.getName()));
@@ -104,10 +104,12 @@ class RestClientProcessor {
         additionalBeans.produce(new AdditionalBeanBuildItem(RestClient.class));
         resources.produce(new SubstrateResourceBuildItem("META-INF/services/javax.ws.rs.ext.Providers"));
         //TODO: fix this, we don't want to just add all the providers
-        reflectiveClass.produce(new ReflectiveClassBuildItem(false, false, "org.jboss.resteasy.core.ResteasyProviderFactoryImpl", "org.jboss.resteasy.client.jaxrs.internal.proxy.ProxyBuilderImpl"));
+        reflectiveClass.produce(new ReflectiveClassBuildItem(false, false, "org.jboss.resteasy.core.ResteasyProviderFactoryImpl",
+                "org.jboss.resteasy.client.jaxrs.internal.proxy.ProxyBuilderImpl"));
         reflectiveClass.produce(new ReflectiveClassBuildItem(false, false, "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl"));
         reflectiveClass.produce(new ReflectiveClassBuildItem(false, false, "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl"));
-        reflectiveClass.produce(new ReflectiveClassBuildItem(true, true, "org.jboss.resteasy.plugins.providers.jsonb.JsonBindingProvider", "org.jboss.resteasy.plugins.providers.jsonb.AbstractJsonBindingProvider"));
+        reflectiveClass.produce(new ReflectiveClassBuildItem(true, true, "org.jboss.resteasy.plugins.providers.jsonb.JsonBindingProvider",
+                "org.jboss.resteasy.plugins.providers.jsonb.AbstractJsonBindingProvider"));
         proxyDefinition.produce(new SubstrateProxyDefinitionBuildItem(ResteasyConfiguration.class.getName()));
         Map<DotName, ClassInfo> interfaces = new HashMap<>();
         for (DotName type : CLIENT_ANNOTATIONS) {

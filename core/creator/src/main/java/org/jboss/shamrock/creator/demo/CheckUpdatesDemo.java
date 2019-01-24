@@ -49,11 +49,11 @@ public class CheckUpdatesDemo extends ConfigDemoBase {
         final CurateOutcome curate = creator.resolveOutcome(CurateOutcome.class);
         final boolean updatesAvailable = curate.hasUpdatedDeps();
         System.out.println("Updates available: " + updatesAvailable);
-        if(!updatesAvailable) {
+        if (!updatesAvailable) {
             return;
         }
         System.out.println("Available updates:");
-        for(AppDependency dep : curate.getUpdatedDeps()) {
+        for (AppDependency dep : curate.getUpdatedDeps()) {
             System.out.println("- " + dep);
         }
     }

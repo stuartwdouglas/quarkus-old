@@ -16,14 +16,13 @@
 
 package org.jboss.shamrock.jaeger.runtime;
 
+import static io.jaegertracing.Configuration.JAEGER_ENDPOINT;
+import static io.jaegertracing.Configuration.JAEGER_SERVICE_NAME;
+
+import org.jboss.logging.Logger;
 import org.jboss.shamrock.runtime.Template;
 
 import io.opentracing.util.GlobalTracer;
-
-import static io.jaegertracing.Configuration.JAEGER_SERVICE_NAME;
-import static io.jaegertracing.Configuration.JAEGER_ENDPOINT;
-
-import org.jboss.logging.Logger;
 
 @Template
 public class JaegerDeploymentTemplate {
@@ -53,4 +52,3 @@ public class JaegerDeploymentTemplate {
         return false;
     }
 }
-

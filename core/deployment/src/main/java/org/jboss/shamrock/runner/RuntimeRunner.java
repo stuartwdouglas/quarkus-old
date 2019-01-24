@@ -47,12 +47,12 @@ public class RuntimeRunner implements Runnable, Closeable {
     private final List<Path> additionalArchives;
     private final List<Consumer<BuildChainBuilder>> chainCustomizers = new ArrayList<>();
 
-
     public RuntimeRunner(ClassLoader classLoader, Path target, Path frameworkClassesPath, Path transformerCache, List<Path> additionalArchives) {
         this(classLoader, target, frameworkClassesPath, transformerCache, additionalArchives, Collections.emptyList());
     }
 
-    public RuntimeRunner(ClassLoader classLoader, Path target, Path frameworkClassesPath, Path transformerCache, List<Path> additionalArchives, List<Consumer<BuildChainBuilder>> chainCustomizers) {
+    public RuntimeRunner(ClassLoader classLoader, Path target, Path frameworkClassesPath, Path transformerCache, List<Path> additionalArchives,
+            List<Consumer<BuildChainBuilder>> chainCustomizers) {
         this.target = target;
         this.additionalArchives = additionalArchives;
         this.chainCustomizers.addAll(chainCustomizers);
@@ -95,9 +95,9 @@ public class RuntimeRunner implements Runnable, Closeable {
                 loader.setTransformers(functions);
             }
 
-
             final Application application;
-            Class<? extends Application> appClass = loader.loadClass(result.consume(ApplicationClassNameBuildItem.class).getClassName()).asSubclass(Application.class);
+            Class<? extends Application> appClass = loader.loadClass(result.consume(ApplicationClassNameBuildItem.class).getClassName())
+                    .asSubclass(Application.class);
             ClassLoader old = Thread.currentThread().getContextClassLoader();
             try {
                 Thread.currentThread().setContextClassLoader(loader);

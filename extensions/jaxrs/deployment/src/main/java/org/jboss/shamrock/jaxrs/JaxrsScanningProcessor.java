@@ -133,8 +133,7 @@ public class JaxrsScanningProcessor {
 
     private static final Set<DotName> TYPES_IGNORED_FOR_REFLECTION = new HashSet<>(Arrays.asList(
             DotName.createSimple("javax.json.JsonObject"),
-            DotName.createSimple("javax.json.JsonArray")
-    ));
+            DotName.createSimple("javax.json.JsonArray")));
 
     private static final DotName[] METHOD_ANNOTATIONS = {
             GET,
@@ -215,8 +214,8 @@ public class JaxrsScanningProcessor {
 
     @BuildStep
     void scanForProviders(BuildProducer<JaxrsProviderBuildItem> providers, CombinedIndexBuildItem indexBuildItem) {
-        for(AnnotationInstance i : indexBuildItem.getIndex().getAnnotations(PROVIDER)) {
-            if(i.target().kind() == AnnotationTarget.Kind.CLASS) {
+        for (AnnotationInstance i : indexBuildItem.getIndex().getAnnotations(PROVIDER)) {
+            if (i.target().kind() == AnnotationTarget.Kind.CLASS) {
                 providers.produce(new JaxrsProviderBuildItem(i.target().asClass().name().toString()));
             }
         }
@@ -224,15 +223,14 @@ public class JaxrsScanningProcessor {
 
     @BuildStep
     public void build(BuildProducer<ReflectiveClassBuildItem> reflectiveClass,
-                      BuildProducer<ReflectiveHierarchyBuildItem> reflectiveHierarchy,
-                      BuildProducer<SubstrateProxyDefinitionBuildItem> proxyDefinition,
-                      BuildProducer<SubstrateResourceBuildItem> resource,
-                      BuildProducer<RuntimeInitializedClassBuildItem> runtimeClasses,
-                      BuildProducer<FilterBuildItem> filterProducer,
-                      BuildProducer<ServletBuildItem> servletProducer,
-                      BuildProducer<ServletInitParamBuildItem> servletContextParams,
-                      CombinedIndexBuildItem combinedIndexBuildItem
-    ) throws Exception {
+            BuildProducer<ReflectiveHierarchyBuildItem> reflectiveHierarchy,
+            BuildProducer<SubstrateProxyDefinitionBuildItem> proxyDefinition,
+            BuildProducer<SubstrateResourceBuildItem> resource,
+            BuildProducer<RuntimeInitializedClassBuildItem> runtimeClasses,
+            BuildProducer<FilterBuildItem> filterProducer,
+            BuildProducer<ServletBuildItem> servletProducer,
+            BuildProducer<ServletInitParamBuildItem> servletContextParams,
+            CombinedIndexBuildItem combinedIndexBuildItem) throws Exception {
         IndexView index = combinedIndexBuildItem.getIndex();
 
         resource.produce(new SubstrateResourceBuildItem("META-INF/services/javax.ws.rs.client.ClientBuilder"));
@@ -297,12 +295,12 @@ public class JaxrsScanningProcessor {
                 }
                 sb.append(annotationInstance.target().asClass().name().toString());
             }
-            throw new RuntimeException("Multiple classes ( "+ sb.toString() + ") have been annotated with @ApplicationPath which is currently not supported");
+            throw new RuntimeException("Multiple classes ( " + sb.toString() + ") have been annotated with @ApplicationPath which is currently not supported");
         }
         String mappingPath;
         String path = null;
         String appClass = null;
-        if(!app.isEmpty()) {
+        if (!app.isEmpty()) {
             AnnotationInstance appPath = app.iterator().next();
             path = appPath.value().asString();
             appClass = appPath.target().asClass().name().toString();
@@ -320,10 +318,12 @@ public class JaxrsScanningProcessor {
 
             //if JAX-RS is installed at the root location we use a filter, otherwise we use a Servlet and take over the whole mapped path
             if (path.equals("/")) {
-                filterProducer.produce(new FilterBuildItem(JAX_RS_FILTER_NAME, ResteasyFilter.class.getName()).setLoadOnStartup(1).addFilterServletNameMapping("default", DispatcherType.REQUEST).setAsyncSupported(true));
+                filterProducer.produce(new FilterBuildItem(JAX_RS_FILTER_NAME, ResteasyFilter.class.getName()).setLoadOnStartup(1)
+                        .addFilterServletNameMapping("default", DispatcherType.REQUEST).setAsyncSupported(true));
                 reflectiveClass.produce(new ReflectiveClassBuildItem(false, false, ResteasyFilter.class.getName()));
             } else {
-                servletProducer.produce(new ServletBuildItem(JAX_RS_SERVLET_NAME, HttpServlet30Dispatcher.class.getName()).setLoadOnStartup(1).addMapping(mappingPath).setAsyncSupported(true));
+                servletProducer.produce(new ServletBuildItem(JAX_RS_SERVLET_NAME, HttpServlet30Dispatcher.class.getName()).setLoadOnStartup(1)
+                        .addMapping(mappingPath).setAsyncSupported(true));
                 reflectiveClass.produce(new ReflectiveClassBuildItem(false, false, HttpServlet30Dispatcher.class.getName()));
             }
 
@@ -358,16 +358,15 @@ public class JaxrsScanningProcessor {
             return;
         }
 
-        OUTER:
-        for (DotName annotationType : RESTEASY_PARAM_ANNOTATIONS) {
+        OUTER: for (DotName annotationType : RESTEASY_PARAM_ANNOTATIONS) {
             Collection<AnnotationInstance> instances = index.getAnnotations(annotationType);
             for (AnnotationInstance instance : instances) {
                 MethodParameterInfo param = instance.target().asMethodParameter();
-                if(param.name() == null) {
+                if (param.name() == null) {
                     log.warnv("Detected RESTEasy annotation {0} on method parameter {1}.{2} with no name. Either specify its name,"
-                             +" or tell your compiler to enable debug info (-g) or parameter names (-parameters). This message is only"
-                            +" logged for the first such parameter.", instance.name(),
-                             param.method().declaringClass(), param.method().name());
+                            + " or tell your compiler to enable debug info (-g) or parameter names (-parameters). This message is only"
+                            + " logged for the first such parameter.", instance.name(),
+                            param.method().declaringClass(), param.method().name());
                     break OUTER;
                 }
             }
@@ -378,9 +377,9 @@ public class JaxrsScanningProcessor {
 
     @BuildStep
     void registerProviders(BuildProducer<ReflectiveClassBuildItem> reflectiveClass,
-                           BuildProducer<ServletInitParamBuildItem> servletContextParams,
-                           CombinedIndexBuildItem combinedIndexBuildItem,
-                           List<JaxrsProviderBuildItem> contributedProviderBuildItems) throws Exception {
+            BuildProducer<ServletInitParamBuildItem> servletContextParams,
+            CombinedIndexBuildItem combinedIndexBuildItem,
+            List<JaxrsProviderBuildItem> contributedProviderBuildItems) throws Exception {
         IndexView index = combinedIndexBuildItem.getIndex();
 
         Set<String> contributedProviders = new HashSet<>();
@@ -416,7 +415,8 @@ public class JaxrsScanningProcessor {
             // if we find a wildcard media type, we just use the built-in providers
             servletContextParams.produce(new ServletInitParamBuildItem("resteasy.use.builtin.providers", "true"));
             if (!contributedProviders.isEmpty()) {
-                servletContextParams.produce(new ServletInitParamBuildItem("resteasy.providers", contributedProviders.stream().collect(Collectors.joining(","))));
+                servletContextParams
+                        .produce(new ServletInitParamBuildItem("resteasy.providers", contributedProviders.stream().collect(Collectors.joining(","))));
             }
 
             providersToRegister = new HashSet<>(contributedProviders);
@@ -435,7 +435,8 @@ public class JaxrsScanningProcessor {
 
     @Record(STATIC_INIT)
     @BuildStep
-    void integrate(JaxrsTemplate template, BeanContainerBuildItem beanContainerBuildItem, List<ProxyUnwrapperBuildItem> proxyUnwrappers, BuildProducer<FeatureBuildItem> feature) {
+    void integrate(JaxrsTemplate template, BeanContainerBuildItem beanContainerBuildItem, List<ProxyUnwrapperBuildItem> proxyUnwrappers,
+            BuildProducer<FeatureBuildItem> feature) {
         feature.produce(new FeatureBuildItem(FeatureBuildItem.JAX_RS));
         List<Function<Object, Object>> unwrappers = new ArrayList<>();
         for (ProxyUnwrapperBuildItem i : proxyUnwrappers) {
@@ -443,7 +444,7 @@ public class JaxrsScanningProcessor {
         }
         template.setupIntegration(beanContainerBuildItem.getValue(), unwrappers);
     }
-    
+
     @BuildStep
     List<BeanDefiningAnnotationBuildItem> beanDefiningAnnotations() {
         return Collections.singletonList(new BeanDefiningAnnotationBuildItem(PATH, singletonResources ? SINGLETON_SCOPE : null));
@@ -451,6 +452,7 @@ public class JaxrsScanningProcessor {
 
     /**
      * Install the JAXRS security provider
+     * 
      * @param providers - the JaxrsProviderBuildItem providers producer to use
      */
     @BuildStep
@@ -528,8 +530,8 @@ public class JaxrsScanningProcessor {
     }
 
     private static void categorizeProviders(Set<String> availableProviders, MediaTypeMap<String> categorizedReaders,
-                                            MediaTypeMap<String> categorizedWriters, MediaTypeMap<String> categorizedContextResolvers,
-                                            Set<String> otherProviders) {
+            MediaTypeMap<String> categorizedWriters, MediaTypeMap<String> categorizedContextResolvers,
+            Set<String> otherProviders) {
         for (String availableProvider : availableProviders) {
             try {
                 Class<?> providerClass = Class.forName(availableProvider);
@@ -574,8 +576,8 @@ public class JaxrsScanningProcessor {
     }
 
     private static boolean collectDeclaredProviders(Set<String> providersToRegister,
-                                                    MediaTypeMap<String> categorizedReaders, MediaTypeMap<String> categorizedWriters,
-                                                    MediaTypeMap<String> categorizedContextResolvers, IndexView index) {
+            MediaTypeMap<String> categorizedReaders, MediaTypeMap<String> categorizedWriters,
+            MediaTypeMap<String> categorizedContextResolvers, IndexView index) {
         for (ProviderDiscoverer providerDiscoverer : PROVIDER_DISCOVERERS) {
             Collection<AnnotationInstance> getMethods = index.getAnnotations(providerDiscoverer.getMethodAnnotation());
             for (AnnotationInstance getMethod : getMethods) {
@@ -600,8 +602,8 @@ public class JaxrsScanningProcessor {
     }
 
     private static boolean collectDeclaredProvidersForMethodAndMediaTypeAnnotation(Set<String> providersToRegister,
-                                                                                   MediaTypeMap<String> categorizedProviders, MethodInfo methodTarget, DotName mediaTypeAnnotation,
-                                                                                   boolean defaultsToAll) {
+            MediaTypeMap<String> categorizedProviders, MethodInfo methodTarget, DotName mediaTypeAnnotation,
+            boolean defaultsToAll) {
         AnnotationInstance mediaTypeAnnotationInstance = methodTarget.annotation(mediaTypeAnnotation);
         if (mediaTypeAnnotationInstance == null) {
             // let's consider the class
@@ -626,7 +628,7 @@ public class JaxrsScanningProcessor {
     }
 
     private static boolean collectDeclaredProvidersForMediaTypeAnnotationInstance(Set<String> providersToRegister,
-                                                                                  MediaTypeMap<String> categorizedProviders, AnnotationInstance mediaTypeAnnotationInstance) {
+            MediaTypeMap<String> categorizedProviders, AnnotationInstance mediaTypeAnnotationInstance) {
         for (String media : mediaTypeAnnotationInstance.value().asStringArray()) {
             MediaType mediaType = MediaType.valueOf(media);
             if (MediaType.WILDCARD_TYPE.equals(mediaType)) {
@@ -646,13 +648,13 @@ public class JaxrsScanningProcessor {
 
     private static DotName getClassName(Type type) {
         switch (type.kind()) {
-        case CLASS:
-        case PARAMETERIZED_TYPE:
-            return type.name();
-        case ARRAY:
-            return getClassName(type.asArrayType().component());
-        default:
-            return null;
+            case CLASS:
+            case PARAMETERIZED_TYPE:
+                return type.name();
+            case ARRAY:
+                return getClassName(type.asArrayType().component());
+            default:
+                return null;
         }
     }
 
@@ -665,7 +667,7 @@ public class JaxrsScanningProcessor {
         private final boolean noProducesDefaultsToAll;
 
         private ProviderDiscoverer(DotName methodAnnotation, boolean noConsumesDefaultsToAll,
-                                   boolean noProducesDefaultsToAll) {
+                boolean noProducesDefaultsToAll) {
             this.methodAnnotation = methodAnnotation;
             this.noConsumesDefaultsToAll = noConsumesDefaultsToAll;
             this.noProducesDefaultsToAll = noProducesDefaultsToAll;

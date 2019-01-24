@@ -18,12 +18,12 @@ public final class Substitute_JaccIntegrator {
 
     @Substitute
     public void prepareServices(StandardServiceRegistryBuilder serviceRegistryBuilder) {
-        boolean isSecurityEnabled = serviceRegistryBuilder.getSettings().containsKey( AvailableSettings.JACC_ENABLED );
+        boolean isSecurityEnabled = serviceRegistryBuilder.getSettings().containsKey(AvailableSettings.JACC_ENABLED);
         if (isSecurityEnabled) {
             log.warn("This build of Hibernate ORM doesn't support JACC");
         }
 
         final JaccService jaccService = new DisabledJaccServiceImpl();
-        serviceRegistryBuilder.addService( JaccService.class, jaccService );
+        serviceRegistryBuilder.addService(JaccService.class, jaccService);
     }
 }

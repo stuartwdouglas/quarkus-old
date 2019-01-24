@@ -56,15 +56,15 @@ class MainClassBuildStep {
     private static final String STARTUP_CONTEXT = "STARTUP_CONTEXT";
 
     private static final AtomicInteger COUNT = new AtomicInteger();
-    
+
     @BuildStep
     MainClassBuildItem build(List<StaticBytecodeRecorderBuildItem> staticInitTasks,
-                             List<MainBytecodeRecorderBuildItem> mainMethod,
-                             List<SystemPropertyBuildItem> properties,
-                             Optional<HttpServerBuiltItem> httpServer,
-                             List<FeatureBuildItem> features,
-                             BuildProducer<ApplicationClassNameBuildItem> appClassNameProducer,
-                             ClassOutputBuildItem classOutput) {
+            List<MainBytecodeRecorderBuildItem> mainMethod,
+            List<SystemPropertyBuildItem> properties,
+            Optional<HttpServerBuiltItem> httpServer,
+            List<FeatureBuildItem> features,
+            BuildProducer<ApplicationClassNameBuildItem> appClassNameProducer,
+            ClassOutputBuildItem classOutput) {
 
         String appClassName = APP_CLASS + COUNT.incrementAndGet();
         appClassNameProducer.produce(new ApplicationClassNameBuildItem(appClassName));
@@ -124,7 +124,7 @@ class MainClassBuildStep {
                 tryBlock.invokeInterfaceMethod(ofMethod(StartupTask.class, "deploy", void.class, StartupContext.class), dup, startupContext);
             }
         }
-        
+
         // Startup log messages
         ResultHandle featuresHandle = tryBlock.load(features.stream()
                 .map(f -> f.getInfo())

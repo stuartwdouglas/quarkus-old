@@ -80,11 +80,11 @@ class BeanValidationProcessor {
     @BuildStep
     @Record(STATIC_INIT)
     public void build(ValidatorTemplate template, RecorderContext recorder,
-                      BuildProducer<ReflectiveFieldBuildItem> reflectiveFields,
-                      BuildProducer<ReflectiveMethodBuildItem> reflectiveMethods,
-                      BuildProducer<AnnotationsTransformerBuildItem> annotationsTransformers,
-                      CombinedIndexBuildItem combinedIndexBuildItem,
-                      BuildProducer<FeatureBuildItem> feature) throws Exception {
+            BuildProducer<ReflectiveFieldBuildItem> reflectiveFields,
+            BuildProducer<ReflectiveMethodBuildItem> reflectiveMethods,
+            BuildProducer<AnnotationsTransformerBuildItem> annotationsTransformers,
+            CombinedIndexBuildItem combinedIndexBuildItem,
+            BuildProducer<FeatureBuildItem> feature) throws Exception {
 
         feature.produce(new FeatureBuildItem(FeatureBuildItem.BEAN_VALIDATION));
 
@@ -120,7 +120,8 @@ class BeanValidationProcessor {
                     contributeClass(classNamesToBeValidated, indexView, annotation.target().asMethod().declaringClass().name());
                     // we need to register the method for reflection as it could be a getter
                     reflectiveMethods.produce(new ReflectiveMethodBuildItem(annotation.target().asMethod()));
-                    contributeClassMarkedForCascadingValidation(classNamesToBeValidated, indexView, consideredAnnotation, annotation.target().asMethod().returnType());
+                    contributeClassMarkedForCascadingValidation(classNamesToBeValidated, indexView, consideredAnnotation,
+                            annotation.target().asMethod().returnType());
                 } else if (annotation.target().kind() == AnnotationTarget.Kind.METHOD_PARAMETER) {
                     contributeClass(classNamesToBeValidated, indexView, annotation.target().asMethodParameter().method().declaringClass().name());
                     // a getter does not have parameters so it's a pure method: no need for reflection in this case
@@ -196,13 +197,13 @@ class BeanValidationProcessor {
 
     private static DotName getClassName(Type type) {
         switch (type.kind()) {
-        case CLASS:
-        case PARAMETERIZED_TYPE:
-            return type.name();
-        case ARRAY:
-            return getClassName( type.asArrayType().component() );
-        default:
-            return null;
+            case CLASS:
+            case PARAMETERIZED_TYPE:
+                return type.name();
+            case ARRAY:
+                return getClassName(type.asArrayType().component());
+            default:
+                return null;
         }
     }
 

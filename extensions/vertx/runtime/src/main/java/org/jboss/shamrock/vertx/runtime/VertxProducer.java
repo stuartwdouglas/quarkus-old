@@ -1,5 +1,18 @@
 package org.jboss.shamrock.vertx.runtime;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import javax.annotation.PreDestroy;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Produces;
+import javax.inject.Singleton;
+
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.eventbus.EventBus;
@@ -11,25 +24,12 @@ import io.vertx.core.net.PemKeyCertOptions;
 import io.vertx.core.net.PemTrustOptions;
 import io.vertx.core.net.PfxOptions;
 
-import javax.annotation.PreDestroy;
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Produces;
-import javax.inject.Singleton;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
 /**
  * Produces a configured Vert.x instance.
  * It also exposes the Vert.x event bus.
  */
 @ApplicationScoped
 public class VertxProducer {
-
 
     private VertxConfiguration conf;
     private Vertx vertx;
@@ -152,12 +152,8 @@ public class VertxProducer {
         if (eb.keyPem != null) {
             List<String> certs = new ArrayList<>();
             List<String> keys = new ArrayList<>();
-            eb.keyPem.certs.ifPresent(s ->
-                    certs.addAll(Pattern.compile(",").splitAsStream(s).map(String::trim).collect(Collectors.toList()))
-            );
-            eb.keyPem.keys.ifPresent(s ->
-                    keys.addAll(Pattern.compile(",").splitAsStream(s).map(String::trim).collect(Collectors.toList()))
-            );
+            eb.keyPem.certs.ifPresent(s -> certs.addAll(Pattern.compile(",").splitAsStream(s).map(String::trim).collect(Collectors.toList())));
+            eb.keyPem.keys.ifPresent(s -> keys.addAll(Pattern.compile(",").splitAsStream(s).map(String::trim).collect(Collectors.toList())));
             PemKeyCertOptions o = new PemKeyCertOptions()
                     .setCertPaths(certs)
                     .setKeyPaths(keys);

@@ -16,7 +16,6 @@
 
 package org.jboss.shamrock.opentracing.runtime;
 
-
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -25,12 +24,12 @@ import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.FeatureContext;
 import javax.ws.rs.ext.Provider;
 
+import org.eclipse.microprofile.config.Config;
+import org.eclipse.microprofile.config.ConfigProvider;
+
 import io.opentracing.contrib.jaxrs2.server.OperationNameProvider;
 import io.opentracing.contrib.jaxrs2.server.ServerTracingDynamicFeature;
 import io.opentracing.util.GlobalTracer;
-
-import org.eclipse.microprofile.config.Config;
-import org.eclipse.microprofile.config.ConfigProvider;
 
 @Provider
 public class ShamrockTracingDynamicFeature implements DynamicFeature {

@@ -1,7 +1,13 @@
 package org.jboss.shamrock.maven.it;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Properties;
+import java.util.stream.Collectors;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
@@ -14,13 +20,8 @@ import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.io.*;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Properties;
-import java.util.stream.Collectors;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
@@ -62,15 +63,14 @@ public class CreateProjectMojoIT extends MojoTestBase {
         assertThat(new File(testDir, "src/main/docker/Dockerfile")).isFile();
 
         Model model = load(testDir);
-        assertThat(model.getDependencyManagement().getDependencies().stream().anyMatch(d ->
-                d.getArtifactId().equalsIgnoreCase(MojoUtils.SHAMROCK_BOM_ARTIFACT_ID)
+        assertThat(model.getDependencyManagement().getDependencies().stream()
+                .anyMatch(d -> d.getArtifactId().equalsIgnoreCase(MojoUtils.SHAMROCK_BOM_ARTIFACT_ID)
                         && d.getVersion().equalsIgnoreCase("${shamrock.version}")
                         && d.getScope().equalsIgnoreCase("import")
                         && d.getType().equalsIgnoreCase("pom"))).isTrue();
 
-        assertThat(model.getDependencies().stream().anyMatch(d ->
-                d.getArtifactId().equalsIgnoreCase("shamrock-jaxrs-deployment")
-                        && d.getVersion() == null)).isTrue();
+        assertThat(model.getDependencies().stream().anyMatch(d -> d.getArtifactId().equalsIgnoreCase("shamrock-jaxrs-deployment")
+                && d.getVersion() == null)).isTrue();
     }
 
     private Model load(File directory) {
@@ -98,11 +98,11 @@ public class CreateProjectMojoIT extends MojoTestBase {
         assertThat(new File(testDir, "src/main/resources/META-INF/resources/index.html")).exists();
 
         assertThat(FileUtils.readFileToString(new File(testDir, "pom.xml"), "UTF-8"))
-            .containsIgnoringCase(MojoUtils.SHAMROCK_BOM_ARTIFACT_ID);
+                .containsIgnoringCase(MojoUtils.SHAMROCK_BOM_ARTIFACT_ID);
 
         Model model = load(testDir);
-        assertThat(model.getDependencyManagement().getDependencies().stream().anyMatch(d ->
-                d.getArtifactId().equalsIgnoreCase(MojoUtils.SHAMROCK_BOM_ARTIFACT_ID)
+        assertThat(model.getDependencyManagement().getDependencies().stream()
+                .anyMatch(d -> d.getArtifactId().equalsIgnoreCase(MojoUtils.SHAMROCK_BOM_ARTIFACT_ID)
                         && d.getVersion().equalsIgnoreCase("${shamrock.version}")
                         && d.getScope().equalsIgnoreCase("import")
                         && d.getType().equalsIgnoreCase("pom"))).isTrue();
@@ -168,19 +168,17 @@ public class CreateProjectMojoIT extends MojoTestBase {
                 .contains("shamrock-jaxrs-deployment", "shamrock-metrics-deployment").doesNotContain("missing");
 
         Model model = load(testDir);
-        assertThat(model.getDependencyManagement().getDependencies().stream().anyMatch(d ->
-                d.getArtifactId().equalsIgnoreCase(MojoUtils.SHAMROCK_BOM_ARTIFACT_ID)
+        assertThat(model.getDependencyManagement().getDependencies().stream()
+                .anyMatch(d -> d.getArtifactId().equalsIgnoreCase(MojoUtils.SHAMROCK_BOM_ARTIFACT_ID)
                         && d.getVersion().equalsIgnoreCase("${shamrock.version}")
                         && d.getScope().equalsIgnoreCase("import")
                         && d.getType().equalsIgnoreCase("pom"))).isTrue();
 
-        assertThat(model.getDependencies().stream().anyMatch(d ->
-                d.getArtifactId().equalsIgnoreCase("shamrock-jaxrs-deployment")
-                        && d.getVersion() == null)).isTrue();
+        assertThat(model.getDependencies().stream().anyMatch(d -> d.getArtifactId().equalsIgnoreCase("shamrock-jaxrs-deployment")
+                && d.getVersion() == null)).isTrue();
 
-        assertThat(model.getDependencies().stream().anyMatch(d ->
-                d.getArtifactId().equalsIgnoreCase("shamrock-metrics-deployment")
-                        && d.getVersion() == null)).isTrue();
+        assertThat(model.getDependencies().stream().anyMatch(d -> d.getArtifactId().equalsIgnoreCase("shamrock-metrics-deployment")
+                && d.getVersion() == null)).isTrue();
     }
 
     @Test
@@ -201,19 +199,17 @@ public class CreateProjectMojoIT extends MojoTestBase {
                 .contains("commons-io");
 
         Model model = load(testDir);
-        assertThat(model.getDependencyManagement().getDependencies().stream().anyMatch(d ->
-                d.getArtifactId().equalsIgnoreCase(MojoUtils.SHAMROCK_BOM_ARTIFACT_ID)
+        assertThat(model.getDependencyManagement().getDependencies().stream()
+                .anyMatch(d -> d.getArtifactId().equalsIgnoreCase(MojoUtils.SHAMROCK_BOM_ARTIFACT_ID)
                         && d.getVersion().equalsIgnoreCase("${shamrock.version}")
                         && d.getScope().equalsIgnoreCase("import")
                         && d.getType().equalsIgnoreCase("pom"))).isTrue();
 
-        assertThat(model.getDependencies().stream().anyMatch(d ->
-                d.getArtifactId().equalsIgnoreCase("shamrock-jaxrs-deployment")
-                        && d.getVersion() == null)).isTrue();
+        assertThat(model.getDependencies().stream().anyMatch(d -> d.getArtifactId().equalsIgnoreCase("shamrock-jaxrs-deployment")
+                && d.getVersion() == null)).isTrue();
 
-        assertThat(model.getDependencies().stream().anyMatch(d ->
-                d.getArtifactId().equalsIgnoreCase("commons-io")
-                        && d.getVersion().equalsIgnoreCase("2.5"))).isTrue();
+        assertThat(model.getDependencies().stream().anyMatch(d -> d.getArtifactId().equalsIgnoreCase("commons-io")
+                && d.getVersion().equalsIgnoreCase("2.5"))).isTrue();
     }
 
     @Test
@@ -276,8 +272,7 @@ public class CreateProjectMojoIT extends MojoTestBase {
         InvocationRequest request = new DefaultInvocationRequest();
         request.setBatchMode(true);
         request.setGoals(Collections.singletonList(
-            CreateProjectMojo.PLUGIN_KEY + ":" + MojoUtils.SHAMROCK_VERSION + ":create"
-        ));
+                CreateProjectMojo.PLUGIN_KEY + ":" + MojoUtils.SHAMROCK_VERSION + ":create"));
         request.setProperties(params);
         getEnv().forEach(request::addShellEnvironment);
         File log = new File(testDir.getParentFile(), "build-create-" + testDir.getName() + ".log");

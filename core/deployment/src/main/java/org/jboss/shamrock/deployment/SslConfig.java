@@ -12,18 +12,18 @@ public class SslConfig {
      */
     @ConfigProperty(name = "shamrock.ssl.native", defaultValue = "false")
     boolean enableSsl;
-    
+
     @BuildStep
     SystemPropertyBuildItem setupNativeSsl() {
         String graalVmHome = System.getenv("GRAALVM_HOME");
-        if(enableSsl) {
+        if (enableSsl) {
             // I assume we only fail if we actually enable it, but perhaps there's a no-native called that we can't
             // see here?
-            
+
             // FIXME: fail build? what sort of error here?
-            if(graalVmHome == null)
+            if (graalVmHome == null)
                 throw new RuntimeException("GRAALVM_HOME environment variable required");
-            return new SystemPropertyBuildItem("java.library.path", graalVmHome+File.separator+"jre"+File.separator+"lib"+File.separator+"amd64");
+            return new SystemPropertyBuildItem("java.library.path", graalVmHome + File.separator + "jre" + File.separator + "lib" + File.separator + "amd64");
         }
         return null;
     }

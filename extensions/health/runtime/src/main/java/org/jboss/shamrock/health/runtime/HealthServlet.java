@@ -28,7 +28,6 @@ import javax.servlet.http.HttpServletResponse;
 import io.smallrye.health.SmallRyeHealth;
 import io.smallrye.health.SmallRyeHealthReporter;
 
-
 @SuppressWarnings("serial")
 @WebServlet
 public class HealthServlet extends HttpServlet {
@@ -46,5 +45,3 @@ public class HealthServlet extends HttpServlet {
         reporter.reportHealth(resp.getOutputStream(), health);
     }
 }
-
-

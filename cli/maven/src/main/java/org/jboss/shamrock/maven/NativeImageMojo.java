@@ -19,6 +19,7 @@ package org.jboss.shamrock.maven;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
+
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -126,7 +127,7 @@ public class NativeImageMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
 
-        try(AppCreator appCreator = AppCreator.builder()
+        try (AppCreator appCreator = AppCreator.builder()
                 // configure the build phase we want the app to go through
                 .addPhase(new NativeImagePhase()
                         .setAdditionalBuildArgs(additionalBuildArgs)
@@ -150,49 +151,54 @@ public class NativeImageMojo extends AbstractMojo {
                         .setFullStackTraces(fullStackTraces)
                         .setGraalvmHome(graalvmHome)
                         .setNativeImageXmx(nativeImageXmx)
-                        .setReportErrorsAtRuntime(reportErrorsAtRuntime)
-                        )
+                        .setReportErrorsAtRuntime(reportErrorsAtRuntime))
 
                 .build()) {
 
             appCreator
-            // this mojo runs on the assumption that the outcomes of the augmentation and runner jar building phases
-            // are already available
-            .pushOutcome(AugmentOutcome.class, new AugmentOutcome() {
-                final Path classesDir = new File(outputDirectory, "classes").toPath();
-                @Override
-                public Path getAppClassesDir() {
-                    return classesDir;
-                }
-                @Override
-                public Path getTransformedClassesDir() {
-                    // not relevant for this mojo
-                    throw new UnsupportedOperationException();
-                }
-                @Override
-                public Path getWiringClassesDir() {
-                    // not relevant for this mojo
-                    throw new UnsupportedOperationException();
-                }
-                @Override
-                public boolean isWhitelisted(AppDependency dep) {
-                    // not relevant for this mojo
-                    throw new UnsupportedOperationException();
-                }
-            })
-            .pushOutcome(RunnerJarOutcome.class, new RunnerJarOutcome() {
-                final Path runnerJar = buildDir.toPath().resolve(finalName + "-runner.jar");
-                @Override
-                public Path getRunnerJar() {
-                    return runnerJar;
-                }
-                @Override
-                public Path getLibDir() {
-                    return runnerJar.getParent().resolve("lib");
-                }
-            })
-            // resolve the outcome of the native image phase
-            .resolveOutcome(NativeImageOutcome.class);
+                    // this mojo runs on the assumption that the outcomes of the augmentation and runner jar building phases
+                    // are already available
+                    .pushOutcome(AugmentOutcome.class, new AugmentOutcome() {
+                        final Path classesDir = new File(outputDirectory, "classes").toPath();
+
+                        @Override
+                        public Path getAppClassesDir() {
+                            return classesDir;
+                        }
+
+                        @Override
+                        public Path getTransformedClassesDir() {
+                            // not relevant for this mojo
+                            throw new UnsupportedOperationException();
+                        }
+
+                        @Override
+                        public Path getWiringClassesDir() {
+                            // not relevant for this mojo
+                            throw new UnsupportedOperationException();
+                        }
+
+                        @Override
+                        public boolean isWhitelisted(AppDependency dep) {
+                            // not relevant for this mojo
+                            throw new UnsupportedOperationException();
+                        }
+                    })
+                    .pushOutcome(RunnerJarOutcome.class, new RunnerJarOutcome() {
+                        final Path runnerJar = buildDir.toPath().resolve(finalName + "-runner.jar");
+
+                        @Override
+                        public Path getRunnerJar() {
+                            return runnerJar;
+                        }
+
+                        @Override
+                        public Path getLibDir() {
+                            return runnerJar.getParent().resolve("lib");
+                        }
+                    })
+                    // resolve the outcome of the native image phase
+                    .resolveOutcome(NativeImageOutcome.class);
 
         } catch (AppCreatorException e) {
             throw new MojoExecutionException("Failed to generate a native image", e);

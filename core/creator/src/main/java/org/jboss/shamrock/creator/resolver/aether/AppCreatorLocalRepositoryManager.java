@@ -94,15 +94,16 @@ public class AppCreatorLocalRepositoryManager implements LocalRepositoryManager 
     @Override
     public LocalArtifactResult find(RepositorySystemSession session, LocalArtifactRequest request) {
         final LocalArtifactResult result = delegate.find(session, request);
-        if(result.isAvailable()) {
+        if (result.isAvailable()) {
             return result;
         }
         final Artifact artifact = request.getArtifact();
-        final Path userRepoPath = getLocalPath(userLocalRepo, artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(), artifact.getExtension(), artifact.getVersion());
-        if(!Files.exists(userRepoPath)) {
+        final Path userRepoPath = getLocalPath(userLocalRepo, artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(),
+                artifact.getExtension(), artifact.getVersion());
+        if (!Files.exists(userRepoPath)) {
             return result;
         }
-        if(relinkResolvedArtifacts) {
+        if (relinkResolvedArtifacts) {
             final Path creatorRepoPath = getLocalPath(appCreatorRepo, artifact.getGroupId(), artifact.getArtifactId(),
                     artifact.getClassifier(), artifact.getExtension(), artifact.getVersion());
             try {
@@ -127,12 +128,12 @@ public class AppCreatorLocalRepositoryManager implements LocalRepositoryManager 
     @Override
     public LocalMetadataResult find(RepositorySystemSession session, LocalMetadataRequest request) {
         final LocalMetadataResult result = delegate.find(session, request);
-        if(result.getFile() != null && result.getFile().exists()) {
+        if (result.getFile() != null && result.getFile().exists()) {
             return result;
         }
         final Metadata metadata = request.getMetadata();
         final Path userRepoPath = getMetadataPath(userLocalRepo, metadata.getGroupId(), metadata.getArtifactId(), metadata.getType(), metadata.getVersion());
-        if(!Files.exists(userRepoPath)) {
+        if (!Files.exists(userRepoPath)) {
             return result;
         }
         if (relinkResolvedArtifacts) {
@@ -162,10 +163,10 @@ public class AppCreatorLocalRepositoryManager implements LocalRepositoryManager 
         for (String part : groupParts) {
             p = p.resolve(part);
         }
-        if(artifactId != null) {
+        if (artifactId != null) {
             p = p.resolve(artifactId);
         }
-        if(version != null) {
+        if (version != null) {
             p = p.resolve(version);
         }
         return p.resolve("maven-metadata-local.xml");

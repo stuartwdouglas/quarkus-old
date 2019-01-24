@@ -63,7 +63,6 @@ public class TestResourceManager {
         }
     }
 
-
     @SuppressWarnings("unchecked")
     private Set<ShamrockTestResourceLifecycleManager> getTestResources(Class<?> testClass) {
         IndexView index = indexTestClasses(testClass);
@@ -92,7 +91,6 @@ public class TestResourceManager {
 
         return testResourceRunners;
     }
-
 
     private IndexView indexTestClasses(Class<?> testClass) {
         Indexer indexer = new Indexer();

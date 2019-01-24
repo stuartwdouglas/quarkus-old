@@ -104,7 +104,8 @@ public class UndertowDeploymentTemplate {
         //TODO: caching configuration once the new config model is in place
         String resourcesDir = System.getProperty(RESOURCES_PROP);
         if (resourcesDir == null) {
-            d.setResourceManager(new CachingResourceManager(1000, 0, null, new KnownPathResourceManager(knownFile, knownDirectories, new ClassPathResourceManager(d.getClassLoader(), "META-INF/resources")), 2000));
+            d.setResourceManager(new CachingResourceManager(1000, 0, null,
+                    new KnownPathResourceManager(knownFile, knownDirectories, new ClassPathResourceManager(d.getClassLoader(), "META-INF/resources")), 2000));
         } else {
             d.setResourceManager(new CachingResourceManager(1000, 0, null, new PathResourceManager(Paths.get(resourcesDir)), 2000));
         }
@@ -129,12 +130,13 @@ public class UndertowDeploymentTemplate {
     }
 
     public RuntimeValue<ServletInfo> registerServlet(RuntimeValue<DeploymentInfo> deploymentInfo,
-                                                     String name,
-                                                     Class<?> servletClass,
-                                                     boolean asyncSupported,
-                                                     int loadOnStartup,
-                                                     InjectionFactory instanceFactory) throws Exception {
-        ServletInfo servletInfo = new ServletInfo(name, (Class<? extends Servlet>) servletClass, new ShamrockInstanceFactory(instanceFactory.create(servletClass)));
+            String name,
+            Class<?> servletClass,
+            boolean asyncSupported,
+            int loadOnStartup,
+            InjectionFactory instanceFactory) throws Exception {
+        ServletInfo servletInfo = new ServletInfo(name, (Class<? extends Servlet>) servletClass,
+                new ShamrockInstanceFactory(instanceFactory.create(servletClass)));
         deploymentInfo.getValue().addServlet(servletInfo);
         servletInfo.setAsyncSupported(asyncSupported);
         if (loadOnStartup > 0) {
@@ -175,9 +177,9 @@ public class UndertowDeploymentTemplate {
     }
 
     public RuntimeValue<FilterInfo> registerFilter(RuntimeValue<DeploymentInfo> info,
-                                                   String name, Class<?> filterClass,
-                                                   boolean asyncSupported,
-                                                   InjectionFactory instanceFactory) throws Exception {
+            String name, Class<?> filterClass,
+            boolean asyncSupported,
+            InjectionFactory instanceFactory) throws Exception {
         FilterInfo filterInfo = new FilterInfo(name, (Class<? extends Filter>) filterClass, new ShamrockInstanceFactory(instanceFactory.create(filterClass)));
         info.getValue().addFilter(filterInfo);
         filterInfo.setAsyncSupported(asyncSupported);
@@ -197,14 +199,16 @@ public class UndertowDeploymentTemplate {
     }
 
     public void registerListener(RuntimeValue<DeploymentInfo> info, Class<?> listenerClass, InjectionFactory factory) {
-        info.getValue().addListener(new ListenerInfo((Class<? extends EventListener>) listenerClass, (InstanceFactory<? extends EventListener>) new ShamrockInstanceFactory<>(factory.create(listenerClass))));
+        info.getValue().addListener(new ListenerInfo((Class<? extends EventListener>) listenerClass,
+                (InstanceFactory<? extends EventListener>) new ShamrockInstanceFactory<>(factory.create(listenerClass))));
     }
 
     public void addServltInitParameter(RuntimeValue<DeploymentInfo> info, String name, String value) {
         info.getValue().addInitParameter(name, value);
     }
 
-    public RuntimeValue<Undertow> startUndertow(ShutdownContext shutdown, Deployment deployment, HttpConfig config, List<HandlerWrapper> wrappers) throws ServletException {
+    public RuntimeValue<Undertow> startUndertow(ShutdownContext shutdown, Deployment deployment, HttpConfig config, List<HandlerWrapper> wrappers)
+            throws ServletException {
         if (undertow == null) {
             startUndertowEagerly(config, null);
 
@@ -224,7 +228,6 @@ public class UndertowDeploymentTemplate {
         currentRoot = main;
         return new RuntimeValue<>(undertow);
     }
-
 
     /**
      * Used for shamrock:run, where we want undertow to start very early in the process.
@@ -362,7 +365,6 @@ public class UndertowDeploymentTemplate {
             random.nextBytes(bytes);
             return new String(encode(bytes));
         }
-
 
         public int getLength() {
             return length;

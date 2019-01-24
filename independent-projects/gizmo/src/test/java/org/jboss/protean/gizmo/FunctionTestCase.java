@@ -34,10 +34,12 @@ public class FunctionTestCase {
             //create a function that appends '-func' to its input
             FunctionCreator functionCreator = method.createFunction(Function.class);
             BytecodeCreator fbc = functionCreator.getBytecode();
-            ResultHandle functionReturn = fbc.invokeVirtualMethod(MethodDescriptor.ofMethod(String.class, "concat", String.class, String.class), fbc.getMethodParam(0), fbc.load("-func"));
+            ResultHandle functionReturn = fbc.invokeVirtualMethod(MethodDescriptor.ofMethod(String.class, "concat", String.class, String.class),
+                    fbc.getMethodParam(0), fbc.load("-func"));
             fbc.returnValue(functionReturn);
 
-            ResultHandle ret = method.invokeInterfaceMethod(MethodDescriptor.ofMethod(Function.class, "apply", Object.class, Object.class), functionCreator.getInstance(), method.getMethodParam(0));
+            ResultHandle ret = method.invokeInterfaceMethod(MethodDescriptor.ofMethod(Function.class, "apply", Object.class, Object.class),
+                    functionCreator.getInstance(), method.getMethodParam(0));
             method.returnValue(ret);
 
         }
@@ -56,7 +58,8 @@ public class FunctionTestCase {
             //create a function that appends '-func' to its input
             FunctionCreator functionCreator = method.createFunction(Supplier.class);
             BytecodeCreator fbc = functionCreator.getBytecode();
-            ResultHandle functionReturn = fbc.invokeVirtualMethod(MethodDescriptor.ofMethod(String.class, "concat", String.class, String.class), method.getMethodParam(0), fbc.load("-func"));
+            ResultHandle functionReturn = fbc.invokeVirtualMethod(MethodDescriptor.ofMethod(String.class, "concat", String.class, String.class),
+                    method.getMethodParam(0), fbc.load("-func"));
             fbc.returnValue(functionReturn);
 
             ResultHandle ret = method.invokeInterfaceMethod(MethodDescriptor.ofMethod(Supplier.class, "get", Object.class), functionCreator.getInstance());
@@ -79,7 +82,8 @@ public class FunctionTestCase {
             FunctionCreator functionCreator = method.createFunction(Supplier.class);
             BytecodeCreator fbc = functionCreator.getBytecode();
             ResultHandle superResult = fbc.invokeSpecialMethod(MethodDescriptor.ofMethod(Superclass.class, "getMessage", String.class), method.getThis());
-            ResultHandle functionReturn = fbc.invokeVirtualMethod(MethodDescriptor.ofMethod(String.class, "concat", String.class, String.class), superResult, fbc.load("-func"));
+            ResultHandle functionReturn = fbc.invokeVirtualMethod(MethodDescriptor.ofMethod(String.class, "concat", String.class, String.class), superResult,
+                    fbc.load("-func"));
             fbc.returnValue(functionReturn);
 
             ResultHandle ret = method.invokeInterfaceMethod(MethodDescriptor.ofMethod(Supplier.class, "get", Object.class), functionCreator.getInstance());
@@ -103,7 +107,7 @@ public class FunctionTestCase {
             ResultHandle seven = bc.invokeStaticMethod(addExact, bc.load(2), bc.load(5));
             FunctionCreator f1 = bc.createFunction(IntSupplier.class);
             BytecodeCreator f1bc = f1.getBytecode();
-            ResultHandle four = f1bc.invokeStaticMethod(addExact, seven, f1bc.load(- 3));
+            ResultHandle four = f1bc.invokeStaticMethod(addExact, seven, f1bc.load(-3));
             FunctionCreator f2 = f1bc.createFunction(IntSupplier.class);
             BytecodeCreator f2bc = f2.getBytecode();
             f2bc.returnValue(f2bc.invokeStaticMethod(addExact, seven, four));

@@ -1,9 +1,5 @@
 package org.jboss.shamrock;
 
-import freemarker.template.TemplateException;
-import org.apache.maven.model.Model;
-import org.jboss.shamrock.maven.utilities.MojoUtils;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -12,6 +8,11 @@ import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Map;
+
+import org.apache.maven.model.Model;
+import org.jboss.shamrock.maven.utilities.MojoUtils;
+
+import freemarker.template.TemplateException;
 
 public class BasicRest extends ShamrockTemplate {
     private Map<String, Object> context;
@@ -75,7 +76,7 @@ public class BasicRest extends ShamrockTemplate {
         generate("templates/resource-template.ftl", context, classFile, "resource code");
         generate("templates/test-resource-template.ftl", context, testClassFile, "test code");
         generate("templates/application-template.ftl", context, new File(srcMain, "MyApplication.java"),
-            "Application class");
+                "Application class");
     }
 
     @SuppressWarnings("unchecked")
@@ -95,8 +96,8 @@ public class BasicRest extends ShamrockTemplate {
         }
 
         className = get("className",
-            String.format("%s.%s.%s", context.get(MojoUtils.PROJECT_GROUP_ID), context.get(MojoUtils.PROJECT_ARTIFACT_ID),
-                "MyResource"));
+                String.format("%s.%s.%s", context.get(MojoUtils.PROJECT_GROUP_ID), context.get(MojoUtils.PROJECT_ARTIFACT_ID),
+                        "MyResource"));
         docRoot = get("docRoot", docRoot);
         path = get("path", path);
 
@@ -107,11 +108,11 @@ public class BasicRest extends ShamrockTemplate {
     }
 
     private void generate(final String templateName, final Map<String, Object> context, final File outputFile, final String resourceType)
-        throws IOException {
+            throws IOException {
         if (!outputFile.exists()) {
             try (Writer out = new FileWriter(outputFile)) {
                 cfg.getTemplate(templateName)
-                   .process(context, out);
+                        .process(context, out);
             } catch (TemplateException e) {
                 throw new RuntimeException("Unable to generate " + resourceType, e);
             }

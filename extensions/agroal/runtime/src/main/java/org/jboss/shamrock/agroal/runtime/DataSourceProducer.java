@@ -85,37 +85,36 @@ public class DataSourceProducer {
 
         AgroalDataSourceConfigurationSupplier dataSourceConfiguration = new AgroalDataSourceConfigurationSupplier();
         final AgroalConnectionPoolConfigurationSupplier poolConfiguration = dataSourceConfiguration.connectionPoolConfiguration();
-        poolConfiguration.connectionFactoryConfiguration().jdbcUrl( targetUrl);
-        poolConfiguration.connectionFactoryConfiguration().connectionProviderClass( providerClass);
+        poolConfiguration.connectionFactoryConfiguration().jdbcUrl(targetUrl);
+        poolConfiguration.connectionFactoryConfiguration().connectionProviderClass(providerClass);
 
         if (jta || xa) {
-            TransactionIntegration txIntegration = new NarayanaTransactionIntegration(transactionManager, transactionSynchronizationRegistry, null, connectable);
-            poolConfiguration.transactionIntegration( txIntegration);
+            TransactionIntegration txIntegration = new NarayanaTransactionIntegration(transactionManager, transactionSynchronizationRegistry, null,
+                    connectable);
+            poolConfiguration.transactionIntegration(txIntegration);
         }
         // use the name / password from the callbacks
         if (userName != null) {
             poolConfiguration
-                    .connectionFactoryConfiguration().principal( new NamePrincipal( userName));
+                    .connectionFactoryConfiguration().principal(new NamePrincipal(userName));
         }
         if (password != null) {
             poolConfiguration
-                    .connectionFactoryConfiguration().credential( new SimplePassword( password));
+                    .connectionFactoryConfiguration().credential(new SimplePassword(password));
         }
 
         //Pool size configuration:
         if (minSize != null) {
-            poolConfiguration.minSize( minSize );
-        }
-        else {
-            log.warning( "Agroal pool 'minSize' was not set: setting to default value " + DEFAULT_MIN_POOL_SIZE );
-            poolConfiguration.minSize( DEFAULT_MIN_POOL_SIZE );
+            poolConfiguration.minSize(minSize);
+        } else {
+            log.warning("Agroal pool 'minSize' was not set: setting to default value " + DEFAULT_MIN_POOL_SIZE);
+            poolConfiguration.minSize(DEFAULT_MIN_POOL_SIZE);
         }
         if (maxSize != null) {
-            poolConfiguration.maxSize( maxSize );
-        }
-        else {
-            log.warning( "Agroal pool 'maxSize' was not set: setting to default value " + DEFAULT_MAX_POOL_SIZE );
-            poolConfiguration.maxSize( DEFAULT_MAX_POOL_SIZE );
+            poolConfiguration.maxSize(maxSize);
+        } else {
+            log.warning("Agroal pool 'maxSize' was not set: setting to default value " + DEFAULT_MAX_POOL_SIZE);
+            poolConfiguration.maxSize(DEFAULT_MAX_POOL_SIZE);
         }
 
         //Explicit reference to bypass reflection need of the ServiceLoader used by AgroalDataSource#from

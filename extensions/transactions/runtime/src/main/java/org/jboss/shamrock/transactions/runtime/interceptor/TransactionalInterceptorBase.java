@@ -16,7 +16,6 @@
 
 package org.jboss.shamrock.transactions.runtime.interceptor;
 
-
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.util.Set;

@@ -23,8 +23,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.JarURLConnection;
 import java.net.Socket;
-import java.net.URL;
 import java.net.URI;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -77,19 +77,24 @@ public class DevMojo extends AbstractMojo {
      * port 5005. It supports the following options:
      * <table>
      * <tr>
-     * <td><b>Value</b></td><td>Effect</td>
+     * <td><b>Value</b></td>
+     * <td>Effect</td>
      * </tr>
      * <tr>
-     * <td><b>false</b></td><td>The JVM is not started in debug mode</td>
+     * <td><b>false</b></td>
+     * <td>The JVM is not started in debug mode</td>
      * </tr>
      * <tr>
-     * <td><b>true</b></td><td>The JVM is started in debug mode and suspends until a debugger is attached to port 5005</td>
+     * <td><b>true</b></td>
+     * <td>The JVM is started in debug mode and suspends until a debugger is attached to port 5005</td>
      * </tr>
      * <tr>
-     * <td><b>client</b></td><td>The JVM is started in client mode, and attempts to connect to localhost:5005</td>
+     * <td><b>client</b></td>
+     * <td>The JVM is started in client mode, and attempts to connect to localhost:5005</td>
      * </tr>
      * <tr>
-     * <td><b>{port}</b></td><td>The JVM is started in debug mode and suspends until a debugger is attached to {port}</td>
+     * <td><b>{port}</b></td>
+     * <td>The JVM is started in debug mode and suspends until a debugger is attached to {port}</td>
      * </tr>
      * </table>
      */
@@ -112,34 +117,33 @@ public class DevMojo extends AbstractMojo {
     @Parameter(defaultValue = "${preventnoverify}")
     private boolean preventnoverify = false;
 
-
     @Override
     public void execute() throws MojoFailureException {
 
         boolean found = false;
-        for(Plugin i : project.getBuildPlugins()) {
-            if(i.getGroupId().equals(MojoUtils.SHAMROCK_GROUP_ID)
+        for (Plugin i : project.getBuildPlugins()) {
+            if (i.getGroupId().equals(MojoUtils.SHAMROCK_GROUP_ID)
                     && i.getArtifactId().equals(MojoUtils.SHAMROCK_PLUGIN_ARTIFACT_ID)) {
-                for(PluginExecution p : i.getExecutions()) {
-                    if(p.getGoals().contains("build")) {
+                for (PluginExecution p : i.getExecutions()) {
+                    if (p.getGoals().contains("build")) {
                         found = true;
                         break;
                     }
                 }
             }
         }
-        if(!found) {
+        if (!found) {
             getLog().warn("The shamrock-maven-plugin build goal was not configured for this project, " +
                     "skipping shamrock:dev as this is assumed to be a support library. If you want to run shamrock dev" +
                     " on this project make sure the shamrock-maven-plugin is configured with a build goal.");
             return;
         }
 
-        if (! sourceDir.isDirectory()) {
+        if (!sourceDir.isDirectory()) {
             throw new MojoFailureException("The `src/main/java` directory is required, please create it.");
         }
 
-        if (! buildDir.isDirectory()  || ! new File(buildDir, "classes").isDirectory()) {
+        if (!buildDir.isDirectory() || !new File(buildDir, "classes").isDirectory()) {
             throw new MojoFailureException("The project has no output yet, run `mvn compile shamrock:dev`.");
         }
 
@@ -149,7 +153,7 @@ public class DevMojo extends AbstractMojo {
             if (debug == null) {
                 // debug mode not specified
                 // make sure 5005 is not used, we don't want to just fail if something else is using it
-                try (Socket socket = new Socket(InetAddress.getByAddress(new byte[]{127, 0, 0, 1}), 5005)) {
+                try (Socket socket = new Socket(InetAddress.getByAddress(new byte[] { 127, 0, 0, 1 }), 5005)) {
                     getLog().error("Port 5005 in use, not starting in debug mode");
                 } catch (IOException e) {
                     args.add("-Xdebug");
@@ -190,7 +194,7 @@ public class DevMojo extends AbstractMojo {
 
             // the following flags reduce startup time and are acceptable only for dev purposes
             args.add("-XX:TieredStopAtLevel=1");
-            if(!preventnoverify) {
+            if (!preventnoverify) {
                 args.add("-Xverify:none");
             }
 
@@ -254,7 +258,7 @@ public class DevMojo extends AbstractMojo {
 
             //now we need to build a temporary jar to actually run
 
-            File tempFile = new File(buildDir, project.getArtifactId()+"-dev.jar");
+            File tempFile = new File(buildDir, project.getArtifactId() + "-dev.jar");
             tempFile.delete();
             tempFile.deleteOnExit();
 
@@ -271,7 +275,7 @@ public class DevMojo extends AbstractMojo {
                 out.write(classPath.toString().getBytes(StandardCharsets.UTF_8));
             }
             String resources = null;
-            for(Resource i : project.getBuild().getResources()) {
+            for (Resource i : project.getBuild().getResources()) {
                 //todo: support multiple resources dirs for config hot deployment
                 resources = i.getDirectory();
                 break;
@@ -281,7 +285,7 @@ public class DevMojo extends AbstractMojo {
 
             args.add("-Dshamrock.runner.classes=" + outputDirectory.getAbsolutePath());
             args.add("-Dshamrock.runner.sources=" + sourceDir.getAbsolutePath());
-            if(resources != null) {
+            if (resources != null) {
                 args.add("-Dshamrock.runner.resources=" + new File(resources).getAbsolutePath());
             }
             args.add("-jar");

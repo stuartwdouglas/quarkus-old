@@ -21,7 +21,6 @@ import org.junit.Test;
 
 public class ExceptionThrowingTestCase {
 
-
     @Test
     public void testThrowException() throws Exception {
         TestClassLoader cl = new TestClassLoader(getClass().getClassLoader());

@@ -70,10 +70,10 @@ public class ClassLoaderCompiler {
             c = c.getParent();
         }
 
-        try (InputStream devModeCp = classLoader.getResourceAsStream(DEV_MODE_CLASS_PATH)){
+        try (InputStream devModeCp = classLoader.getResourceAsStream(DEV_MODE_CLASS_PATH)) {
             BufferedReader r = new BufferedReader(new InputStreamReader(devModeCp, StandardCharsets.UTF_8));
             String cp = r.readLine();
-            for(String i : cp.split(" ")) {
+            for (String i : cp.split(" ")) {
                 urls.add(new URI(i).toURL());
             }
         } catch (URISyntaxException e) {
@@ -94,10 +94,10 @@ public class ClassLoaderCompiler {
                 File file = new File(s);
                 if (file.exists() && file.getName().endsWith(".jar")) {
                     classPathElements.add(file);
-                    if(!file.isDirectory() && file.getName().endsWith(".jar")) {
+                    if (!file.isDirectory() && file.getName().endsWith(".jar")) {
                         try (JarFile jar = new JarFile(file)) {
                             Manifest mf = jar.getManifest();
-                            if(mf == null || mf.getMainAttributes() == null) {
+                            if (mf == null || mf.getMainAttributes() == null) {
                                 continue;
                             }
                             Object classPath = mf.getMainAttributes().get(Attributes.Name.CLASS_PATH);
@@ -133,7 +133,6 @@ public class ClassLoaderCompiler {
         }
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
         try (StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, null);) {
-
 
             fileManager.setLocation(StandardLocation.CLASS_PATH, classPath);
             fileManager.setLocation(StandardLocation.CLASS_OUTPUT, Collections.singleton(outputDirectory));

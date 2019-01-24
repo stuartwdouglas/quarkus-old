@@ -66,7 +66,7 @@ class ExceptionMapping implements ClientResponseFilter {
                 if (throwable.isPresent()) {
                     if (!prioritised.isPresent()) {
                         prioritised = throwable;
-                    }  else if (errors.get(throwable) < errors.get(prioritised)) {
+                    } else if (errors.get(throwable) < errors.get(prioritised)) {
                         prioritised = throwable;
                     }
                 }

@@ -105,7 +105,8 @@ class FunctionCreatorImpl implements FunctionCreator {
         @Override
         ResultHandle resolve(ResultHandle handle) {
             // resolve any captures of captures.
-            if (handle == null || handle.getResultType() == ResultHandle.ResultType.CONSTANT) return handle;
+            if (handle == null || handle.getResultType() == ResultHandle.ResultType.CONSTANT)
+                return handle;
             final BytecodeCreatorImpl ourOwner = method.getOwner();
             handle = ourOwner.resolve(handle);
             final BytecodeCreatorImpl newOwner = handle.getOwner();

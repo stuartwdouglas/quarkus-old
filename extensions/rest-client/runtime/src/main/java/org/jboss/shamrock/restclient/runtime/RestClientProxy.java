@@ -24,7 +24,6 @@ import javax.ws.rs.client.Client;
  */
 public interface RestClientProxy {
 
-
     /**
      *
      * @return the underlying {@link Client} instance

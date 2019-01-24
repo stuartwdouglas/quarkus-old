@@ -16,7 +16,6 @@
 
 package org.jboss.shamrock.rsops;
 
-import io.smallrye.reactive.streams.Engine;
 import org.eclipse.microprofile.reactive.streams.operators.ReactiveStreamsFactory;
 import org.eclipse.microprofile.reactive.streams.operators.core.ReactiveStreamsFactoryImpl;
 import org.eclipse.microprofile.reactive.streams.operators.spi.ReactiveStreamsEngine;
@@ -25,6 +24,8 @@ import org.jboss.shamrock.annotations.BuildStep;
 import org.jboss.shamrock.deployment.Capabilities;
 import org.jboss.shamrock.deployment.builditem.FeatureBuildItem;
 import org.jboss.shamrock.deployment.builditem.substrate.ServiceProviderBuildItem;
+
+import io.smallrye.reactive.streams.Engine;
 
 public class ReactiveStreamsOperatorsProcessor {
 

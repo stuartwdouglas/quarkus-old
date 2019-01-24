@@ -93,14 +93,14 @@ public class OpenApiProcessor {
     @Record(STATIC_INIT)
     public BeanContainerListenerBuildItem build(OpenApiDeploymentTemplate template, ApplicationArchivesBuildItem archivesBuildItem,
             CombinedIndexBuildItem combinedIndexBuildItem, BuildProducer<FeatureBuildItem> feature,
-	    JaxrsConfig jaxrsConfig) throws Exception {
+            JaxrsConfig jaxrsConfig) throws Exception {
         feature.produce(new FeatureBuildItem(FeatureBuildItem.MP_OPENAPI));
         Result resourcePath = findStaticModel(archivesBuildItem);
-        OpenAPI sm = generateStaticModel(resourcePath == null ? null : resourcePath.path, resourcePath == null ? OpenApiSerializer.Format.YAML : resourcePath.format);
+        OpenAPI sm = generateStaticModel(resourcePath == null ? null : resourcePath.path,
+                resourcePath == null ? OpenApiSerializer.Format.YAML : resourcePath.format);
         OpenAPI am = generateAnnotationModel(combinedIndexBuildItem.getIndex(), jaxrsConfig);
         return new BeanContainerListenerBuildItem(template.setupModel(sm, am));
     }
-
 
     public OpenAPI generateStaticModel(String resourcePath, OpenApiSerializer.Format format) {
         if (resourcePath != null) {

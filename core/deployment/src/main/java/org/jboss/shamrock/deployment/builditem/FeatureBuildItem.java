@@ -25,9 +25,9 @@ public final class FeatureBuildItem extends MultiBuildItem {
     public static final String JPA = "jpa";
     public static final String SCHEDULER = "scheduler";
     public static final String VERTX = "vertx";
-    
+
     private final String info;
-    
+
     public FeatureBuildItem(String info) {
         this.info = Objects.requireNonNull(info);
     }

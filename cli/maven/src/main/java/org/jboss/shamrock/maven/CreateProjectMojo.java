@@ -17,6 +17,14 @@
 
 package org.jboss.shamrock.maven;
 
+import static org.fusesource.jansi.Ansi.ansi;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Component;
@@ -28,14 +36,6 @@ import org.jboss.shamrock.cli.commands.AddExtensions;
 import org.jboss.shamrock.cli.commands.CreateProject;
 import org.jboss.shamrock.maven.components.Prompter;
 import org.jboss.shamrock.maven.utilities.MojoUtils;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.fusesource.jansi.Ansi.ansi;
 
 /**
  * This goal helps in setting up Shamrock Maven project with shamrock-maven-plugin, with sensible defaults
@@ -86,14 +86,14 @@ public class CreateProjectMojo extends AbstractMojo {
             context.put("path", path);
 
             success = new CreateProject(projectRoot)
-                          .groupId(projectGroupId)
-                          .artifactId(projectArtifactId)
-                          .version(projectVersion)
-                          .doCreateProject(context);
+                    .groupId(projectGroupId)
+                    .artifactId(projectArtifactId)
+                    .version(projectVersion)
+                    .doCreateProject(context);
 
             if (success) {
                 new AddExtensions(new File(projectRoot, "pom.xml"))
-                    .addExtensions(extensions);
+                        .addExtensions(extensions);
             }
         } catch (IOException e) {
             throw new MojoExecutionException(e.getMessage(), e);
@@ -105,8 +105,8 @@ public class CreateProjectMojo extends AbstractMojo {
 
     private void sanitizeOptions() {
         className = getOrDefault(className, projectGroupId.replace("-", ".")
-                                                          .replace("_", ".")
-                                            + ".HelloResource");
+                .replace("_", ".")
+                + ".HelloResource");
 
         if (className.endsWith(MojoUtils.JAVA_EXTENSION)) {
             className = className.substring(0, className.length() - MojoUtils.JAVA_EXTENSION.length());
@@ -130,13 +130,13 @@ public class CreateProjectMojo extends AbstractMojo {
         getLog().info("========================================================================================");
         getLog().info(ansi().a("Your new application has been created in ").bold().a(root.getAbsolutePath()).boldOff().toString());
         getLog().info(ansi().a("Navigate into this directory and launch your application with ")
-                            .bold()
-                            .fg(Ansi.Color.CYAN)
-                            .a("mvn compile shamrock:dev")
-                            .reset()
-                            .toString());
+                .bold()
+                .fg(Ansi.Color.CYAN)
+                .a("mvn compile shamrock:dev")
+                .reset()
+                .toString());
         getLog().info(
-            ansi().a("Your application will be accessible on ").bold().fg(Ansi.Color.CYAN).a("http://localhost:8080").reset().toString());
+                ansi().a("Your application will be accessible on ").bold().fg(Ansi.Color.CYAN).a("http://localhost:8080").reset().toString());
         getLog().info("========================================================================================");
         getLog().info("");
     }

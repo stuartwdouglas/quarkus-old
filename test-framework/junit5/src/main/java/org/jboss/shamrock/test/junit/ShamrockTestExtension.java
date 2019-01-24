@@ -30,7 +30,6 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 
 public class ShamrockTestExtension implements BeforeAllCallback {
 
-
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
         ExtensionContext root = context.getRoot();
@@ -62,7 +61,6 @@ public class ShamrockTestExtension implements BeforeAllCallback {
         runtimeRunner.run();
         return new ExtensionState(testResourceManager, runtimeRunner, false);
     }
-
 
     static class ExtensionState implements ExtensionContext.Store.CloseableResource {
 

@@ -16,11 +16,11 @@
 
 package org.jboss.shamrock.deployment.builditem.substrate;
 
-import org.jboss.builder.item.MultiBuildItem;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+
+import org.jboss.builder.item.MultiBuildItem;
 
 /**
  * Represents a Service Provider registration.

@@ -80,7 +80,8 @@ public class ShamrockInjectorFactory extends InjectorFactoryImpl {
         }
 
         @Override
-        public CompletionStage<Void> inject(HttpRequest request, HttpResponse response, Object target, boolean unwrapAsync) throws Failure, WebApplicationException, ApplicationException {
+        public CompletionStage<Void> inject(HttpRequest request, HttpResponse response, Object target, boolean unwrapAsync)
+                throws Failure, WebApplicationException, ApplicationException {
             return delegate.inject(request, response, PROXY_UNWRAPPER.apply(target), unwrapAsync);
         }
     }

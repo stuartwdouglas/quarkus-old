@@ -44,6 +44,7 @@ import org.jboss.shamrock.creator.outcome.OutcomeProviderRegistration;
 import org.jboss.shamrock.creator.phase.augment.AugmentOutcome;
 import org.jboss.shamrock.creator.phase.runnerjar.RunnerJarOutcome;
 import org.jboss.shamrock.creator.util.IoUtils;
+
 import io.smallrye.config.SmallRyeConfigProviderResolver;
 
 /**
@@ -186,7 +187,6 @@ public class NativeImagePhase implements AppCreationPhase<NativeImagePhase>, Nat
         return this;
     }
 
-
     public NativeImagePhase setDockerBuild(boolean dockerBuild) {
         this.dockerBuild = dockerBuild;
         return this;
@@ -226,7 +226,7 @@ public class NativeImagePhase implements AppCreationPhase<NativeImagePhase>, Nat
         Path runnerJar = runnerJarOutcome.getRunnerJar();
         boolean runnerJarCopied = false;
         // this trick is here because docker needs the jar in the project dir
-        if(!runnerJar.getParent().equals(outputDir)) {
+        if (!runnerJar.getParent().equals(outputDir)) {
             try {
                 runnerJar = IoUtils.copy(runnerJar, outputDir.resolve(runnerJar.getFileName()));
             } catch (IOException e) {
@@ -303,8 +303,8 @@ public class NativeImagePhase implements AppCreationPhase<NativeImagePhase>, Nat
                     }
                 }
             }
-            if(config != null) {
-                if(config.getOptionalValue("shamrock.ssl.native", Boolean.class).orElse(false)) {
+            if (config != null) {
+                if (config.getOptionalValue("shamrock.ssl.native", Boolean.class).orElse(false)) {
                     enableHttpsUrlHandler = true;
                     enableJni = true;
                     enableAllSecurityServices = true;
@@ -327,29 +327,30 @@ public class NativeImagePhase implements AppCreationPhase<NativeImagePhase>, Nat
             if (debugBuildProcess) {
                 command.add("-J-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y");
             }
-            if(!disableReports) {
+            if (!disableReports) {
                 command.add("-H:+PrintAnalysisCallTree");
             }
             if (dumpProxies) {
                 command.add("-Dsun.misc.ProxyGenerator.saveGeneratedFiles=true");
                 if (enableServer) {
-                    log.warn( "Options dumpProxies and enableServer are both enabled: this will get the proxies dumped in an unknown external working directory" );
+                    log.warn(
+                            "Options dumpProxies and enableServer are both enabled: this will get the proxies dumped in an unknown external working directory");
                 }
             }
-            if(nativeImageXmx != null) {
+            if (nativeImageXmx != null) {
                 command.add("-J-Xmx" + nativeImageXmx);
             }
             List<String> protocols = new ArrayList<>(2);
-            if(enableHttpUrlHandler) {
+            if (enableHttpUrlHandler) {
                 protocols.add("http");
             }
-            if(enableHttpsUrlHandler) {
+            if (enableHttpsUrlHandler) {
                 protocols.add("https");
             }
-            if(!protocols.isEmpty()) {
-                command.add("-H:EnableURLProtocols="+String.join(",", protocols));
+            if (!protocols.isEmpty()) {
+                command.add("-H:EnableURLProtocols=" + String.join(",", protocols));
             }
-            if(enableAllSecurityServices) {
+            if (enableAllSecurityServices) {
                 command.add("--enable-all-security-services");
             }
             if (enableRetainedHeapReporting) {
@@ -358,33 +359,30 @@ public class NativeImagePhase implements AppCreationPhase<NativeImagePhase>, Nat
             if (enableCodeSizeReporting) {
                 command.add("-H:+PrintCodeSizeReport");
             }
-            if (! enableIsolates) {
+            if (!enableIsolates) {
                 command.add("-H:-SpawnIsolates");
             }
             if (enableJni) {
                 command.add("-H:+JNI");
-            }
-            else {
+            } else {
                 command.add("-H:-JNI");
             }
-            if(!enableServer) {
+            if (!enableServer) {
                 command.add("--no-server");
             }
             if (enableVMInspection) {
                 command.add("-H:+AllowVMInspection");
             }
             if (autoServiceLoaderRegistration) {
-                command.add( "-H:+UseServiceLoaderFeature" );
+                command.add("-H:+UseServiceLoaderFeature");
                 //When enabling, at least print what exactly is being added:
-                command.add( "-H:+TraceServiceLoaderFeature" );
-            }
-            else {
-                command.add( "-H:-UseServiceLoaderFeature" );
+                command.add("-H:+TraceServiceLoaderFeature");
+            } else {
+                command.add("-H:-UseServiceLoaderFeature");
             }
             if (fullStackTraces) {
                 command.add("-H:+StackTrace");
-            }
-            else {
+            } else {
                 command.add("-H:-StackTrace");
             }
 
@@ -408,10 +406,10 @@ public class NativeImagePhase implements AppCreationPhase<NativeImagePhase>, Nat
         } catch (Exception e) {
             throw new AppCreatorException("Failed to build native image", e);
         } finally {
-            if(runnerJarCopied) {
+            if (runnerJarCopied) {
                 IoUtils.recursiveDelete(runnerJar);
             }
-            if(outputLibDir != null) {
+            if (outputLibDir != null) {
                 IoUtils.recursiveDelete(outputLibDir);
             }
         }
@@ -445,7 +443,7 @@ public class NativeImagePhase implements AppCreationPhase<NativeImagePhase>, Nat
             public boolean set(NativeImagePhase t, PropertyContext ctx) {
                 //System.out.println("native-image.set " + ctx.getRelativeName() + "=" + ctx.getValue());
                 final String value = ctx.getValue();
-                switch(ctx.getRelativeName()) {
+                switch (ctx.getRelativeName()) {
                     case "output":
                         t.setOutputDir(Paths.get(value));
                         break;

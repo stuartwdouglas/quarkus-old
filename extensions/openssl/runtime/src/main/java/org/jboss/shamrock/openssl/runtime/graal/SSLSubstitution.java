@@ -16,9 +16,10 @@
 
 package org.jboss.shamrock.openssl.runtime.graal;
 
+import org.wildfly.openssl.SSL;
+
 import com.oracle.svm.core.annotate.Substitute;
 import com.oracle.svm.core.annotate.TargetClass;
-import org.wildfly.openssl.SSL;
 
 /**
  */

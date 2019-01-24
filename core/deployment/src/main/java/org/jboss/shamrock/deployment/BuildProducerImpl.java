@@ -22,6 +22,7 @@ import org.jboss.shamrock.annotations.BuildProducer;
 
 /**
  * Producer class used by the source generated from the annotation processor
+ * 
  * @param <T>
  */
 @SuppressWarnings("unused")

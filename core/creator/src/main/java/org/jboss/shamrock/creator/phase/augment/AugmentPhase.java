@@ -43,6 +43,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
 import org.eclipse.microprofile.config.Config;
 import org.jboss.builder.BuildResult;
 import org.jboss.logging.Logger;
@@ -95,8 +96,8 @@ public class AugmentPhase implements AppCreationPhase<AugmentPhase>, AugmentOutc
      * If not set by the user the work directory of the creator
      * will be used instead.
      *
-     * @param outputDir  output directory for this phase
-     * @return  this phase instance
+     * @param outputDir output directory for this phase
+     * @return this phase instance
      */
     public AugmentPhase setOutputDir(Path outputDir) {
         this.outputDir = outputDir;
@@ -108,8 +109,8 @@ public class AugmentPhase implements AppCreationPhase<AugmentPhase>, AugmentOutc
      * the creation process has to be initiated with an application JAR which
      * will be unpacked into classes directory in the creator's work directory.
      *
-     * @param appClassesDir  directory for application classes
-     * @return  this phase instance
+     * @param appClassesDir directory for application classes
+     * @return this phase instance
      */
     public AugmentPhase setAppClassesDir(Path appClassesDir) {
         this.appClassesDir = appClassesDir;
@@ -121,8 +122,8 @@ public class AugmentPhase implements AppCreationPhase<AugmentPhase>, AugmentOutc
      * the user, transformed-classes directory will be created in the work
      * directory of the creator.
      *
-     * @param transformedClassesDir  directory for transformed application classes
-     * @return  this phase instance
+     * @param transformedClassesDir directory for transformed application classes
+     * @return this phase instance
      */
     public AugmentPhase setTransformedClassesDir(Path transformedClassesDir) {
         this.transformedClassesDir = transformedClassesDir;
@@ -133,8 +134,8 @@ public class AugmentPhase implements AppCreationPhase<AugmentPhase>, AugmentOutc
      * The directory for generated classes. If none is set by the user,
      * wiring-classes directory will be created in the work directory of the creator.
      *
-     * @param wiringClassesDir  directory for generated classes
-     * @return  this phase instance
+     * @param wiringClassesDir directory for generated classes
+     * @return this phase instance
      */
     public AugmentPhase setWiringClassesDir(Path wiringClassesDir) {
         this.wiringClassesDir = wiringClassesDir;
@@ -198,7 +199,7 @@ public class AugmentPhase implements AppCreationPhase<AugmentPhase>, AugmentOutc
         //first lets look for some config, as it is not on the current class path
         //and we need to load it to run the build process
         Path config = appClassesDir.resolve("META-INF").resolve("microprofile-config.properties");
-        if(Files.exists(config)) {
+        if (Files.exists(config)) {
             try {
                 Config built = SmallRyeConfigProviderResolver.instance().getBuilder()
                         .addDefaultSources()
@@ -230,10 +231,11 @@ public class AugmentPhase implements AppCreationPhase<AugmentPhase>, AugmentOutc
                 }
                 try (ZipFile zip = openZipFile(resolvedDep)) {
                     if (!appDep.getScope().equals(PROVIDED) && zip.getEntry("META-INF/services/org.jboss.shamrock.deployment.ShamrockSetup") != null) {
-                        if(problems == null) {
+                        if (problems == null) {
                             problems = new ArrayList<>();
                         }
-                        problems.add("Artifact " + appDep + " is a deployment artifact, however it does not have scope required. This will result in unnecessary jars being included in the final image");
+                        problems.add("Artifact " + appDep
+                                + " is a deployment artifact, however it does not have scope required. This will result in unnecessary jars being included in the final image");
                     }
                     ZipEntry deps = zip.getEntry(DEPENDENCIES_RUNTIME);
                     if (deps != null) {
@@ -307,7 +309,8 @@ public class AugmentPhase implements AppCreationPhase<AugmentPhase>, AugmentOutc
 
             final List<BytecodeTransformerBuildItem> bytecodeTransformerBuildItems = result.consumeMulti(BytecodeTransformerBuildItem.class);
             if (!bytecodeTransformerBuildItems.isEmpty()) {
-                final Map<String, List<BiFunction<String, ClassVisitor, ClassVisitor>>> bytecodeTransformers = new HashMap<>(bytecodeTransformerBuildItems.size());
+                final Map<String, List<BiFunction<String, ClassVisitor, ClassVisitor>>> bytecodeTransformers = new HashMap<>(
+                        bytecodeTransformerBuildItems.size());
                 if (!bytecodeTransformerBuildItems.isEmpty()) {
                     for (BytecodeTransformerBuildItem i : bytecodeTransformerBuildItems) {
                         bytecodeTransformers.computeIfAbsent(i.getClassToTransform(), (h) -> new ArrayList<>()).add(i.getVisitorFunction());
@@ -360,7 +363,7 @@ public class AugmentPhase implements AppCreationPhase<AugmentPhase>, AugmentOutc
                         final FutureEntry res = i.get();
                         final Path classFile = transformedClassesDir.resolve(res.location);
                         Files.createDirectories(classFile.getParent());
-                        try(OutputStream out = Files.newOutputStream(classFile)) {
+                        try (OutputStream out = Files.newOutputStream(classFile)) {
                             IoUtils.copy(out, new ByteArrayInputStream(res.data));
                         }
                     }
@@ -419,8 +422,8 @@ public class AugmentPhase implements AppCreationPhase<AugmentPhase>, AugmentOutc
                 return AugmentPhase.this;
             }
         }
-        .map("output", (AugmentPhase t, String value) -> t.setOutputDir(Paths.get(value)))
-        .map("classes", (AugmentPhase t, String value) -> t.setAppClassesDir(Paths.get(value)))
-        .map("wiring-classes", (AugmentPhase t, String value) -> t.setWiringClassesDir(Paths.get(value)));
+                .map("output", (AugmentPhase t, String value) -> t.setOutputDir(Paths.get(value)))
+                .map("classes", (AugmentPhase t, String value) -> t.setAppClassesDir(Paths.get(value)))
+                .map("wiring-classes", (AugmentPhase t, String value) -> t.setWiringClassesDir(Paths.get(value)));
     }
 }

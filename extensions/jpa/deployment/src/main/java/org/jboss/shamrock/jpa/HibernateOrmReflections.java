@@ -27,7 +27,7 @@ import org.jboss.shamrock.deployment.builditem.substrate.ReflectiveClassBuildIte
  * FIXME Find a reliable way to identify these and maintain the list accurate: the current list
  * is likely not complete as it was identified via a dumb "trial&error" strategy.
  *
- * @author Sanne Grinovero  <sanne@hibernate.org>
+ * @author Sanne Grinovero <sanne@hibernate.org>
  */
 public final class HibernateOrmReflections {
 

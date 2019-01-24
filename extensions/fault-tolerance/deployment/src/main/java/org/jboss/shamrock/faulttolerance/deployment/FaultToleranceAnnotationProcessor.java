@@ -81,7 +81,7 @@ public class FaultToleranceAnnotationProcessor {
     public void build(BuildProducer<AnnotationsTransformerBuildItem> annotationsTransformer, BuildProducer<FeatureBuildItem> feature) throws Exception {
 
         feature.produce(new FeatureBuildItem(FeatureBuildItem.MP_FAULT_TOLERANCE));
-        
+
         IndexView index = combinedIndexBuildItem.getIndex();
 
         // Make sure rx.internal.util.unsafe.UnsafeAccess.DISABLED_BY_USER is set.

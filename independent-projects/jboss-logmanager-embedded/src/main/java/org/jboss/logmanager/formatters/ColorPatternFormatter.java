@@ -249,7 +249,7 @@ final class Target_ColorPatternFormatter {
     static boolean trueColor = false;
 
     @Delete
-    static final boolean isColor = false;
+    static boolean isColor = false;
 
     @Substitute
     static boolean isTrueColor() {

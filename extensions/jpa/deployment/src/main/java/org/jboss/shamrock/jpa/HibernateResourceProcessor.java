@@ -57,9 +57,7 @@ import org.jboss.shamrock.arc.deployment.ResourceAnnotationBuildItem;
 import org.jboss.shamrock.deployment.Capabilities;
 import org.jboss.shamrock.deployment.builditem.ApplicationArchivesBuildItem;
 import org.jboss.shamrock.deployment.builditem.ArchiveRootBuildItem;
-import org.jboss.shamrock.deployment.builditem.AdditionalBeanBuildItem;
 import org.jboss.shamrock.deployment.builditem.ApplicationIndexBuildItem;
-import org.jboss.shamrock.deployment.builditem.BeanContainerBuildItem;
 import org.jboss.shamrock.deployment.builditem.BytecodeTransformerBuildItem;
 import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
 import org.jboss.shamrock.deployment.builditem.FeatureBuildItem;
@@ -207,7 +205,7 @@ public final class HibernateResourceProcessor {
         }
         CompositeIndex compositeIndex = CompositeIndex.create(index.getIndex(), indexer.complete());
         
-        JpaJandexScavenger scavenger = new JpaJandexScavenger(reflectiveClass, descriptors, compositeIndex, template);
+        JpaJandexScavenger scavenger = new JpaJandexScavenger(reflectiveClass, descriptors, compositeIndex);
         final KnownDomainObjects domainObjects = scavenger.discoverModelAndRegisterForReflection();
 
         for (String className : domainObjects.getClassNames()) {
@@ -415,7 +413,14 @@ public final class HibernateResourceProcessor {
                 throw new RuntimeException("Failed to read Model class", e);
             }
         }
+    }
 
+    private static List<ParsedPersistenceXmlDescriptor> loadOriginalXMLParsedDescriptors() {
+        // Enforce the persistence.xml configuration to be interpreted literally without
+        // allowing runtime overrides;
+        // (check for the runtime provided properties to be empty as well)
+        Map<Object, Object> configurationOverrides = Collections.emptyMap();
+        return PersistenceXmlParser.locatePersistenceUnits(configurationOverrides);
     }
     
     private byte[] read(InputStream is) throws IOException {

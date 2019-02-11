@@ -63,7 +63,7 @@
         <module>jdbc</module>
         <module>jpa</module>
         <module>hibernate-validator</module>
-	<module>panache</module>
+	    <module>panache</module>
 
         <!-- Spring -->
         <module>spring-di</module>
@@ -76,6 +76,9 @@
 
         <!-- Caching -->
         <module>caffeine</module>
+
+        <!-- Camel -->
+        <module>camel</module>
     </modules>
 
 </project>

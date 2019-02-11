@@ -3,15 +3,16 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>shamrock-examples-parent</artifactId>
+        <artifactId>shamrock-integration-tests-parent</artifactId>
         <groupId>org.jboss.shamrock</groupId>
         <version>1.0.0.Alpha1-SNAPSHOT</version>
         <relativePath>../</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>shamrock-strict-camel-example</artifactId>
-    <description>An example that only contains Camel related tests running in strict mode</description>
+    <artifactId>shamrock-integration-test-camel</artifactId>
+    <name>Shamrock - Integration Tests - Camel</name>
+    <description>The camel integration tests</description>
     <dependencies>
         <dependency>
             <groupId>org.jboss.shamrock</groupId>
@@ -21,16 +22,6 @@
         <dependency>
             <groupId>org.jboss.shamrock</groupId>
             <artifactId>shamrock-camel-runtime</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.shamrock</groupId>
-            <artifactId>shamrock-logging-deployment</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.shamrock</groupId>
-            <artifactId>shamrock-logging-runtime</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -49,12 +40,7 @@
         <!-- test dependencies -->
         <dependency>
             <groupId>org.jboss.shamrock</groupId>
-            <artifactId>shamrock-junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.shamrock</groupId>
-            <artifactId>shamrock-graal</artifactId>
+            <artifactId>shamrock-junit5</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -92,7 +78,7 @@
             <id>native-image</id>
             <activation>
                 <property>
-                    <name>!no-native</name>
+                    <name>native</name>
                 </property>
             </activation>
             <build>

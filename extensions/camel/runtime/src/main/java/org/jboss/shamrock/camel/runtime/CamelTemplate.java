@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 import org.apache.camel.RoutesBuilder;
 import org.jboss.shamrock.runtime.RuntimeValue;
 import org.jboss.shamrock.runtime.ShutdownContext;
-import org.jboss.shamrock.runtime.Template;
+import org.jboss.shamrock.runtime.annotations.Template;
 
 @Template
 public class CamelTemplate {

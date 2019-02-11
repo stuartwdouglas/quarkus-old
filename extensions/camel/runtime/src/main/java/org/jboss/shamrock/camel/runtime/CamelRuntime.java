@@ -31,7 +31,7 @@ import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.camel.model.ModelHelper;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.support.ResourceHelper;
-import org.apache.camel.support.ServiceSupport;
+import org.apache.camel.support.service.ServiceSupport;
 import org.apache.camel.util.ObjectHelper;
 
 public class CamelRuntime extends ServiceSupport {

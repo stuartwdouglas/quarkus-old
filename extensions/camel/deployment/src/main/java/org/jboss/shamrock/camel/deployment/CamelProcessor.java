@@ -58,18 +58,19 @@ import org.apache.camel.component.file.GenericFileProcessStrategy;
 import org.apache.camel.component.file.strategy.GenericFileProcessStrategyFactory;
 import org.apache.camel.impl.converter.DoubleMap;
 import org.apache.camel.spi.ExchangeFormatter;
+import org.eclipse.microprofile.config.Config;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.MethodInfo;
-import org.jboss.shamrock.annotations.BuildProducer;
-import org.jboss.shamrock.annotations.BuildStep;
-import org.jboss.shamrock.annotations.Record;
 import org.jboss.shamrock.camel.runtime.CamelRuntime;
 import org.jboss.shamrock.camel.runtime.CamelTemplate;
 import org.jboss.shamrock.camel.runtime.RuntimeRegistry;
-import org.jboss.shamrock.deployment.buildconfig.BuildConfig;
-import org.jboss.shamrock.deployment.buildconfig.BuildConfig.ConfigNode;
+import org.jboss.shamrock.deployment.annotations.BuildProducer;
+import org.jboss.shamrock.deployment.annotations.BuildStep;
+import org.jboss.shamrock.deployment.annotations.ExecutionTime;
+import org.jboss.shamrock.deployment.annotations.Record;
 import org.jboss.shamrock.deployment.builditem.ApplicationArchivesBuildItem;
 import org.jboss.shamrock.deployment.builditem.CombinedIndexBuildItem;
 import org.jboss.shamrock.deployment.builditem.ShutdownContextBuildItem;
@@ -82,9 +83,6 @@ import org.jboss.shamrock.deployment.recording.RecorderContext;
 import org.jboss.shamrock.runtime.RuntimeValue;
 
 
-
-import static org.jboss.shamrock.annotations.ExecutionTime.RUNTIME_INIT;
-import static org.jboss.shamrock.annotations.ExecutionTime.STATIC_INIT;
 
 class CamelProcessor {
 
@@ -175,14 +173,14 @@ class CamelProcessor {
     }
 
     @BuildStep
-    @Record(STATIC_INIT)
-    protected CamelRuntimeBuildItem createInitTask(BuildConfig buildConfig,
-                                                   RecorderContext recorderContext,
+    @Record(ExecutionTime.STATIC_INIT)
+    protected CamelRuntimeBuildItem createInitTask(RecorderContext recorderContext,
                                                    CamelTemplate template) throws Exception {
         Properties properties = new Properties();
-        ConfigNode config = buildConfig.getApplicationConfig();
-        storeProperties(properties, config, "");
-
+        Config config = ConfigProvider.getConfig();
+        for(String i : config.getPropertyNames()) {
+            properties.put(i, config.getValue(i, String.class));
+        }
         String clazz = properties.getProperty(CamelRuntime.PROP_CAMEL_RUNTIME, CamelRuntime.class.getName());
         RuntimeValue<?> iruntime = recorderContext.newInstance(clazz);
 
@@ -196,7 +194,7 @@ class CamelProcessor {
     }
 
     @BuildStep
-    @Record(RUNTIME_INIT)
+    @Record(ExecutionTime.RUNTIME_INIT)
     void createDeploymentTask(CamelTemplate template, CamelRuntimeBuildItem runtime, ShutdownContextBuildItem shutdown) throws Exception {
         template.start(shutdown, runtime.getRuntime());
     }
@@ -294,16 +292,6 @@ class CamelProcessor {
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    protected void storeProperties(Properties properties, ConfigNode config, String prefix) {
-        String s = config.asString();
-        if (s != null && !prefix.isEmpty()) {
-            properties.setProperty(prefix, s);
-        }
-        for (String key : config.getChildKeys()) {
-            storeProperties(properties, config.get(key), prefix.isEmpty() ? key : prefix + "." + key);
         }
     }
 

@@ -137,7 +137,7 @@ class CamelProcessor {
         processServices().forEach((n, c, o) -> registry.bind(n, c, recorderContext.newInstance(o)));
 
         List<RuntimeValue<?>> ibuilders = getInitRouteBuilderClasses()
-                .map(recorderContext::newInstance)
+            .map(recorderContext::newInstance)
             .collect(Collectors.toList());
 
         return new CamelRuntimeBuildItem(template.init(iruntime, registry, properties, ibuilders));

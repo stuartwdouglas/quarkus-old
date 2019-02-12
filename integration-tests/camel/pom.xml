@@ -14,16 +14,29 @@
     <name>Shamrock - Integration Tests - Camel</name>
     <description>The camel integration tests</description>
     <dependencies>
+
         <dependency>
             <groupId>org.jboss.shamrock</groupId>
-            <artifactId>shamrock-camel-deployment</artifactId>
+            <artifactId>shamrock-core-deployment</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.jboss.shamrock</groupId>
-            <artifactId>shamrock-camel-runtime</artifactId>
+            <artifactId>shamrock-core-runtime</artifactId>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.jboss.shamrock</groupId>
+            <artifactId>shamrock-camel-core-deployment</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.shamrock</groupId>
+            <artifactId>shamrock-camel-core-runtime</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.jboss.slf4j</groupId>
             <artifactId>slf4j-jboss-logging</artifactId>

@@ -4,18 +4,19 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <parent>
-        <artifactId>shamrock-build-parent</artifactId>
+        <artifactId>shamrock-camel</artifactId>
         <groupId>org.jboss.shamrock</groupId>
         <version>1.0.0.Alpha1-SNAPSHOT</version>
-        <relativePath>../../build-parent/pom.xml</relativePath>
+        <relativePath>../</relativePath>
     </parent>
+
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>shamrock-camel</artifactId>
+    <artifactId>shamrock-camel-core</artifactId>
     <packaging>pom</packaging>
-
     <modules>
-        <module>camel-core</module>
+        <module>deployment</module>
+        <module>runtime</module>
     </modules>
 
 </project>

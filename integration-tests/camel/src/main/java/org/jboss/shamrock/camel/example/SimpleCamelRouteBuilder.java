@@ -20,6 +20,10 @@ public class SimpleCamelRouteBuilder extends RouteBuilder {
 
     @Override
     public void configure() {
+        from("timer:keep-alive")
+            .setBody().constant("I'm alive !")
+            .to("log:keep-alive");
+
         from("file:{{folder}}")
             .setHeader(MyOrderService.class.getName(), MyOrderService::new)
             .split(body().tokenize("@"), SimpleCamelRouteBuilder.this::aggregate)

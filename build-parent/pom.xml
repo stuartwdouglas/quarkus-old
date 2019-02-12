@@ -32,7 +32,7 @@
    <properties>
       <!-- Enable APT by default for Eclipse -->
       <m2e.apt.activation>jdt_apt</m2e.apt.activation>
-      
+
       <aesh.version>1.11</aesh.version>
       <jandex.version>2.1.0.Final</jandex.version>
       <resteasy.version>4.0.0.Beta8</resteasy.version>
@@ -72,10 +72,10 @@
       <plexus-utils.version>3.0.24</plexus-utils.version>
       <maven-plugin-annotations.version>3.5.2</maven-plugin-annotations.version>
       <plexus-component-annotations.version>1.7.1</plexus-component-annotations.version>
-      <!-- What we actually depend on for the annotations, as latest Graal 
+      <!-- What we actually depend on for the annotations, as latest Graal
          is not available in Maven fast enough: -->
       <graal-sdk.version>1.0.0-rc11</graal-sdk.version>
-      <!-- The Graal version we suggest using in documentation - as that's 
+      <!-- The Graal version we suggest using in documentation - as that's
          what we work with by self downloading it: -->
       <graal-sdk.version-for-documentation>1.0.0-rc11</graal-sdk.version-for-documentation>
       <jackson.version>2.9.8</jackson.version>
@@ -168,16 +168,25 @@
              <artifactId>shamrock-caffeine-runtime</artifactId>
              <version>${project.version}</version>
          </dependency>
+
+         <!-- camel -->
+         <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-core</artifactId>
+            <version>${camel.version}</version>
+         </dependency>
+
          <dependency>
             <groupId>org.jboss.shamrock</groupId>
-            <artifactId>shamrock-camel-deployment</artifactId>
+            <artifactId>shamrock-camel-core-deployment</artifactId>
             <version>${project.version}</version>
          </dependency>
          <dependency>
             <groupId>org.jboss.shamrock</groupId>
-            <artifactId>shamrock-camel-runtime</artifactId>
+            <artifactId>shamrock-camel-core-runtime</artifactId>
             <version>${project.version}</version>
          </dependency>
+
          <dependency>
              <groupId>org.jboss.shamrock</groupId>
              <artifactId>cli-common</artifactId>
@@ -829,11 +838,6 @@
          </dependency>
          <dependency>
             <groupId>org.apache.camel</groupId>
-            <artifactId>camel-core</artifactId>
-            <version>${camel.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>org.apache.camel</groupId>
             <artifactId>camel-headersmap</artifactId>
             <version>${camel.version}</version>
          </dependency>
@@ -877,7 +881,7 @@
             <artifactId>maven-settings-builder</artifactId>
             <version>${maven-core.version}</version>
          </dependency>
-         
+
          <dependency>
             <groupId>org.apache.maven.plugin-tools</groupId>
             <artifactId>maven-plugin-annotations</artifactId>
@@ -916,7 +920,7 @@
             <version>${test-containers.version}</version>
             <scope>test</scope>
          </dependency>
-         
+
          <dependency>
             <groupId>org.codehaus.plexus</groupId>
             <artifactId>plexus-utils</artifactId>

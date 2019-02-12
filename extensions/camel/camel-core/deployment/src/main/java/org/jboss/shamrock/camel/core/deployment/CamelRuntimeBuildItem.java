@@ -1,4 +1,4 @@
-package org.jboss.shamrock.camel.deployment;
+package org.jboss.shamrock.camel.core.deployment;
 
 import org.jboss.builder.item.SimpleBuildItem;
 import org.jboss.shamrock.camel.runtime.CamelRuntime;

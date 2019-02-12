@@ -128,7 +128,7 @@
       <reactive-streams.version>1.0.2</reactive-streams.version>
       <test-containers.version>1.10.6</test-containers.version>
       <jboss-logging.version>3.3.2.Final</jboss-logging.version>
-      <camel.version>3.0.0-20190211.184134-134</camel.version>
+      <camel.version>3.0.0-SNAPSHOT</camel.version>
    </properties>
 
    <dependencyManagement>

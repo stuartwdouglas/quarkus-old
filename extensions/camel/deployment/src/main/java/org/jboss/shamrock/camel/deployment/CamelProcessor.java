@@ -7,9 +7,11 @@ import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -53,6 +55,8 @@ import org.apache.camel.Endpoint;
 import org.apache.camel.Producer;
 import org.apache.camel.RoutesBuilder;
 import org.apache.camel.TypeConverter;
+import org.apache.camel.builder.AdviceWithRouteBuilder;
+import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.file.GenericFile;
 import org.apache.camel.component.file.GenericFileProcessStrategy;
 import org.apache.camel.component.file.strategy.GenericFileProcessStrategyFactory;
@@ -200,7 +204,12 @@ class CamelProcessor {
     }
 
     protected Stream<String> getInitRouteBuilderClasses() {
-        return combinedIndexBuildItem.getIndex().getAllKnownImplementors(DotName.createSimple(RoutesBuilder.class.getName()))
+        Set<ClassInfo> allKnownImplementors = new HashSet<>();
+        allKnownImplementors.addAll(combinedIndexBuildItem.getIndex().getAllKnownImplementors(DotName.createSimple(RoutesBuilder.class.getName())));
+        allKnownImplementors.addAll(combinedIndexBuildItem.getIndex().getAllKnownSubclasses(DotName.createSimple(RouteBuilder.class.getName())));
+        allKnownImplementors.addAll(combinedIndexBuildItem.getIndex().getAllKnownSubclasses(DotName.createSimple(AdviceWithRouteBuilder.class.getName())));
+
+        return allKnownImplementors
                 .stream()
                 .filter(this::isConcrete)
                 .filter(this::isPublic)

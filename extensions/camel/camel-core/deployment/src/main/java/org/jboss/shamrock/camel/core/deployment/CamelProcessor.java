@@ -35,7 +35,10 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.MethodInfo;
+import org.jboss.shamrock.arc.deployment.AdditionalBeanBuildItem;
+import org.jboss.shamrock.arc.deployment.BeanContainerListenerBuildItem;
 import org.jboss.shamrock.camel.runtime.CamelRuntime;
+import org.jboss.shamrock.camel.runtime.CamelRuntimeProducer;
 import org.jboss.shamrock.camel.runtime.CamelTemplate;
 import org.jboss.shamrock.camel.runtime.RuntimeRegistry;
 import org.jboss.shamrock.deployment.annotations.BuildProducer;
@@ -89,6 +92,15 @@ class CamelProcessor {
             .build();
     }
 
+    @BuildStep
+    @Record(ExecutionTime.STATIC_INIT)
+    AdditionalBeanBuildItem camelRuntimeProducer(BuildProducer<BeanContainerListenerBuildItem> listener, CamelTemplate template, CamelRuntimeBuildItem runtimeBuildItem) {
+
+        listener.produce(new BeanContainerListenerBuildItem(template.initRuntimeInjection(runtimeBuildItem.getRuntime())));
+
+        return new AdditionalBeanBuildItem(CamelRuntimeProducer.class);
+    }
+
     @BuildStep(applicationArchiveMarkers = { CAMEL_SERVICE_BASE_PATH })
     void process() {
         IndexView view = combinedIndexBuildItem.getIndex();
@@ -121,6 +133,8 @@ class CamelProcessor {
 
         processServices();
     }
+
+
 
     @BuildStep(applicationArchiveMarkers = { CAMEL_SERVICE_BASE_PATH })
     @Record(ExecutionTime.STATIC_INIT)

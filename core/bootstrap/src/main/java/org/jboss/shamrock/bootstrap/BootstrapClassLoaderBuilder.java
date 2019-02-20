@@ -49,7 +49,7 @@ public class BootstrapClassLoaderBuilder {
     private Path appClasses;
     private Path frameworkClasses;
     private boolean localProjectsDiscovery;
-    private boolean offline = true;
+    private boolean offline = false;
 
     private BootstrapClassLoaderBuilder() {
     }
@@ -80,6 +80,7 @@ public class BootstrapClassLoaderBuilder {
     }
 
     public URLClassLoader build() throws BootstrapException {
+        long time = System.currentTimeMillis();
         if (appClasses == null) {
             throw new IllegalArgumentException("Application classes path has not been set");
         }
@@ -131,11 +132,12 @@ public class BootstrapClassLoaderBuilder {
             } else {
                 localProject = LocalProject.resolveLocalProject(LocalProject.locateCurrentProjectDir(appClasses));
             }
+            System.out.println("Local project build in " + (System.currentTimeMillis() - time));
 
             final AppArtifact appArtifact = new AppArtifact(localProject.getGroupId(), localProject.getArtifactId(), "",
                     localProject.getRawModel().getPackaging(), localProject.getVersion());
             final AetherArtifactResolver resolver = resolverBuilder.build();
-            final List<AppDependency> deps = resolver.collectDependencies(appArtifact).getBuildClasspath();
+            final List<AppDependency> deps = resolver.collectRuntimeDependencies(appArtifact).getBuildClasspath();
             final URL[] urls = new URL[deps.size() + 2];
             try {
                 int i = 0;
@@ -149,6 +151,7 @@ public class BootstrapClassLoaderBuilder {
             } catch (MalformedURLException e) {
                 throw new IllegalStateException("Failed to create a URL", e);
             }
+            System.out.println("Class loader build in " + (System.currentTimeMillis() - time));
             return new URLClassLoader(urls, parent);
         } catch (AppArtifactResolverException e) {
             throw new BootstrapException("Failed to init application classloader", e);

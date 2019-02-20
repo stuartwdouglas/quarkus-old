@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.maven.model.building.ModelBuilder;
+import org.apache.maven.model.validation.ModelValidator;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.apache.maven.settings.Profile;
 import org.apache.maven.settings.Repository;
@@ -48,6 +50,7 @@ import org.eclipse.aether.transport.http.HttpTransporterFactory;
 import org.eclipse.aether.util.repository.AuthenticationBuilder;
 import org.eclipse.aether.util.repository.DefaultProxySelector;
 import org.jboss.logging.Logger;
+import org.jboss.shamrock.bootstrap.ShamrockModelBuilderFactory;
 import org.jboss.shamrock.bootstrap.resolver.AppArtifactResolverException;
 import org.jboss.shamrock.bootstrap.util.PropertyUtils;
 
@@ -84,6 +87,7 @@ public class MavenRepoInitializer {
         locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
         locator.addService(TransporterFactory.class, FileTransporterFactory.class);
         locator.addService(TransporterFactory.class, HttpTransporterFactory.class);
+        locator.addService(ModelBuilder.class, ShamrockModelBuilderFactory.class);
 
         locator.setErrorHandler(new DefaultServiceLocator.ErrorHandler() {
             @Override

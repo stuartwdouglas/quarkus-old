@@ -24,7 +24,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.eclipse.aether.DefaultRepositoryCache;
 import org.eclipse.aether.DefaultRepositorySystemSession;
+import org.eclipse.aether.RepositoryCache;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
@@ -137,8 +139,13 @@ public class AetherArtifactResolver extends AppArtifactResolverBase {
             localRepoManager = null;
         }
         this.repoSession = newSession;
+
+        if(newSession.getCache() == null) {
+            newSession.setCache(new DefaultRepositoryCache());
+        }
         this.remoteRepos = builder.remoteRepos;
         this.graphTransformerFactory = new BootstrapDependencyGraphTransformer(repoSystem, repoSession.getDependencyGraphTransformer());
+
     }
 
     private RepositorySystemSession getCollectDepsSession(BootstrapDependencyGraphTransformer graphTransformer) {

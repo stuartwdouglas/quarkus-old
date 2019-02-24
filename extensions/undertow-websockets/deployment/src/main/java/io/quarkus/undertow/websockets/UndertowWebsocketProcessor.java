@@ -117,7 +117,6 @@ public class UndertowWebsocketProcessor {
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
     ServiceStartBuildItem setupWorker(UndertowWebsocketTemplate template, UndertowBuildItem undertow) {
-        template.setupWorker(undertow.getUndertow());
         return new ServiceStartBuildItem("Websockets");
     }
 }

@@ -48,7 +48,7 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>test-extension-runtime</artifactId>
-            <version>1.0.0.Alpha1-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
 
         <!-- test dependencies -->

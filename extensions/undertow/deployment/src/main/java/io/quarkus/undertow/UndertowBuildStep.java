@@ -24,8 +24,6 @@ import static javax.servlet.DispatcherType.REQUEST;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -104,13 +102,10 @@ import io.quarkus.deployment.builditem.ObjectSubstitutionBuildItem;
 import io.quarkus.deployment.builditem.ServiceStartBuildItem;
 import io.quarkus.deployment.builditem.ShutdownContextBuildItem;
 import io.quarkus.deployment.builditem.substrate.ReflectiveClassBuildItem;
-import io.quarkus.deployment.builditem.substrate.SubstrateConfigBuildItem;
 import io.quarkus.deployment.builditem.substrate.SubstrateResourceBuildItem;
 import io.quarkus.deployment.logging.LogCleanupFilterBuildItem;
 import io.quarkus.deployment.recording.RecorderContext;
-import io.quarkus.runtime.LaunchMode;
 import io.quarkus.runtime.RuntimeValue;
-import io.quarkus.runtime.ShutdownContext;
 import io.quarkus.runtime.annotations.ConfigItem;
 import io.quarkus.undertow.runtime.HttpConfig;
 import io.quarkus.undertow.runtime.ServletProducer;
@@ -171,15 +166,6 @@ public class UndertowBuildStep {
     @BuildStep
     AdditionalBeanBuildItem httpProducers() {
         return new AdditionalBeanBuildItem(ServletProducer.class);
-    }
-
-    @BuildStep
-    SubstrateConfigBuildItem config() {
-        return SubstrateConfigBuildItem.builder()
-                .addRuntimeInitializedClass("io.undertow.server.protocol.ajp.AjpServerResponseConduit")
-                .addRuntimeInitializedClass("io.undertow.server.protocol.ajp.AjpServerRequestConduit")
-
-                .build();
     }
 
     @BuildStep

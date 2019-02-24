@@ -276,11 +276,13 @@
                                 <configuration>
                                     <cleanupServer>true</cleanupServer>
                                     <enableHttpUrlHandler>true</enableHttpUrlHandler>
+                                    <disableReports>false</disableReports>
                                     <!-- Requires Quarkus Graal fork to work, will fail otherwise
                                       <enableRetainedHeapReporting>true</enableRetainedHeapReporting>
                                       <enableCodeSizeReporting>true</enableCodeSizeReporting>
                                     -->
                                     <graalvmHome>${graalvmHome}</graalvmHome>
+                                    <enableJni>true</enableJni>
                                 </configuration>
                             </execution>
                         </executions>

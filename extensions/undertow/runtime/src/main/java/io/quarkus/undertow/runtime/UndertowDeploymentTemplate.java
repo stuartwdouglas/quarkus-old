@@ -282,19 +282,25 @@ public class UndertowDeploymentTemplate {
             main = i.wrap(main);
         }
         currentRoot = main;
+        if (config.host.equals("0.0.0.0")) {
+            //we are binding to all interfaces
+            //but we still want a URL the user can just click on in the console
+            Timing.setHttpServer(
+                    "Listening on all interfaces on port " + config.port + ", including http://localhost:" + config.port);
 
-        Timing.setHttpServer(String.format(
-                "Listening on: " + undertow.getListenerInfo().stream().map(l -> {
-                    String address;
-                    if (l.getAddress() instanceof InetSocketAddress) {
-                        InetSocketAddress inetAddress = (InetSocketAddress) l.getAddress();
-                        address = Inet.toURLString(inetAddress.getAddress(), true) + ":" + inetAddress.getPort();
-                    } else {
-                        address = l.getAddress().toString();
-                    }
-                    return l.getProtcol() + "://" + address;
-                }).collect(Collectors.joining(", "))));
-
+        } else {
+            Timing.setHttpServer(String.format(
+                    "Listening on: " + undertow.getListenerInfo().stream().map(l -> {
+                        String address;
+                        if (l.getAddress() instanceof InetSocketAddress) {
+                            InetSocketAddress inetAddress = (InetSocketAddress) l.getAddress();
+                            address = Inet.toURLString(inetAddress.getAddress(), true) + ":" + inetAddress.getPort();
+                        } else {
+                            address = l.getAddress().toString();
+                        }
+                        return l.getProtcol() + "://" + address;
+                    }).collect(Collectors.joining(", "))));
+        }
         return new RuntimeValue<>(undertow);
     }
 

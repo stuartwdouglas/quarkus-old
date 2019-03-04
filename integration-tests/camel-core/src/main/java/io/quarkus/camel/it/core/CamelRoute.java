@@ -16,7 +16,6 @@ import org.apache.camel.support.DefaultExchange;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
-@RegisterForReflection
 public class CamelRoute extends RouteBuilder {
 
     @Override

@@ -8,6 +8,7 @@ import io.quarkus.deployment.QuarkusConfig;
 import io.quarkus.deployment.devmode.HotReplacementContext;
 import io.quarkus.deployment.devmode.HotReplacementSetup;
 import io.quarkus.runtime.LaunchMode;
+import io.quarkus.runtime.configuration.ssl.ServerSslConfig;
 import io.quarkus.undertow.runtime.HttpConfig;
 import io.quarkus.undertow.runtime.UndertowDeploymentTemplate;
 import io.undertow.server.HandlerWrapper;
@@ -31,9 +32,11 @@ public class UndertowHotReplacementSetup implements HotReplacementSetup {
         config.host = QuarkusConfig.getString("quarkus.http.host", "localhost", true);
         config.ioThreads = OptionalInt.empty();
         config.workerThreads = OptionalInt.empty();
+        //TODO: SSL config for dev mode
+        config.ssl = new ServerSslConfig();
 
         try {
-            UndertowDeploymentTemplate.startUndertowEagerly(config, wrapper, LaunchMode.DEVELOPMENT);
+            UndertowDeploymentTemplate.startUndertowEagerly(config, wrapper, LaunchMode.DEVELOPMENT, null);
         } catch (ServletException e) {
             throw new RuntimeException(e);
         }

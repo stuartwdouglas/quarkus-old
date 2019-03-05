@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.net.ssl.SSLContext;
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.servlet.MultipartConfigElement;
@@ -252,10 +253,11 @@ public class UndertowDeploymentTemplate {
     }
 
     public RuntimeValue<Undertow> startUndertow(ShutdownContext shutdown, DeploymentManager manager, HttpConfig config,
-            List<HandlerWrapper> wrappers, LaunchMode launchMode) throws ServletException {
+            List<HandlerWrapper> wrappers, LaunchMode launchMode) throws Exception {
 
         if (undertow == null) {
-            startUndertowEagerly(config, null, launchMode);
+            SSLContext context = config.ssl.toSSLContext();
+            startUndertowEagerly(config, null, launchMode, context);
 
             //in development mode undertow is started eagerly
             shutdown.addShutdownTask(new Runnable() {
@@ -305,10 +307,12 @@ public class UndertowDeploymentTemplate {
      * be no chance to use hot deployment to fix the error. In development mode we start Undertow early, so any error
      * on boot can be corrected via the hot deployment handler
      */
-    public static void startUndertowEagerly(HttpConfig config, HandlerWrapper hotDeploymentWrapper, LaunchMode launchMode)
+    public static void startUndertowEagerly(HttpConfig config, HandlerWrapper hotDeploymentWrapper, LaunchMode launchMode,
+            SSLContext sslContext)
             throws ServletException {
         if (undertow == null) {
             int port = config.determinePort(launchMode);
+            int sslPort = config.determineSslPort(launchMode);
             log.debugf("Starting Undertow on port %d", port);
             HttpHandler rootHandler = new CanonicalPathHandler(ROOT_HANDLER);
             if (hotDeploymentWrapper != null) {
@@ -328,6 +332,10 @@ public class UndertowDeploymentTemplate {
                 builder.setWorkerThreads(config.workerThreads.getAsInt());
             } else if (launchMode.isDevOrTest()) {
                 builder.setWorkerThreads(6);
+            }
+            if (sslContext != null) {
+                log.debugf("Starting Undertow HTTPS listener on port %d", sslPort);
+                builder.addHttpsListener(sslPort, config.host, sslContext);
             }
             undertow = builder
                     .build();

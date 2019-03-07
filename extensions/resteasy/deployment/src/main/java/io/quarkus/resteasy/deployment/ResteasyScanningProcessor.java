@@ -144,6 +144,7 @@ public class ResteasyScanningProcessor {
             PATCH,
             POST,
             PUT,
+            PATH //for subresources
     };
 
     private static final DotName[] RESTEASY_PARAM_ANNOTATIONS = {
